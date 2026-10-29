@@ -10,3 +10,6 @@
 
 /fonts/*
   Cache-Control: public, max-age=31536000
+
+/media/*
+  Cache-Control: public, max-age=86400

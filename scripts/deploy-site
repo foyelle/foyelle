@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Publish foyelle.org: the landing page in site/ and Foyelle's OAuth client document
 # (docs/oauth-client-metadata.json, served at /oauth/client.json), as Cloudflare static assets
-# (site/wrangler.jsonc: no Worker code, foyelle.org attached as a custom domain).
+# (site/wrangler.jsonc: foyelle.org as the custom domain; site/worker.js only answers byte ranges for /media/*).
 #   scripts/deploy-site            build into out/site and deploy (wrangler must be signed in)
 #   scripts/deploy-site --dry-run  only build the files into out/site
 set -euo pipefail
@@ -10,10 +10,12 @@ out="$root/out/site"
 wrangler=(npx --yes wrangler@4.155.0)
 
 fonts="$root/canvas/src/renderer/fonts"
-rm -rf "$out" && mkdir -p "$out/oauth" "$out/fonts"
+rm -rf "$out" && mkdir -p "$out/oauth" "$out/fonts" "$out/media"
 cp "$root"/site/{index.html,404.html,style.css,ember.svg,favicon.svg,_headers} "$out"/
 # The canvas's own fonts and their licences, so the site keeps Foyelle's default look.
 cp "$fonts"/{Nunito.ttf,GochiHand-Regular.ttf,OFL-Nunito.txt,OFL-GochiHand.txt} "$out/fonts/"
+# The README's demo (canvas/dev/record-demo.mjs), as a video with its poster frame.
+cp "$root"/docs/media/{foyelle-demo.mp4,foyelle-demo-poster.jpg} "$out/media/"
 cp "$root/docs/oauth-client-metadata.json" "$out/oauth/client.json"
 # A Client ID Metadata Document must name its own address as client_id.
 python3 -I - "$out/oauth/client.json" <<'PY'

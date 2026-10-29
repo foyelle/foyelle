@@ -22,6 +22,15 @@
   <p class="lead">An operating system with one full-screen canvas, no windows and no apps. You chat with Foyelle
     and its bots, by typing or talking, and what you need appears as cards on the same canvas.</p>
 
+  <figure class="demo">
+    <div class="frame drawn">
+      <video src="/media/foyelle-demo.mp4" poster="/media/foyelle-demo-poster.jpg" width="1440" height="900"
+        autoplay muted loop playsinline preload="metadata"
+        aria-label="Foyelle's canvas: a first start, the Files card, a note drafted in the chat, an email that waits for approval, and a switch to the Tokyo Night theme"></video>
+    </div>
+    <figcaption>The canvas on sample data: a first start, a card, a letter, an email that asks first, a new look.</figcaption>
+  </figure>
+
   <p class="note drawn"><strong>At an early stage and still experimental.</strong> Things break, change or
     disappear without notice. Don't use it with data or accounts you depend on.</p>
 
@@ -42,5 +51,12 @@
   <footer>MIT licence. Foyelle is not affiliated with or endorsed by Nous Research or the NixOS Foundation.
     Fonts: Nunito and Gochi Hand, under the <a href="/fonts/OFL-Nunito.txt">SIL Open Font License</a>.</footer>
 </main>
+<script>
+  // With reduced motion asked for, the demo waits to be played.
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const v = document.querySelector(".demo video");
+    v.removeAttribute("autoplay"); v.pause(); v.controls = true;
+  }
+</script>
 </body>
 </html>

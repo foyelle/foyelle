@@ -78,6 +78,12 @@ h1 { font: 400 4rem/1 var(--hand); margin: 0; letter-spacing: .01em; }
 
 .lead { font-size: 1.2rem; margin: 0 0 1.75rem; }
 
+/* The demo: wider than the text where there is room, in a drawn frame with a hard shadow. */
+.demo { margin: 0 0 2rem; width: min(64rem, calc(100vw - 2rem)); position: relative; left: 50%; transform: translateX(-50%); }
+.demo .frame { border-radius: var(--radius); overflow: hidden; box-shadow: var(--lift); background: var(--panel-2); }
+.demo video { display: block; width: 100%; height: auto; }
+.demo figcaption { font: 400 1.3rem/1.2 var(--hand); color: var(--fg-2); text-align: center; margin-top: .75rem; }
+
 /* The note: a sticker-yellow card with a drawn edge, slightly tilted. */
 .note {
   margin: 0 0 2rem; padding: 1rem 1.25rem; border-radius: var(--radius);
