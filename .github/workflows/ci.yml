@@ -26,8 +26,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      # The pinned Hermes commit's pyproject needs a uv that reads its exclude-newer settings; this is
+      # the version upstream's own tests.yml pins.
       - name: Install uv
-        run: pip install "uv==0.9.5"
+        run: pip install "uv==0.12.13"
 
       - name: Policy plugin
         working-directory: harness/plugin
