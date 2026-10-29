@@ -39,6 +39,9 @@ and approvals, backed by the real connectors (Files, Shell, System, Workshop) on
 window in about a second; edits to `canvas/dev` or `connectors/` restart the mock or the tools
 host. No model and no network are involved. Needs Node 22+ and `uvx`.
 
+The README's demo (`docs/media/foyelle-demo.gif`) is recorded from that same setup by
+`canvas/dev/record-demo.mjs`; its header says how to run it again after the canvas changes.
+
 ## Working on the harness patches
 
 ```bash

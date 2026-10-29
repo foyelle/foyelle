@@ -178,7 +178,7 @@ const rail = (extra = "", greet = "Good evening,<br>Ann") => `<div class="rail p
   <div class="ask">Ask, or hold Space to talk<span class="mic">●</span></div></div>`;
 const stage = () => `<div class="stage">
   <div class="pane card"><div class="kick">Tasks · Todoist</div><h3>Today</h3>${tasks()}</div>
-  <div class="pane row"><b>HKG → IST</b><span class="dim">Mon 21 Dec · 09:45–16:45 · nonstop</span><span class="end"><b>€468</b></span></div>
+  <div class="pane row"><b>LIS → IST</b><span class="dim">Mon 21 Dec · 09:45–16:45 · nonstop</span><span class="end"><b>€468</b></span></div>
   <div class="pane row"><b>✉</b><span>Anna · “Dinner on Saturday?”</span><span class="end dim">2 h ago</span></div></div>`;
 const standard = (extra, greet) => `<div class="sky-extra"></div><div class="screen">${rail(extra, greet)}${stage()}</div>`;
 
@@ -200,7 +200,7 @@ const V = [
     html: `<div class="sky-extra"></div><div class="screen">
       <div class="top"><div class="orb"></div><div class="greet">Good evening, Ann</div><div class="clock">18:42<br><span class="dim">Thursday 22 October</span></div></div>
       <div class="cards"><div class="pane card"><div class="kick">Tasks · Todoist</div><h3>Today</h3>${tasks()}</div>
-        <div class="side"><div class="pane row"><b>HKG → IST</b><span class="end"><b>€468</b></span></div>
+        <div class="side"><div class="pane row"><b>LIS → IST</b><span class="end"><b>€468</b></span></div>
           <div class="pane row"><b>✉</b><span>Anna · “Dinner on Saturday?”</span></div></div></div>
       <div class="pane dock"><div class="line"><span class="you" style="align-self:auto">What's on today?</span><span class="msg">Three things today. The electricity bill was due yesterday.</span></div>
         <div class="ask">Ask, or hold Space to talk<span class="mic">●</span></div></div></div>` },
@@ -211,7 +211,7 @@ const V = [
     html: `<div class="screen">${["Morning · 08:10", "Noon · 12:30", "Evening · 18:42", "Night · 23:15"].map((w, i) => `
       <div class="sky s${i + 1}"><div class="when">${w}</div><div class="orb"></div>
         <div class="pane card"><h3>Today</h3>${tasks()}</div>
-        <div class="pane row" style="padding:.9em 1.1em;gap:.8em"><b style="font-size:1.4em">HKG → IST</b><span class="end"><b style="font-size:1.4em">€468</b></span></div>
+        <div class="pane row" style="padding:.9em 1.1em;gap:.8em"><b style="font-size:1.4em">LIS → IST</b><span class="end"><b style="font-size:1.4em">€468</b></span></div>
         <div class="pane row" style="padding:.9em 1.1em;gap:.8em;font-size:.95em"><b style="font-size:1.2em">✉</b><span>Anna · Saturday?</span></div></div>`).join("")}</div>` },
   { id: "clear", name: "Easy to read", idea: "The same glass, made for eyes that need it: stronger panes behind text, bigger type and targets, a solid ask bar.",
     change: "Changes: contrast, size, the ask bar.", html: standard() },

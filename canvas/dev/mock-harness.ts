@@ -422,7 +422,8 @@ class MockSession {
         this.event("tool.start", { tool_id: toolId, name: "mcp__shell__theme_use", args: { theme_id: id } }, sid);
         const result = await real!.call("shell", "theme_use", { theme_id: id });
         this.event("tool.complete", { tool_id: toolId, name: "mcp__shell__theme_use", summary: "done", is_error: !!result?.isError }, sid);
-        await say(result?.isError ? "That didn't work." : `Switched to ${String(result?.structuredContent?.name ?? id)}.`);
+        const named = (() => { try { return JSON.parse(result?.content?.[0]?.text ?? "{}").name; } catch { return undefined; } })();
+        await say(result?.isError ? "That didn't work." : `Switched to ${String(result?.structuredContent?.name ?? result?.structuredContent?.result?.name ?? named ?? id)}.`);
       } else if (real && /\bthemes?\b/.test(t)) {
         await openReal("shell", "ui://shell/themes", "theme_list", {}, "Here are the themes.", "\n\nPick one, or tell me what you'd like and I'll make you your own.");
       } else if (real && /\b(characters?|embers?|mascots?)\b/.test(t)) {
@@ -453,7 +454,7 @@ class MockSession {
         // Kiwi's real flight search through the bridge, two months ahead.
         const d = new Date(Date.now() + 60 * 864e5);
         const date = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-        await openReal("kiwi", "ui://kiwi/flights", "search_flight", { flyFrom: "HKG", flyTo: "IST", departureDate: date },
+        await openReal("kiwi", "ui://kiwi/flights", "search_flight", { flyFrom: "LIS", flyTo: "IST", departureDate: date },
           "Let me look for flights.", "\n\nThe cheapest and the fastest are marked. Booking happens on Kiwi.com.");
       } else if (real && /calendar|agenda|this week|schedule/.test(t)) {
         await openReal("calendar", "ui://calendar/agenda", "list_events", {}, "Here's your week.", "");

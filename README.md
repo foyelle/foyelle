@@ -9,6 +9,8 @@ windows and no apps: you chat with Foyelle and its bots, and what you need (your
 calendar, the result of a task) appears as cards on the same canvas. It asks before anything
 leaves your home, and every change it makes to the system can be rolled back.
 
+![Foyelle's canvas: a first start, the Files card, a note drafted in the chat, an email that waits for approval, and a switch to the Tokyo Night theme](docs/media/foyelle-demo.gif)
+
 It is built on two open-source projects and an open standard:
 
 - **[Hermes Agent](https://github.com/NousResearch/hermes-agent)**, by Nous Research (MIT), is the

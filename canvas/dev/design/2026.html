@@ -356,7 +356,7 @@ const DIRS = [
         <div class="t"><span class="pip hot"></span>${L.late}<small class="hot">late · yesterday</small></div>
         <div class="t"><span class="pip"></span>${L.dentist}<small>09:00</small></div>
         <div class="t"><span class="pip"></span>${L.milk}<small>today</small></div></div>
-        <div class="card fl"><div><div class="lab">Flight · Kiwi</div><div class="mono" style="font-size:2.1em;letter-spacing:.06em">HKG → IST</div><div class="lab" style="letter-spacing:.08em">Mon 21 Dec · 09:45 · nonstop</div></div>
+        <div class="card fl"><div><div class="lab">Flight · Kiwi</div><div class="mono" style="font-size:2.1em;letter-spacing:.06em">LIS → IST</div><div class="lab" style="letter-spacing:.08em">Mon 21 Dec · 09:45 · nonstop</div></div>
           <div class="end" style="display:flex;align-items:flex-end;gap:.5em"><span class="mono" style="font-size:1.3em;color:#ff8a55">€</span>${dm("468", "price hot")}</div></div>
         <div class="card letter"><span class="dot"></span><span><b>Anna</b> · Dinner on Saturday?</span><span class="lab end">2 h ago</span></div></div></div>`,
     extra: `<h4>Its states, in dots</h4><div class="states">${[["idle", "Here", "breathing softly"], ["listening", "Listening", "a ring while you talk"], ["thinking", "Thinking", "a running pattern"], ["waiting", "Needs you", "a ring that blinks"], ["asleep", "Asleep", "dim, at night"]]
@@ -377,7 +377,7 @@ const DIRS = [
         <div class="t"><svg class="crayon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#2b2118" stroke-width="2.4" filter="url(#rough)"/></svg><span class="txt">${L.late}</span><small class="late">late!</small></div>
         <div class="t"><svg class="crayon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#2b2118" stroke-width="2.4" filter="url(#rough)"/></svg><span class="txt">${L.dentist}</span><small>9:00</small></div>
         <div class="t done"><svg class="crayon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#2b2118" stroke-width="2.4" filter="url(#rough)"/><path d="M6 12 l4 5 9 -11" stroke="#4f8a3a" stroke-width="3.4" fill="none" stroke-linecap="round" filter="url(#rough)"/></svg><span class="txt">${L.milk}</span><span class="star">done</span></div></div>
-        <div class="pair"><div class="card"><span class="tape" style="left:30%"></span><b>HKG → IST</b>Mon 21 Dec · nonstop · €468</div>
+        <div class="pair"><div class="card"><span class="tape" style="left:30%"></span><b>LIS → IST</b>Mon 21 Dec · nonstop · €468</div>
           <div class="card tilt"><span class="tape pink" style="left:30%"></span><b>✉ Anna</b>Dinner on Saturday?</div></div>
         <div class="sticky">Saturday: Anna's dinner at 7. Bring the map!</div></div></div>` },
 
@@ -389,7 +389,7 @@ const DIRS = [
         <div class="big" style="font-size:5.4em">${[..."today."].map((c, i) => `<span style="--i:${i + 3}">${c}</span>`).join("")}</div>
         <div class="sub">And the <i>electricity bill</i> was due yesterday. You asked: “What's on today?”</div></div>
       <div class="strip"><div><h5>Today · Todoist</h5><div class="t"><b>1</b>${L.late}<small>late</small></div><div class="t"><b>2</b>${L.dentist}<small>09:00</small></div><div class="t"><b>3</b>${L.milk}<small>today</small></div></div>
-        <div><h5>Flight · Kiwi</h5><div class="huge">HKG→IST</div>Mon 21 Dec · €468</div>
+        <div><h5>Flight · Kiwi</h5><div class="huge">LIS→IST</div>Mon 21 Dec · €468</div>
         <div><h5>Letter</h5><div class="huge" style="font-size:1.8em">Anna</div>Dinner on Saturday?<div class="voice" style="margin-top:.8em"><span class="bars">${[0,1,2,3,4,5,6].map((i) => `<i style="--i:${i}"></i>`).join("")}</span>hold Space to talk</div></div></div></div>` },
 
   { id: "aero", name: "Ember Aero", idea: "Edited optimism from the Frutiger Aero revival: sky, sun, bubbles and glossy, dewy surfaces, warmed with amber instead of Vista blue. Hopeful and a little nostalgic, on purpose.",
@@ -404,7 +404,7 @@ const DIRS = [
         <div class="t"><span class="drop"></span>${L.late}<span class="pill">Late</span></div>
         <div class="t"><span class="drop"></span>${L.dentist}<small>09:00</small></div>
         <div class="t"><span class="drop"></span>${L.milk}<small>Today</small></div></div>
-        <div class="gloss fl"><b>HKG → IST</b><span>Mon 21 Dec · nonstop</span><b class="end">€468</b></div>
+        <div class="gloss fl"><b>LIS → IST</b><span>Mon 21 Dec · nonstop</span><b class="end">€468</b></div>
         <div class="gloss fl"><b>✉</b><span>Anna · Dinner on Saturday?</span><span class="end" style="color:#4a6f8a">2 h ago</span></div></div></div>` },
 
   { id: "desk", name: "Desktop core, home edition", idea: "Interface nostalgia as graphics: cards are little windows with title bars, news arrives as a friendly pop-up, a pixel ember, stickers and hard shadows. Playful and instantly recognisable; risks reading as a joke if overdone.",
@@ -420,7 +420,7 @@ const DIRS = [
           <div class="t"><span class="box"></span>${L.late}<small class="late">LATE</small></div>
           <div class="t"><span class="box"></span>${L.dentist}<small>09:00</small></div>
           <div class="t"><span class="box x"></span>${L.milk}<small>today</small></div></div></div>
-        <div class="win fl"><div class="bar blue">flight.kiwi<span class="btns"><i></i></span></div><div class="body"><b>HKG→IST</b>Mon 21 Dec<br>nonstop · €468</div></div></div>
+        <div class="win fl"><div class="bar blue">flight.kiwi<span class="btns"><i></i></span></div><div class="body"><b>LIS→IST</b>Mon 21 Dec<br>nonstop · €468</div></div></div>
         <div class="win" style="width:62%"><div class="bar mint">this-week.cal<span class="btns"><i></i><i></i></span></div><div class="body">
           <div class="t"><b style="width:3.2em">Fri</b>Lunch with Sam<small>12:30</small></div>
           <div class="t"><b style="width:3.2em">Sat</b>Dinner at Anna's<small>19:00</small></div>

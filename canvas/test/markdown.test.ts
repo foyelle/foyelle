@@ -82,10 +82,10 @@ describe("renderMarkdown", () => {
 
   it("renders the agent's flight table", () => {
     const md = "| Route | Depart → Arrive (local) | Price |\n|---|---|---|\n" +
-      "| HKG → IST nonstop (Turkish TK171) | 21 Dec 09:45 → 21 Dec 16:45 | 468 · book (https://kiwi.com/u/w5qz9bm) |";
+      "| LIS → IST nonstop (Turkish TK171) | 21 Dec 09:45 → 21 Dec 16:45 | 468 · book (https://kiwi.com/u/w5qz9bm) |";
     const html = renderMarkdown(md);
     expect(html.match(/<td>/g)).toHaveLength(3);
-    expect(html).toContain("<td>HKG → IST nonstop (Turkish TK171)</td>");
+    expect(html).toContain("<td>LIS → IST nonstop (Turkish TK171)</td>");
   });
 
   it("leaves text that only looks like a table alone", () => {
