@@ -1,0 +1,537 @@
+<style>
+/* A dev-only page: twelve looks for Foyelle, each drawn on the same screen with the same content.
+   Fonts are the Mac's own as stand-ins; a chosen direction would ship open fonts (named per look). */
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #ece8e1; color: #221d18; font: 15px/1.5 -apple-system, system-ui, sans-serif; }
+.page { max-width: 1240px; margin: 0 auto; padding: 28px 28px 80px; }
+.page > header h1 { font: 600 34px/1.15 "New York", "Iowan Old Style", Georgia, serif; margin: 0 0 6px; letter-spacing: -.01em; }
+.page > header p { margin: 0 0 18px; color: #6b6158; max-width: 62em; }
+.index { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; position: sticky; top: 0; padding: 10px 0; background: #ece8e1; z-index: 5; }
+.index button { font: inherit; font-size: 13px; border: 1px solid #d3cbbf; background: #f7f4ef; border-radius: 999px; padding: 5px 12px; cursor: pointer; color: #3b332b; }
+.index button:hover { border-color: #8a7d70; }
+.dir { margin: 0 0 56px; scroll-margin-top: 64px; }
+body.only .page { max-width: none; padding: 0; }
+body.only .dir { margin: 0; }
+body.only .dir-head { display: none; }
+body.only .mock { border-radius: 0; box-shadow: none; height: 100vh; aspect-ratio: auto; }
+.dir-head { display: grid; grid-template-columns: auto 1fr; gap: 4px 18px; align-items: baseline; margin-bottom: 14px; }
+.dir-num { font: 600 13px/1 ui-monospace, Menlo, monospace; color: #8a7d70; }
+.dir-head h2 { font: 600 24px/1.2 "New York", Georgia, serif; margin: 0; }
+.dir-head .idea { grid-column: 2; color: #4b4239; max-width: 70em; margin: 0; }
+.facts { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 13px; color: #6b6158; margin-top: 4px; }
+.facts b { color: #3b332b; font-weight: 600; }
+.swatches { display: inline-flex; gap: 4px; vertical-align: middle; }
+.swatches i { width: 16px; height: 16px; border-radius: 4px; border: 1px solid rgba(0,0,0,.12); display: inline-block; }
+.verdict { grid-column: 2; font-size: 13px; color: #6b6158; margin: 2px 0 0; }
+
+/* The screen: 16:10, everything inside sized from its width so every look scales alike. */
+.mock { container-type: inline-size; width: 100%; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 18px 50px rgba(40,25,10,.18); }
+.screen { position: absolute; inset: 0; font-size: 1.32cqw; display: grid; grid-template-columns: 34% 1fr; }
+.rail { display: flex; flex-direction: column; padding: 2.2em 2.2em 1.6em; gap: 1.1em; min-width: 0; }
+.stage { padding: 2.2em; min-width: 0; display: flex; flex-direction: column; gap: 1.3em; overflow: hidden; }
+.brand { display: flex; align-items: center; gap: .6em; font-weight: 600; }
+.ask { margin-top: auto; }
+.bubble-user { align-self: flex-end; max-width: 80%; }
+.flex { display: flex; align-items: center; gap: .6em; }
+.grow { flex: 1; }
+
+/* ---------- 1. Hearth ---------- */
+.d-hearth { background: radial-gradient(120% 90% at 18% 6%, #5a2a10 0%, #2a150b 38%, #140c08 72%); color: #f3e6d3;
+  font-family: "New York", "Iowan Old Style", Georgia, serif; }
+.d-hearth .ember { width: 7em; height: 7em; border-radius: 50%; margin: .6em auto .2em;
+  background: radial-gradient(circle at 40% 36%, #fff3c7 0%, #ffb24a 22%, #e8601c 48%, #7a1f05 75%, transparent 76%);
+  box-shadow: 0 0 3em 1em rgba(255,140,40,.45), 0 0 9em 4em rgba(255,110,30,.18); }
+.d-hearth .greet { text-align: center; }
+.d-hearth .greet small { display: block; color: #cfae8a; font-size: 1em; }
+.d-hearth .greet span { font-size: 2.3em; line-height: 1.1; }
+.d-hearth .msg { font-size: 1.15em; line-height: 1.45; color: #f6ead9; }
+.d-hearth .bubble-user { background: rgba(255,180,90,.14); border: 1px solid rgba(255,180,90,.25); padding: .5em .9em; border-radius: 1em; font-family: -apple-system, sans-serif; font-size: .95em; }
+.d-hearth .ask { border: 1px solid rgba(255,190,120,.28); border-radius: 1.2em; padding: .8em 1em; color: #cfae8a; font-family: -apple-system, sans-serif; background: rgba(20,10,5,.45); }
+.d-hearth .card { background: linear-gradient(180deg, rgba(255,170,80,.16), rgba(40,22,12,.9) 30%); border: 1px solid rgba(255,170,90,.22);
+  border-radius: 1.2em; padding: 1.4em 1.6em; box-shadow: 0 -0.2em 2.4em rgba(255,120,40,.12), 0 1.4em 3em rgba(0,0,0,.45); }
+.d-hearth .kick { font-family: -apple-system, sans-serif; letter-spacing: .14em; text-transform: uppercase; font-size: .72em; color: #e0a46a; }
+.d-hearth h3 { font-size: 2em; font-weight: 500; margin: .1em 0 .6em; }
+.d-hearth .task { display: flex; gap: .9em; align-items: center; padding: .55em 0; border-top: 1px solid rgba(255,190,120,.12); font-size: 1.1em; }
+.d-hearth .dot { width: 1.1em; height: 1.1em; border-radius: 50%; border: .14em solid #e8a060; flex: none; }
+.d-hearth .dot.hot { border-color: #ff6a3a; box-shadow: 0 0 .7em rgba(255,90,40,.6); }
+.d-hearth .when { margin-left: auto; font-family: -apple-system, sans-serif; font-size: .8em; color: #cfae8a; }
+.d-hearth .late { color: #ff8a5c; }
+.d-hearth .fl { display: flex; align-items: center; gap: 1.2em; font-family: -apple-system, sans-serif; }
+.d-hearth .fl .big { font-family: "New York", Georgia, serif; font-size: 1.9em; }
+.d-hearth .fl .price { margin-left: auto; font-size: 1.6em; color: #ffc27a; }
+
+/* ---------- 2. Household paper ---------- */
+.d-paper { background: #f3ede2; color: #1d1915; font-family: "Iowan Old Style", "Palatino", Georgia, serif;
+  background-image: radial-gradient(rgba(0,0,0,.035) 1px, transparent 1px); background-size: .5em .5em; }
+.d-paper .screen { grid-template-columns: 38% 1fr; }
+.d-paper .rail { border-right: 1px solid #1d1915; padding-right: 2.4em; }
+.d-paper .mast { border-top: .35em double #1d1915; border-bottom: 1px solid #1d1915; padding: .4em 0; display: flex; justify-content: space-between;
+  font: 600 .72em/1 -apple-system, sans-serif; letter-spacing: .18em; text-transform: uppercase; }
+.d-paper .hed { font-family: "Didot", "Bodoni 72", "New York", serif; font-size: 4.3em; line-height: .95; letter-spacing: -.02em; margin: .25em 0 .1em; }
+.d-paper .dek { font-style: italic; font-size: 1.25em; color: #4a4038; }
+.d-paper .body { font-size: 1.12em; line-height: 1.5; columns: 1; }
+.d-paper .body::first-letter { font-family: "Didot", serif; float: left; font-size: 3.3em; line-height: .8; padding: .08em .1em 0 0; color: #c8331f; }
+.d-paper .q { font-style: italic; color: #6a5d52; }
+.d-paper .ask { border-bottom: 1px solid #1d1915; padding: .4em 0; font-style: italic; color: #7a6c60; }
+.d-paper .sect { display: flex; align-items: baseline; gap: .8em; border-bottom: .2em solid #1d1915; padding-bottom: .3em; }
+.d-paper .sect b { font: 700 .8em/1 -apple-system, sans-serif; letter-spacing: .2em; text-transform: uppercase; }
+.d-paper .sect span { font-style: italic; color: #6a5d52; }
+.d-paper ol { margin: 0; padding: 0; list-style: none; counter-reset: t; }
+.d-paper li { counter-increment: t; display: grid; grid-template-columns: 2.2em 1fr auto; gap: .8em; padding: .7em 0; border-bottom: 1px solid #cbbfae; font-size: 1.2em; align-items: baseline; }
+.d-paper li::before { content: counter(t, decimal-leading-zero); font: 600 .75em/1 -apple-system, sans-serif; color: #c8331f; letter-spacing: .05em; }
+.d-paper li em { font-size: .72em; font-style: normal; font-family: -apple-system, sans-serif; color: #6a5d52; letter-spacing: .04em; text-transform: uppercase; }
+.d-paper li em.late { color: #c8331f; font-weight: 600; }
+.d-paper .ad { border: 1px solid #1d1915; padding: 1em 1.2em; display: grid; grid-template-columns: 1fr auto; gap: .2em 1em; }
+.d-paper .ad .k { font: 700 .7em/1 -apple-system, sans-serif; letter-spacing: .2em; text-transform: uppercase; color: #c8331f; }
+.d-paper .ad .t { font-family: "Didot", serif; font-size: 2.1em; line-height: 1; }
+.d-paper .ad .p { font-family: "Didot", serif; font-size: 2.1em; grid-row: span 2; align-self: center; }
+.d-paper .folio { margin-top: auto; display: flex; justify-content: space-between; font: .7em/1 -apple-system, sans-serif; letter-spacing: .15em; color: #8a7b6e; text-transform: uppercase; }
+
+/* ---------- 3. Real objects ---------- */
+.d-objects { background: #cdb99c; color: #2a2119;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 .2em, transparent .2em .9em), radial-gradient(120% 120% at 70% 30%, #dcc9ab, #b59c78); }
+.d-objects .screen { grid-template-columns: 31% 1fr; }
+.d-objects .pad { background: #fffdf4; border-radius: .3em; padding: 1.6em 1.6em 1.2em; height: 100%; box-shadow: 0 .4em 1.2em rgba(60,35,10,.3); transform: rotate(-.8deg);
+  background-image: repeating-linear-gradient(180deg, transparent 0 1.75em, #c9dbe8 1.75em calc(1.75em + 1px)); display: flex; flex-direction: column; gap: .8em;
+  font-family: "Noteworthy", "Bradley Hand", "Marker Felt", cursive; font-size: 1.05em; line-height: 1.75em; }
+.d-objects .pad .brand { font-family: -apple-system, sans-serif; font-size: .85em; }
+.d-objects .pad .ember { width: 1.4em; height: 1.4em; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffd27a, #e5632a 60%, #9b2c0c); }
+.d-objects .pad .me { color: #2b5ea8; align-self: flex-end; }
+.d-objects .pad .ask { font-family: -apple-system, sans-serif; font-size: .85em; color: #8a7a6a; border-top: 1px dashed #b8a990; padding-top: .5em; line-height: 1.4; }
+.d-objects .stage { position: relative; display: block; padding: 2.4em; }
+.d-objects .index-card { position: absolute; left: 3%; top: 6%; width: 52%; background: #fffefa; padding: 1.3em 1.5em 1.2em; transform: rotate(1.4deg);
+  box-shadow: 0 .5em 1.4em rgba(60,35,10,.35); background-image: linear-gradient(180deg, transparent 3.6em, #e5524a 3.6em, #e5524a calc(3.6em + 2px), transparent calc(3.6em + 2px)),
+  repeating-linear-gradient(180deg, transparent 0 2.1em, #bcd2e4 2.1em calc(2.1em + 1px)); background-position: 0 0, 0 1.6em; }
+.d-objects .index-card h3 { margin: 0 0 1.1em; font: 700 1.5em/1.4 "American Typewriter", "Courier New", monospace; }
+.d-objects .row { display: flex; gap: .7em; align-items: center; font-family: "Noteworthy", "Bradley Hand", cursive; font-size: 1.15em; height: 2.1em; }
+.d-objects .box { width: 1em; height: 1em; border: .12em solid #2a2119; border-radius: .15em; flex: none; position: relative; }
+.d-objects .box.done::after { content: "✓"; position: absolute; left: -.05em; top: -.45em; font-size: 1.5em; color: #2b5ea8; }
+.d-objects .row.done span { text-decoration: line-through; text-decoration-color: #2b5ea8; color: #6b5d50; }
+.d-objects .row small { margin-left: auto; font-family: -apple-system, sans-serif; font-size: .65em; color: #8a6d55; }
+.d-objects .row small.late { color: #d0392b; font-weight: 700; }
+.d-objects .pass { position: absolute; right: 4%; bottom: 8%; width: 58%; height: 38%; display: grid; grid-template-columns: 1fr 28%; transform: rotate(-2.2deg);
+  filter: drop-shadow(0 .5em .9em rgba(60,35,10,.35)); font-family: -apple-system, sans-serif; }
+.d-objects .pass > div { background: #f7f9fc; padding: 1.1em 1.3em; }
+.d-objects .pass .main { border-radius: .7em 0 0 .7em; border-right: .14em dashed #a8b3c2; background: linear-gradient(90deg, #1f4e8c 0 .6em, #f7f9fc .6em); padding-left: 1.8em; }
+.d-objects .pass .stub { border-radius: 0 .7em .7em 0; display: flex; flex-direction: column; justify-content: space-between; }
+.d-objects .pass .k { font-size: .62em; letter-spacing: .14em; text-transform: uppercase; color: #6c7a8c; }
+.d-objects .pass .codes { display: flex; align-items: center; gap: .8em; font: 700 2.6em/1 "Avenir Next Condensed", "Helvetica Neue", sans-serif; color: #1f2d3d; margin: .15em 0; }
+.d-objects .pass .codes i { font-style: normal; font-size: .45em; color: #8a96a6; }
+.d-objects .pass .grid4 { display: grid; grid-template-columns: repeat(4, auto); gap: .3em 1.6em; margin-top: 1.3em; justify-content: start; }
+.d-objects .pass .grid4 > div { display: flex; flex-direction: column; gap: .2em; }
+.d-objects .pass .grid4 b { font: 700 1.25em/1 "Avenir Next Condensed", "Helvetica Neue", sans-serif; color: #1f2d3d; }
+.d-objects .pass .bar { height: 2.2em; background: repeating-linear-gradient(90deg, #1f2d3d 0 .12em, transparent .12em .3em, #1f2d3d .3em .38em, transparent .38em .55em); }
+.d-objects .sticky { position: absolute; right: 6%; top: 7%; width: 20%; aspect-ratio: 1; background: #ffe36e; padding: 1em; transform: rotate(3deg);
+  box-shadow: 0 .4em .9em rgba(60,35,10,.3); font-family: "Noteworthy", cursive; font-size: 1.05em; line-height: 1.35; }
+
+/* ---------- 4. Ember glass ---------- */
+.d-glass { color: #fff; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+  background: radial-gradient(60% 70% at 20% 25%, rgba(255,150,90,.9), transparent 60%), radial-gradient(70% 80% at 85% 90%, rgba(120,70,190,.9), transparent 60%),
+  linear-gradient(160deg, #3a2a6b 0%, #b6516a 52%, #f29a63 100%); }
+.d-glass .pane { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.32); border-radius: 1.6em; backdrop-filter: blur(1.6em) saturate(1.4);
+  box-shadow: 0 1.2em 3em rgba(40,10,50,.25), inset 0 1px 0 rgba(255,255,255,.4); }
+.d-glass .rail { margin: 1.4em 0 1.4em 1.4em; padding: 1.8em; }
+.d-glass .stage { padding: 1.4em 1.4em 1.4em 1.2em; }
+.d-glass .orb { width: 4.6em; height: 4.6em; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0, #ffe0b0 14%, #ff9a52 40%, #e2483a 70%, #8d2a5e 100%);
+  box-shadow: 0 0 2.4em rgba(255,150,90,.8), inset -.4em -.6em 1em rgba(120,20,60,.5); }
+.d-glass .greet { font-size: 2.2em; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+.d-glass .msg { font-size: 1.1em; line-height: 1.45; opacity: .95; }
+.d-glass .bubble-user { background: rgba(255,255,255,.25); padding: .5em .9em; border-radius: 1em; }
+.d-glass .ask { background: rgba(255,255,255,.18); border-radius: 1.2em; padding: .8em 1em; opacity: .9; }
+.d-glass .card { padding: 1.6em 1.8em; }
+.d-glass h3 { font-size: 2.2em; font-weight: 700; letter-spacing: -.02em; margin: 0 0 .4em; }
+.d-glass .task { display: flex; align-items: center; gap: .9em; padding: .7em .9em; border-radius: 1em; background: rgba(255,255,255,.12); margin-bottom: .45em; font-size: 1.1em; }
+.d-glass .ring { width: 1.2em; height: 1.2em; border-radius: 50%; border: .15em solid rgba(255,255,255,.85); }
+.d-glass .task small { margin-left: auto; opacity: .8; font-size: .8em; }
+.d-glass .chip { background: rgba(255,90,70,.75); padding: .1em .6em; border-radius: 1em; font-size: .75em; }
+.d-glass .fl { display: flex; align-items: center; gap: 1.4em; padding: 1.2em 1.6em; }
+.d-glass .fl b { font-size: 2em; letter-spacing: -.02em; }
+
+/* ---------- 5. Swiss home ---------- */
+.d-swiss { background: #f6f5f1; color: #0d0d0d; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+.d-swiss .screen { grid-template-columns: 1fr 1fr 1fr 1fr; grid-template-rows: auto 1fr; gap: 0; }
+.d-swiss .cell { border-right: 1px solid #0d0d0d; border-bottom: 1px solid #0d0d0d; padding: 1.4em 1.6em; min-width: 0; }
+.d-swiss .time { grid-column: span 2; font-weight: 700; font-size: 9.5em; line-height: .82; letter-spacing: -.06em; padding-top: .14em; }
+.d-swiss .date { font-size: 1.05em; line-height: 1.3; }
+.d-swiss .date b { display: block; font-size: 2.2em; letter-spacing: -.03em; line-height: 1; margin-bottom: .2em; }
+.d-swiss .sun { background: #ff4f00; border-right: 0; display: flex; align-items: flex-end; justify-content: flex-end; }
+.d-swiss .sun span { width: 7em; height: 7em; border-radius: 50%; background: #0d0d0d; }
+.d-swiss .conv { grid-column: span 1; display: flex; flex-direction: column; gap: .9em; font-size: 1.05em; line-height: 1.35; }
+.d-swiss .conv .u { font-weight: 700; }
+.d-swiss .conv .ask { border-top: .25em solid #0d0d0d; padding-top: .5em; color: #6b6b6b; }
+.d-swiss .tasks { grid-column: span 2; }
+.d-swiss .lab { font-weight: 700; font-size: .8em; letter-spacing: .02em; text-transform: uppercase; margin-bottom: 1em; display: flex; justify-content: space-between; }
+.d-swiss .t { display: grid; grid-template-columns: 3em 1fr auto; align-items: baseline; padding: .55em 0; border-top: 1px solid #0d0d0d; font-size: 1.25em; }
+.d-swiss .t .n { font-weight: 700; font-size: 1.6em; letter-spacing: -.04em; }
+.d-swiss .t small { font-size: .7em; }
+.d-swiss .t.late .n, .d-swiss .t.late small { color: #ff4f00; }
+.d-swiss .flight { border-right: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.d-swiss .flight .r { font-weight: 700; font-size: 3.2em; letter-spacing: -.05em; line-height: .9; }
+.d-swiss .flight .p { font-weight: 700; font-size: 2.2em; letter-spacing: -.04em; color: #ff4f00; }
+
+/* ---------- 6. Warm terminal ---------- */
+.d-term { background: #1b1613; color: #e9dcc6; font-family: "SF Mono", "JetBrains Mono", Menlo, monospace; }
+.d-term .screen { font-size: 1.12cqw; grid-template-columns: 36% 1fr; }
+.d-term .rail { border-right: 1px solid #3a2f27; gap: .7em; }
+.d-term .bar { display: flex; justify-content: space-between; color: #8d7b68; border-bottom: 1px solid #3a2f27; padding-bottom: .7em; }
+.d-term .bar b { color: #ffb454; font-weight: 600; }
+.d-term .ln { line-height: 1.6; }
+.d-term .p { color: #ffb454; }
+.d-term .dim { color: #8d7b68; }
+.d-term .ok { color: #9ccc65; }
+.d-term .cursor { display: inline-block; width: .6em; height: 1.1em; background: #ffb454; vertical-align: -.15em; box-shadow: 0 0 .8em #ff9a2a; }
+.d-term .ask { border: 1px solid #ffb454; padding: .6em .8em; color: #ffd8a1; }
+.d-term .keys { display: flex; gap: 1.4em; color: #8d7b68; font-size: .85em; }
+.d-term .keys kbd { color: #1b1613; background: #ffb454; padding: 0 .35em; font: inherit; }
+.d-term .win { border: 1px solid #5a4a3c; position: relative; padding: 1.4em 1.4em 1em; }
+.d-term .win::before { content: attr(data-t); position: absolute; top: -.75em; left: 1em; background: #1b1613; padding: 0 .5em; color: #ffb454; }
+.d-term .row { display: grid; grid-template-columns: 2.4em 1fr auto; padding: .35em 0; }
+.d-term .row .late { color: #ff6e4a; }
+.d-term .sel { background: #3a2a1d; outline: 1px solid #ffb454; }
+.d-term .fl { display: grid; grid-template-columns: auto 1fr auto; gap: 1.4em; align-items: center; }
+.d-term .fl .big { font-size: 2.2em; color: #ffd8a1; }
+
+/* ---------- 7. Clay ---------- */
+.d-clay { background: #f1e9ff; color: #3b2f5c; font-family: "SF Pro Rounded", "Nunito", "Avenir Next", -apple-system, sans-serif; }
+.d-clay .puff { background: #fbf8ff; border-radius: 2.2em; box-shadow: .9em .9em 2em rgba(130,100,200,.22), -.6em -.6em 1.6em rgba(255,255,255,.95), inset 0 0 0 1px rgba(255,255,255,.7); }
+.d-clay .rail { margin: 1.6em 0 1.6em 1.6em; padding: 2em; }
+.d-clay .stage { padding: 1.6em; }
+.d-clay .blob { width: 5.4em; height: 5.4em; border-radius: 46% 54% 52% 48% / 55% 45% 55% 45%; background: radial-gradient(circle at 32% 30%, #fff1d6 0, #ffb37a 30%, #ff7b6b 70%, #e05a8f 100%);
+  box-shadow: .5em .7em 1.4em rgba(224,90,143,.35), inset -.5em -.6em 1em rgba(200,60,110,.35), inset .4em .4em .8em rgba(255,255,255,.6); }
+.d-clay .greet { font-size: 2.2em; font-weight: 800; line-height: 1.1; color: #2c2150; }
+.d-clay .msg { font-size: 1.12em; line-height: 1.45; }
+.d-clay .bubble-user { background: #ffd9c7; color: #6a2e1a; padding: .6em 1em; border-radius: 1.2em 1.2em .3em 1.2em; font-weight: 600; }
+.d-clay .ask { background: #ece3ff; border-radius: 1.4em; padding: .9em 1.1em; color: #8a7bb0; box-shadow: inset .3em .3em .7em rgba(130,100,200,.2), inset -.3em -.3em .6em #fff; }
+.d-clay .card { padding: 1.8em; }
+.d-clay h3 { font-size: 2.2em; font-weight: 800; margin: 0 0 .6em; color: #2c2150; }
+.d-clay .task { display: flex; align-items: center; gap: 1em; background: #fff; border-radius: 1.4em; padding: .8em 1em; margin-bottom: .7em; font-size: 1.12em; font-weight: 600;
+  box-shadow: .3em .4em .8em rgba(130,100,200,.15); }
+.d-clay .bean { width: 1.6em; height: 1.6em; border-radius: 50%; background: #efe8ff; box-shadow: inset .15em .2em .35em rgba(130,100,200,.35); flex: none; }
+.d-clay .bean.mint { background: #c9f2df; } .d-clay .bean.peach { background: #ffd9c7; }
+.d-clay .task small { margin-left: auto; background: #ffe2ec; color: #c03f73; border-radius: 1em; padding: .15em .7em; font-size: .75em; }
+.d-clay .task small.calm { background: #e4f6ef; color: #2b8a62; }
+.d-clay .fl { display: flex; align-items: center; gap: 1.2em; padding: 1.3em 1.6em; background: #fff2e6; }
+.d-clay .fl b { font-size: 1.9em; font-weight: 800; }
+.d-clay .plane { width: 2.6em; height: 2.6em; border-radius: 50%; background: #ffcf9a; display: grid; place-items: center; font-size: 1.2em; box-shadow: inset -.2em -.3em .5em rgba(200,110,40,.35); }
+
+/* ---------- 8. Riso print ---------- */
+.d-riso { background: #f5f0e4; color: #1d3c8f; font-family: "Avenir Next Condensed", "Helvetica Neue", sans-serif;
+  background-image: radial-gradient(rgba(29,60,143,.07) 18%, transparent 19%); background-size: .45em .45em; }
+.d-riso .pink { color: #ff4fa3; }
+.d-riso .rail { gap: .9em; }
+.d-riso .head { font-weight: 800; font-size: 4.6em; line-height: .86; text-transform: uppercase; letter-spacing: -.02em; position: relative; color: #1d3c8f; mix-blend-mode: multiply; }
+.d-riso .head::after { content: attr(data-t); position: absolute; left: .06em; top: .05em; color: #ff4fa3; mix-blend-mode: multiply; z-index: -1; }
+.d-riso .sun { width: 5em; height: 5em; border-radius: 50%; background: radial-gradient(#ff4fa3 38%, transparent 40%) 0 0 / .5em .5em, #ffd1e6; mix-blend-mode: multiply; }
+.d-riso .msg { font-family: "Avenir Next", sans-serif; font-size: 1.12em; line-height: 1.45; }
+.d-riso .hl { background: linear-gradient(transparent 55%, rgba(255,79,163,.55) 55%); }
+.d-riso .bubble-user { border: .15em solid #1d3c8f; padding: .4em .8em; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.d-riso .ask { border-top: .3em solid #ff4fa3; padding-top: .5em; font-family: "Avenir Next", sans-serif; color: #5a6fb0; }
+.d-riso .card { border: .18em solid #1d3c8f; padding: 1.3em 1.5em; background: rgba(255,255,255,.4); box-shadow: .55em .55em 0 #ff4fa3; }
+.d-riso h3 { margin: 0 0 .5em; font-weight: 800; font-size: 2.6em; text-transform: uppercase; line-height: .9; }
+.d-riso .t { display: flex; gap: .8em; align-items: center; padding: .45em 0; font-family: "Avenir Next", sans-serif; font-size: 1.15em; font-weight: 600; border-top: .1em dashed #1d3c8f; }
+.d-riso .t i { width: 1em; height: 1em; border: .15em solid #1d3c8f; border-radius: 50%; }
+.d-riso .t small { margin-left: auto; font-weight: 700; font-size: .75em; text-transform: uppercase; letter-spacing: .05em; }
+.d-riso .fl { display: flex; align-items: center; gap: 1.2em; }
+.d-riso .fl b { font-size: 3.2em; font-weight: 800; line-height: .9; }
+
+/* ---------- 9. Window light (Nordic) ---------- */
+.d-nordic { background: #f7f5f1; color: #2f3431; font-family: "Avenir Next", "Gill Sans", -apple-system, sans-serif; font-weight: 400; }
+.d-nordic .rail { background: linear-gradient(90deg, #eadfcc, #efe6d6); border-right: 1px solid #e0d3bd; }
+.d-nordic .stage { position: relative; }
+.d-nordic .stage::before { content: ""; position: absolute; inset: -20% -10% 0 20%; pointer-events: none;
+  background: repeating-linear-gradient(115deg, rgba(255,230,180,.0) 0 3em, rgba(255,226,170,.35) 3em 9em, rgba(255,230,180,0) 9em 11em); filter: blur(1.2em); }
+.d-nordic .stone { width: 2.4em; height: 2.4em; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ffd8a8, #e98d4f 70%); box-shadow: 0 0 1.6em rgba(233,141,79,.35); }
+.d-nordic .greet { font-weight: 300; font-size: 2.6em; line-height: 1.1; letter-spacing: -.01em; }
+.d-nordic .greet b { font-weight: 500; }
+.d-nordic .msg { font-size: 1.1em; line-height: 1.55; color: #47504b; }
+.d-nordic .bubble-user { background: #fff; padding: .5em .9em; border-radius: .6em; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.d-nordic .ask { background: #fffdf9; border: 1px solid #e3d8c6; border-radius: .8em; padding: .8em 1em; color: #9a9184; }
+.d-nordic .card { position: relative; background: rgba(255,255,255,.88); border-radius: 1em; padding: 1.6em 1.8em; box-shadow: 0 .1em .3em rgba(0,0,0,.04), 0 1em 2.4em rgba(60,50,30,.08); }
+.d-nordic h3 { font-weight: 300; font-size: 2.2em; margin: 0 0 .5em; letter-spacing: -.01em; }
+.d-nordic .task { display: flex; align-items: center; gap: 1em; padding: .65em 0; border-bottom: 1px solid #eee7dc; font-size: 1.1em; }
+.d-nordic .leaf { width: 1.15em; height: 1.15em; border-radius: 50%; border: .12em solid #7c9a82; }
+.d-nordic .task small { margin-left: auto; color: #8e9a91; font-size: .8em; }
+.d-nordic .task small.late { color: #c4643f; }
+.d-nordic .fl { display: flex; align-items: center; gap: 1.6em; }
+.d-nordic .fl b { font-weight: 300; font-size: 2.2em; }
+.d-nordic .fl .p { margin-left: auto; font-size: 1.5em; color: #5e7d66; }
+
+/* ---------- 10. Letters & stamps ---------- */
+.d-post { background: #efe6d2; color: #2b2a36; font-family: "American Typewriter", "Courier New", monospace;
+  background-image: radial-gradient(120% 90% at 50% 0%, #f6efdf, #e6dac0); }
+.d-post .rail { gap: 1em; }
+.d-post .stamp { width: 5.2em; height: 6.2em; padding: .45em; background: #fff;
+  -webkit-mask: radial-gradient(circle .3em at .3em .3em, transparent 98%, #000) -.3em -.3em / .78em .78em;
+  mask: radial-gradient(circle .3em at .3em .3em, transparent 98%, #000) -.3em -.3em / .78em .78em; filter: drop-shadow(0 .2em .3em rgba(0,0,0,.2)); }
+.d-post .stamp div { width: 100%; height: 100%; background: radial-gradient(circle at 50% 42%, #ffd18a 0 18%, #e46b2e 19% 30%, transparent 31%), linear-gradient(180deg, #2f5d8c, #6e93b8);
+  display: flex; align-items: flex-end; justify-content: center; color: #fff; font-size: .6em; padding-bottom: .3em; letter-spacing: .1em; }
+.d-post .greet { font-family: "Snell Roundhand", "Apple Chancery", "Savoye LET", cursive; font-size: 2.6em; line-height: 1.1; color: #2f3c6e; }
+.d-post .msg { font-size: 1em; line-height: 1.6; }
+.d-post .bubble-user { background: #fffaf0; border: 1px solid #c9b996; padding: .4em .8em; transform: rotate(-1deg); }
+.d-post .ask { border: 1px dashed #8a7a5a; padding: .7em .9em; color: #8a7a5a; }
+.d-post .card { position: relative; background: #fffaf0; padding: 1.5em 1.7em; box-shadow: 0 .5em 1.4em rgba(80,60,20,.2); }
+.d-post .card.air { border: .55em solid transparent; border-image: repeating-linear-gradient(135deg, #c8352f 0 1em, #fffaf0 1em 2em, #2f5d8c 2em 3em, #fffaf0 3em 4em) 20; }
+.d-post h3 { margin: 0 0 .6em; font-family: "Snell Roundhand", "Apple Chancery", cursive; font-size: 2.4em; font-weight: 400; color: #2f3c6e; }
+.d-post .postmark { position: absolute; right: 1.4em; top: 1.1em; width: 5.6em; height: 5.6em; border-radius: 50%; border: .18em double #b23a35; color: #b23a35;
+  display: grid; place-items: center; text-align: center; font-size: .8em; line-height: 1.2; transform: rotate(-12deg); opacity: .8; }
+.d-post .t { display: flex; align-items: baseline; gap: .8em; padding: .5em 0; border-bottom: 1px dotted #b9a983; font-size: 1.05em; }
+.d-post .t small { margin-left: auto; font-size: .78em; color: #7a6c50; }
+.d-post .t small.late { color: #b23a35; }
+.d-post .fl { display: flex; align-items: center; gap: 1.2em; }
+.d-post .fl b { font-size: 2em; letter-spacing: .05em; }
+.d-post .fl .p { margin-left: auto; font-size: 1.3em; color: #b23a35; }
+
+/* ---------- 11. Night lantern ---------- */
+.d-night { background: radial-gradient(90% 70% at 70% 10%, #1d2b4a, #0b1222 60%, #070b16); color: #e8ecf6; font-family: "New York", Georgia, serif; }
+.d-night .stars { position: absolute; inset: 0; background-image: radial-gradient(1px 1px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 32% 8%, #cfe0ff, transparent),
+  radial-gradient(1.5px 1.5px at 55% 22%, #fff, transparent), radial-gradient(1px 1px at 78% 12%, #fff, transparent), radial-gradient(1px 1px at 90% 35%, #cfe0ff, transparent),
+  radial-gradient(1px 1px at 22% 40%, #fff, transparent), radial-gradient(1px 1px at 66% 44%, #fff, transparent); opacity: .7; }
+.d-night .screen { z-index: 1; }
+.d-night .lantern { width: 3.2em; height: 4.4em; border-radius: 1.6em 1.6em 1.1em 1.1em; background: radial-gradient(circle at 50% 55%, #fff6cf, #ffc75a 45%, #d97b1f 85%);
+  box-shadow: 0 0 2.4em 1em rgba(255,190,80,.4), 0 0 7em 3em rgba(255,170,60,.15); }
+.d-night .greet { font-size: 2.3em; line-height: 1.1; }
+.d-night .greet small { display: block; font-size: .45em; color: #9fb0d4; font-family: -apple-system, sans-serif; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .4em; }
+.d-night .msg { font-size: 1.12em; line-height: 1.5; color: #d8def0; }
+.d-night .bubble-user { background: rgba(255,200,100,.12); border: 1px solid rgba(255,200,100,.3); color: #ffe2a8; padding: .5em .9em; border-radius: 1em; font-family: -apple-system, sans-serif; }
+.d-night .ask { border-bottom: 1px solid rgba(160,180,220,.35); padding: .6em 0; color: #8495bb; font-family: -apple-system, sans-serif; }
+.d-night .card { background: rgba(20,30,55,.75); border: 1px solid rgba(160,180,220,.18); border-radius: 1.2em; padding: 1.5em 1.7em; box-shadow: 0 0 0 1px rgba(255,200,100,.05), 0 1.2em 3em rgba(0,0,0,.5); }
+.d-night h3 { font-size: 2em; font-weight: 400; margin: 0 0 .5em; }
+.d-night .t { display: flex; align-items: center; gap: .9em; padding: .6em 0; border-top: 1px solid rgba(160,180,220,.12); font-size: 1.08em; }
+.d-night .t i { width: .9em; height: .9em; border-radius: 50%; background: #ffc75a; box-shadow: 0 0 .6em #ffb03a; }
+.d-night .t i.off { background: transparent; border: .12em solid #6a7ba3; box-shadow: none; }
+.d-night .t small { margin-left: auto; font-family: -apple-system, sans-serif; font-size: .78em; color: #8ea0c8; }
+.d-night .t small.late { color: #ffb48a; }
+.d-night .fl { display: flex; align-items: center; gap: 1.3em; font-family: -apple-system, sans-serif; }
+.d-night .fl b { font-family: "New York", serif; font-size: 2em; font-weight: 400; }
+.d-night .fl .p { margin-left: auto; font-size: 1.4em; color: #ffd28a; }
+
+/* ---------- 12. Bauhaus toy ---------- */
+.d-bau { background: #f2ece0; color: #141414; font-family: "Futura", "Avenir Next", sans-serif; }
+.d-bau .screen { grid-template-columns: 30% 1fr; }
+.d-bau .rail { background: #1f3fbf; color: #fff; }
+.d-bau .shapes { display: flex; gap: .5em; align-items: flex-end; }
+.d-bau .shapes span:nth-child(1) { width: 3em; height: 3em; border-radius: 50%; background: #f4b400; }
+.d-bau .shapes span:nth-child(2) { width: 0; height: 0; border-left: 1.6em solid transparent; border-right: 1.6em solid transparent; border-bottom: 2.8em solid #e2382b; }
+.d-bau .shapes span:nth-child(3) { width: 2.6em; height: 2.6em; background: #fff; }
+.d-bau .greet { font-weight: 700; font-size: 2.5em; line-height: 1; text-transform: uppercase; letter-spacing: .01em; }
+.d-bau .msg { font-size: 1.1em; line-height: 1.45; }
+.d-bau .bubble-user { background: #f4b400; color: #141414; padding: .45em .9em; font-weight: 700; border-radius: 1.4em 0 1.4em 1.4em; }
+.d-bau .ask { background: #fff; color: #555; padding: .8em 1em; border-radius: 0 1.4em 1.4em 1.4em; }
+.d-bau .card { background: #fff; padding: 1.5em 1.7em; position: relative; border: .3em solid #141414; }
+.d-bau .card::after { content: ""; position: absolute; right: -1.4em; top: -1.4em; width: 3em; height: 3em; border-radius: 50%; background: #e2382b; }
+.d-bau h3 { margin: 0 0 .6em; font-weight: 700; font-size: 2.4em; text-transform: uppercase; line-height: 1; }
+.d-bau .t { display: flex; align-items: center; gap: 1em; padding: .55em 0; border-top: .14em solid #141414; font-size: 1.12em; font-weight: 500; }
+.d-bau .t i { width: 1.1em; height: 1.1em; background: #f2ece0; border: .14em solid #141414; }
+.d-bau .t:nth-child(2) i { border-radius: 50%; } .d-bau .t:nth-child(3) i { transform: rotate(45deg) scale(.85); }
+.d-bau .t small { margin-left: auto; font-weight: 700; font-size: .78em; text-transform: uppercase; }
+.d-bau .t small.late { background: #e2382b; color: #fff; padding: .1em .5em; }
+.d-bau .fl { display: grid; grid-template-columns: auto 1fr auto; gap: 1.2em; align-items: center; background: #f4b400; padding: 1.2em 1.6em; border: .3em solid #141414; }
+.d-bau .fl b { font-size: 2.2em; font-weight: 700; }
+</style>
+<div class="page">
+  <header>
+    <h1>Foyelle: twelve directions</h1>
+    <p>Every look draws the same screen with the same content: the ember and greeting, a short exchange, today's tasks, a flight. Fonts here are the Mac's own as stand-ins; the open fonts a chosen look would ship with are named under each. Pick the ones that feel like Foyelle, or name what to mix.</p>
+  </header>
+  <nav class="index" id="index" aria-label="Directions"></nav>
+  <main id="dirs"></main>
+</div>
+<script>
+// Static content only (no data from anywhere), so the mockups are written as HTML strings.
+const MAIL = "Anna · “Dinner on Saturday?”";
+const T = {
+  late: "Pay the electricity bill", dentist: "Call the dentist", milk: "Buy milk, bread and coffee",
+};
+const DIRS = [
+  { id: "hearth", name: "Hearth", idea: "The screen is a room lit by a fire. The ember is large and alive and lights everything: cards catch its glow, night dims it, a question makes it pulse.",
+    signature: "The living ember and its light on the cards", type: "Fraunces (display serif) + Inter", colors: ["#140c08", "#5a2a10", "#e8601c", "#ffb24a", "#f3e6d3"],
+    html: `<div class="screen"><div class="rail">
+      <div class="ember"></div>
+      <div class="greet"><small>Good evening, Ann</small><span>What can I do for you?</span></div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="card"><div class="kick">Tasks · Todoist</div><h3>Today</h3>
+        <div class="task"><span class="dot hot"></span>${T.late}<span class="when late">Yesterday</span></div>
+        <div class="task"><span class="dot"></span>${T.dentist}<span class="when">09:00</span></div>
+        <div class="task"><span class="dot"></span>${T.milk}<span class="when">Today</span></div></div>
+        <div class="card fl"><span class="big">Lisbon → Istanbul</span><span>Mon 21 Dec · 09:45–16:45 · nonstop</span><span class="price">€468</span></div>
+        <div class="card fl"><span class="big">✉</span><span>${MAIL}</span><span class="when" style="margin-left:auto">2 h ago</span></div></div></div>` },
+  { id: "paper", name: "Household paper", idea: "A beautifully set home journal. Every day opens like a front page: a big headline, a dek, a drop cap; cards are sections with rules and numbers.",
+    signature: "Editorial typography: a screenshot reads like a magazine spread", type: "Instrument Serif or Playfair Display + Source Serif + Inter", colors: ["#f3ede2", "#1d1915", "#c8331f", "#cbbfae"],
+    html: `<div class="screen"><div class="rail">
+      <div class="mast"><span>The Foyelle</span><span>Thu 22 Oct</span></div>
+      <div class="hed">Three things today.</div>
+      <div class="dek">And the electricity bill is a day late.</div>
+      <div class="body"><span class="q">“What's on today?”</span> Your dentist at nine, the shopping on the way home, and the bill, which can be paid from the link in Monday's mail.</div>
+      <div class="ask">Ask, or hold Space to talk…</div></div>
+      <div class="stage"><div class="sect"><b>Today</b><span>from your Todoist</span></div>
+        <ol><li>${T.late}<em class="late">Yesterday</em></li><li>${T.dentist}<em>09:00</em></li><li>${T.milk}<em>Home</em></li></ol>
+        <div class="ad"><span class="k">Travel · Kiwi.com</span><span class="p">€468</span><span class="t">Lisbon → Istanbul</span><span>Monday 21 December, 09:45, Turkish TK171, nonstop</span></div>
+        <div class="ad"><span class="k">Letters</span><span class="p" style="font-size:1.4em">2 h</span><span class="t" style="font-size:1.6em">Anna asks about Saturday</span><span>“Are you free for dinner at seven? Bring the map.”</span></div>
+        <div class="folio"><span>Foyelle · No. 296</span><span>Page 1</span></div></div></div>` },
+  { id: "objects", name: "Real objects", idea: "Each card takes the shape of the thing it is about: tasks on an index card ticked in pen, a flight as a boarding pass, a note on a sticky. Recognisable before reading a word.",
+    signature: "Cards you recognise by shape", type: "Caveat (hand) + Courier Prime + Inter", colors: ["#cdb99c", "#fffefa", "#e5524a", "#1f4e8c", "#ffe36e"],
+    html: `<div class="screen"><div class="rail"><div class="pad">
+      <div class="brand"><span class="ember"></span>Foyelle</div>
+      <div>Good evening, Ann.</div><div class="me">What's on today?</div>
+      <div>Three things. The bill is a day late.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div></div>
+      <div class="stage">
+        <div class="index-card"><h3>Today</h3>
+          <div class="row"><span class="box"></span><span>${T.late}</span><small class="late">yesterday</small></div>
+          <div class="row"><span class="box"></span><span>${T.dentist}</span><small>9:00</small></div>
+          <div class="row done"><span class="box done"></span><span>${T.milk}</span><small>today</small></div></div>
+        <div class="sticky">Anna's birthday Sat. Flowers?</div>
+        <div class="pass"><div class="main"><div class="k">Boarding pass · Turkish Airlines TK171</div>
+          <div class="codes">HKG <i>✈</i> IST</div><div class="k">Mon 21 Dec · 09:45 → 16:45 · Nonstop · €468</div>
+          <div class="grid4"><div><span class="k">Passenger</span><b>ANN L.</b></div><div><span class="k">Seat</span><b>23A</b></div><div><span class="k">Gate</span><b>—</b></div><div><span class="k">Boards</span><b>09:05</b></div></div></div>
+          <div class="stub"><div><div class="k">Flight</div><b>TK171</b></div><div class="bar"></div></div></div></div></div>` },
+  { id: "glass", name: "Ember glass", idea: "Dusk light through frosted glass. Panes float over a slowly shifting sky whose colours follow the time of day; the ember is a glowing orb.",
+    signature: "The living sky behind frosted panes", type: "Inter Display / Manrope", colors: ["#3a2a6b", "#b6516a", "#f29a63", "#ffffff"],
+    html: `<div class="screen"><div class="rail pane">
+      <div class="orb"></div><div class="greet">Good evening,<br>Ann</div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="pane card"><h3>Today</h3>
+        <div class="task"><span class="ring"></span>${T.late}<small><span class="chip">Late</span></small></div>
+        <div class="task"><span class="ring"></span>${T.dentist}<small>09:00</small></div>
+        <div class="task"><span class="ring"></span>${T.milk}<small>Today</small></div></div>
+        <div class="pane fl"><b>HKG → IST</b><span>Mon 21 Dec · 12h nonstop</span><b style="margin-left:auto">€468</b></div>
+        <div class="pane fl"><b>✉</b><span>${MAIL}</span><span style="margin-left:auto;opacity:.8">2 h ago</span></div></div></div>` },
+  { id: "swiss", name: "Swiss home", idea: "A strict grid, big type, one hot colour. The time is the hero; everything sits in ruled cells. Calm, graphic, unmistakable from across the room.",
+    signature: "Giant time and the orange sun block", type: "Inter Tight / Neue Haas-like grotesk", colors: ["#f6f5f1", "#0d0d0d", "#ff4f00"],
+    html: `<div class="screen">
+      <div class="cell time">18:42</div><div class="cell date"><b>Thursday</b>22 October<br>Good evening, Ann</div><div class="cell sun"><span></span></div>
+      <div class="cell conv"><div class="u">What's on today?</div><div>Three things. The electricity bill was due yesterday.</div><div class="ask grow" style="flex:none;margin-top:auto">Ask, or hold Space</div></div>
+      <div class="cell tasks"><div class="lab"><span>Today</span><span>Todoist</span></div>
+        <div class="t late"><span class="n">01</span>${T.late}<small>Yesterday</small></div>
+        <div class="t"><span class="n">02</span>${T.dentist}<small>09:00</small></div>
+        <div class="t"><span class="n">03</span>${T.milk}<small>Today</small></div></div>
+      <div class="cell flight"><div class="lab"><span>Flight</span><span>Kiwi</span></div><div class="r">HKG<br>IST</div><div>Mon 21 Dec<br>09:45–16:45</div><div class="p">€468</div></div></div>` },
+  { id: "term", name: "Warm terminal", idea: "Keyboard first, amber on dark, like a friendly terminal (the Omarchy spirit): boxed windows, a selected row, keys always shown.",
+    signature: "The amber cursor and boxed windows", type: "JetBrains Mono / IBM Plex Mono", colors: ["#1b1613", "#ffb454", "#9ccc65", "#ff6e4a", "#e9dcc6"],
+    html: `<div class="screen"><div class="rail">
+      <div class="bar"><b>foyelle</b><span>18:42 · thu 22 oct</span></div>
+      <div class="ln dim">good evening, ann.</div>
+      <div class="ln"><span class="p">›</span> what's on today?</div>
+      <div class="ln">three things. <span class="ok">todoist</span> says the electricity bill was due yesterday.</div>
+      <div class="ln dim">using todoist.find_tasks … ok 1.4s</div>
+      <div class="ask ln"><span class="p">›</span> <span class="cursor"></span></div>
+      <div class="keys"><span><kbd>⏎</kbd> send</span><span><kbd>space</kbd> talk</span><span><kbd>^k</kbd> here</span></div></div>
+      <div class="stage"><div class="win" data-t=" today · todoist ">
+        <div class="row sel"><span>[ ]</span>${T.late}<span class="late">-1d</span></div>
+        <div class="row"><span>[ ]</span>${T.dentist}<span>09:00</span></div>
+        <div class="row"><span>[x]</span><span class="dim">${T.milk}</span><span class="dim">today</span></div>
+        <div class="keys" style="margin-top:.8em"><span><kbd>x</kbd> done</span><span><kbd>t</kbd> tomorrow</span><span><kbd>a</kbd> add</span></div></div>
+        <div class="win fl" data-t=" flight · kiwi "><span class="big">HKG→IST</span><span>mon 21 dec 09:45–16:45 · TK171 · nonstop</span><span class="big">€468</span></div>
+        <div class="win" data-t=" mail · 1 new "><div class="row sel" style="background:none;outline:0"><span>●</span>anna — dinner on saturday?<span class="dim">2h</span></div></div></div></div>` },
+  { id: "clay", name: "Clay", idea: "Soft, tactile and a little playful: puffy shapes you want to press, pastel colours, chunky round type. Friendly for people who fear computers.",
+    signature: "Squishy shapes and the glossy blob ember", type: "Nunito / Quicksand (rounded)", colors: ["#f1e9ff", "#3b2f5c", "#ffb37a", "#c9f2df", "#ffd9c7"],
+    html: `<div class="screen"><div class="rail puff">
+      <div class="blob"></div><div class="greet">Hi Ann!<br>What's up?</div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="puff card"><h3>Today</h3>
+        <div class="task"><span class="bean peach"></span>${T.late}<small>yesterday</small></div>
+        <div class="task"><span class="bean"></span>${T.dentist}<small class="calm">9:00</small></div>
+        <div class="task"><span class="bean mint"></span>${T.milk}<small class="calm">today</small></div></div>
+        <div class="puff fl"><span class="plane">✈</span><b>Lisbon → Istanbul</b><span style="margin-left:auto">Mon 21 Dec · €468</span></div>
+        <div class="puff fl" style="background:#e9fbf3"><span class="plane" style="background:#bfeedd">✉</span><b style="font-size:1.3em">${MAIL}</b><span style="margin-left:auto">2 h ago</span></div></div></div>` },
+  { id: "riso", name: "Riso print", idea: "Two spot inks, blue and fluorescent pink, overprinted on cream with halftone dots and a slight misregistration. Like a lovingly printed zine.",
+    signature: "Overprinted headlines and halftone", type: "Anton / Bebas Neue + Work Sans", colors: ["#f5f0e4", "#1d3c8f", "#ff4fa3", "#ffd1e6"],
+    html: `<div class="screen"><div class="rail">
+      <div class="sun"></div><div class="head" data-t="Good evening, Ann">Good evening, Ann</div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. <span class="hl">The electricity bill was due yesterday.</span></div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="card"><h3>Today<span class="pink">.</span></h3>
+        <div class="t"><i></i>${T.late}<small class="pink">Late</small></div>
+        <div class="t"><i></i>${T.dentist}<small>9:00</small></div>
+        <div class="t"><i></i>${T.milk}<small>Today</small></div></div>
+        <div class="card fl"><b>HKG<span class="pink">→</span>IST</b><span>Monday 21 December<br>Turkish TK171 · nonstop</span><b style="margin-left:auto" class="pink">€468</b></div>
+        <div class="card fl" style="box-shadow:.55em .55em 0 #1d3c8f"><b class="pink" style="font-size:2.2em">✉</b><span style="font-family:'Avenir Next',sans-serif;font-size:1.15em;font-weight:600">${MAIL}</span><span style="margin-left:auto;font-weight:700;text-transform:uppercase">2 h ago</span></div></div></div>` },
+  { id: "nordic", name: "Window light", idea: "A Scandinavian room on a bright morning: pale wood, white walls, soft sunlight falling across the cards and moving through the day. Quiet and airy.",
+    signature: "The slow band of sunlight across the screen", type: "Figtree / Outfit (light weights)", colors: ["#f7f5f1", "#eadfcc", "#7c9a82", "#e98d4f", "#2f3431"],
+    html: `<div class="screen"><div class="rail">
+      <div class="stone"></div><div class="greet">Good evening,<br><b>Ann</b></div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="card"><h3>Today</h3>
+        <div class="task"><span class="leaf"></span>${T.late}<small class="late">Yesterday</small></div>
+        <div class="task"><span class="leaf"></span>${T.dentist}<small>09:00</small></div>
+        <div class="task"><span class="leaf"></span>${T.milk}<small>Today</small></div></div>
+        <div class="card fl"><b>Lisbon → Istanbul</b><span>Mon 21 Dec · 12 h nonstop</span><span class="p">€468</span></div>
+        <div class="card fl"><b>✉</b><span style="font-size:1.1em">${MAIL}</span><span class="p" style="font-size:1em;color:#8e9a91">2 h ago</span></div></div></div>` },
+  { id: "post", name: "Letters & stamps", idea: "Everything arrives like post: the ember is a stamp, cards are letters with postmarks, travel comes in an airmail envelope. Warm, personal, a bit nostalgic.",
+    signature: "The stamp ember and postmarks", type: "Courier Prime + Pinyon Script (sparingly)", colors: ["#efe6d2", "#fffaf0", "#2f3c6e", "#b23a35", "#2f5d8c"],
+    html: `<div class="screen"><div class="rail">
+      <div class="stamp"><div>FOYELLE</div></div><div class="greet">Good evening, Ann</div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="card"><div class="postmark">22 OCT<br>TODAY</div><h3>Today</h3>
+        <div class="t">${T.late}<small class="late">yesterday</small></div>
+        <div class="t">${T.dentist}<small>9:00</small></div>
+        <div class="t">${T.milk}<small>today</small></div></div>
+        <div class="card air"><div class="fl"><b>HKG → IST</b><span>Par avion · Mon 21 Dec · TK171</span><span class="p">€468</span></div></div>
+        <div class="card"><div class="fl"><b style="font-size:1.4em">Dear Ann,</b><span>“Are you free for dinner on Saturday?” · Anna</span><span class="p" style="font-size:1em">2 h ago</span></div></div></div></div>` },
+  { id: "night", name: "Night lantern", idea: "A calm night sky with one warm lantern: Foyelle as the light left on at home. Tasks glow when they need you and go dark when done.",
+    signature: "The lantern and glowing task dots", type: "Newsreader / Lora + Inter", colors: ["#070b16", "#1d2b4a", "#ffc75a", "#e8ecf6"],
+    html: `<div class="stars"></div><div class="screen"><div class="rail">
+      <div class="lantern"></div><div class="greet"><small>Thursday night</small>Good evening, Ann</div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="card"><h3>Today</h3>
+        <div class="t"><i></i>${T.late}<small class="late">Yesterday</small></div>
+        <div class="t"><i></i>${T.dentist}<small>09:00</small></div>
+        <div class="t"><i class="off"></i>${T.milk}<small>Done</small></div></div>
+        <div class="card fl"><b>Lisbon → Istanbul</b><span>Mon 21 Dec · nonstop</span><span class="p">€468</span></div>
+        <div class="card fl"><b>✉</b><span>${MAIL}</span><span class="p" style="font-size:1em;color:#8ea0c8">2 h ago</span></div></div></div>` },
+  { id: "bau", name: "Bauhaus toy", idea: "Primary colours and basic shapes, like a wooden toy: circle, triangle, square stand for priorities; bold geometric type. Joyful and very recognisable.",
+    signature: "Circle-triangle-square marks", type: "Jost / Futura-like geometric", colors: ["#f2ece0", "#1f3fbf", "#f4b400", "#e2382b", "#141414"],
+    html: `<div class="screen"><div class="rail">
+      <div class="shapes"><span></span><span></span><span></span></div><div class="greet">Good evening, Ann</div>
+      <div class="bubble-user">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk</div></div>
+      <div class="stage"><div class="card"><h3>Today</h3>
+        <div class="t"><i></i>${T.late}<small class="late">Late</small></div>
+        <div class="t"><i></i>${T.dentist}<small>9:00</small></div>
+        <div class="t"><i></i>${T.milk}<small>Today</small></div></div>
+        <div class="fl"><b>HKG → IST</b><span>Mon 21 Dec · TK171 · nonstop</span><b>€468</b></div>
+        <div class="fl" style="background:#fff"><b style="color:#1f3fbf">✉</b><span>${MAIL}</span><b style="font-size:1em">2 H</b></div></div></div>` },
+];
+
+const index = document.getElementById("index"), dirs = document.getElementById("dirs");
+DIRS.forEach((d, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = `${i + 1}. ${d.name}`;
+  b.addEventListener("click", () => document.getElementById("dir-" + d.id).scrollIntoView({ behavior: "smooth" }));
+  index.appendChild(b);
+  const sec = document.createElement("section");
+  sec.className = "dir"; sec.id = "dir-" + d.id;
+  sec.innerHTML = `<div class="dir-head"><span class="dir-num">${String(i + 1).padStart(2, "0")}</span><h2>${d.name}</h2>
+    <p class="idea">${d.idea}</p>
+    <div class="facts"><span><b>Signature:</b> ${d.signature}</span><span><b>Type:</b> ${d.type}</span>
+      <span><b>Palette:</b> <span class="swatches">${d.colors.map((c) => `<i style="background:${c}" title="${c}"></i>`).join("")}</span></span></div></div>
+    <div class="mock d-${d.id}">${d.html}</div>`;
+  dirs.appendChild(sec);
+});
+// "#only=<id>": one look, filling the window (for a close look, or a screenshot).
+const only = /only=([a-z]+)/.exec(location.hash);
+if (only && document.getElementById("dir-" + only[1])) {
+  document.body.classList.add("only");
+  document.querySelector(".page > header").remove();
+  index.remove();
+  DIRS.forEach((d) => { if (d.id !== only[1]) document.getElementById("dir-" + d.id).remove(); });
+}
+// Shown as a card: the shared runtime connects to the canvas and reports the page's height.
+if (window.FoyelleView) FoyelleView.start({ name: "foyelle-design-directions", load: function () {} });
+</script>

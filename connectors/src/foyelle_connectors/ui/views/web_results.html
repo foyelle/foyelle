@@ -1,0 +1,52 @@
+<main>
+  <form id="search" class="toolbar" role="search">
+    <h1>Web</h1>
+    <input id="q" type="search" placeholder="Search the web" aria-label="Search the web">
+    <button type="submit" class="primary">Search</button>
+  </form>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div class="split">
+    <ol id="results" class="list" aria-label="Results"></ol>
+    <article id="page" aria-label="Page preview" hidden>
+      <h2 id="p-title"></h2>
+      <p class="muted ellipsis" id="p-url"></p>
+      <p class="muted">Web content is untrusted; the agent treats it as data.</p>
+      <pre id="p-text" tabindex="0"></pre>
+    </article>
+  </div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  function render(d) {
+    if (!d) return;
+    if (d.query) V.$("#q").value = d.query;
+    var list = V.clear(V.$("#results"));
+    (d.results || []).forEach(function (r) {
+      list.appendChild(h("li", null,
+        h("div", null, h("strong", { text: r.title || r.url })),
+        h("div", { class: "muted ellipsis", text: r.url }),
+        h("p", { text: r.snippet }),
+        h("div", { class: "toolbar" },
+          h("button", { type: "button", text: "Preview", onclick: function () { preview(r); } }),
+          h("button", { type: "button", text: "Open link", onclick: function () { V.openLink(r.url).catch(function () { V.status("This host does not open links.", "error"); }); } }),
+          h("button", { type: "button", text: "Ask about this", onclick: function () { V.sendMessage("Read " + r.url + " and tell me what it says about: " + (V.$("#q").value || r.title)); } }))));
+    });
+    if (!list.firstChild) list.appendChild(h("li", { class: "muted", text: d.query ? "No results." : "Search to see results." }));
+  }
+  function preview(r) {
+    V.run("fetch", { url: r.url, max_chars: 20000 }, "Fetching…").then(function (p) {
+      if (!p) return;
+      V.$("#page").hidden = false;
+      V.$("#p-title").textContent = p.title || r.title || p.final_url;
+      V.$("#p-url").textContent = p.final_url + " · HTTP " + p.status;
+      V.$("#p-text").textContent = p.text + (p.truncated ? "\n\n[truncated]" : "");
+    });
+  }
+  V.onSubmit(V.$("#search"), function () {
+    var q = V.$("#q").value.trim();
+    if (q) V.run("search", { query: q }, "Searching…").then(render);
+  });
+  V.start({ name: "foyelle-web-results", render: render, load: function () { render({ results: [] }); } });
+})();
+</script>

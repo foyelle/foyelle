@@ -1,0 +1,461 @@
+<style>
+/* A dev-only page: six directions from 2026's visual culture (human-made over polished, owned
+   signatures, edited nostalgia, type and motion as identity), on the same screen as the others.
+   Fonts are the Mac's own as stand-ins; the open fonts each would ship with are named per look. */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #efebe4; color: #221d18; font: 15px/1.5 -apple-system, system-ui, sans-serif; }
+.page { max-width: 1240px; margin: 0 auto; padding: 28px 28px 80px; }
+.page > header h1 { font: 700 34px/1.15 -apple-system, sans-serif; letter-spacing: -.02em; margin: 0 0 6px; }
+.page > header p { margin: 0 0 18px; color: #6b6158; max-width: 64em; }
+.index { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; position: sticky; top: 0; padding: 10px 0; background: #efebe4; z-index: 5; }
+.index button { font: inherit; font-size: 13px; border: 1px solid #d3cbbf; background: #f9f6f1; border-radius: 999px; padding: 5px 12px; cursor: pointer; color: #3b332b; }
+.index button:hover { border-color: #8a7d70; }
+.dir { margin: 0 0 64px; scroll-margin-top: 64px; }
+.dir-head { display: grid; grid-template-columns: auto 1fr; gap: 4px 18px; align-items: baseline; margin-bottom: 14px; }
+.dir-num { font: 600 13px/1 ui-monospace, Menlo, monospace; color: #8a7d70; }
+.dir-head h2 { font: 700 24px/1.2 -apple-system, sans-serif; letter-spacing: -.01em; margin: 0; }
+.dir-head .idea { grid-column: 2; color: #4b4239; max-width: 70em; margin: 0; }
+.facts { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 13px; color: #6b6158; margin-top: 4px; }
+.facts b { color: #3b332b; font-weight: 600; }
+.extra { margin-top: 16px; }
+.extra h4 { font: 600 13px/1 -apple-system, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #8a7d70; margin: 0 0 10px; }
+body.only .page { max-width: none; padding: 0; }
+body.only .dir { margin: 0; }
+body.only .dir-head, body.only .extra { display: none; }
+body.only .mock { border-radius: 0; box-shadow: none; height: 100vh; aspect-ratio: auto; }
+.mock { container-type: inline-size; width: 100%; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 18px 50px rgba(40,25,10,.18); }
+.screen { position: absolute; inset: 0; font-size: 1.32cqw; display: grid; grid-template-columns: 34% 1fr; }
+.rail { display: flex; flex-direction: column; padding: 2em; gap: 1em; min-width: 0; }
+.stage { padding: 2em; min-width: 0; display: flex; flex-direction: column; gap: 1.2em; }
+.grow { flex: 1; }
+.row { display: flex; align-items: center; gap: 1em; }
+.end { margin-left: auto; }
+
+/* ================= 1. The ember, a character ================= */
+.d-char { background: #fbf6ec; color: #2a1e16; font-family: "Avenir Next", "Nunito", -apple-system, sans-serif;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .2  0 0 0 0 .1  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.d-char .hand { font-family: "Noteworthy", "Bradley Hand", "Chalkboard SE", cursive; }
+.d-char .buddy { width: 9em; height: 10.8em; align-self: center; margin-top: -.4em; }
+.d-char .say { position: relative; background: #fff; border-radius: 1.4em; padding: .9em 1.1em; font-size: 1.22em; line-height: 1.35; }
+.d-char .say::after { content: ""; position: absolute; left: 46%; top: -.7em; width: 1.4em; height: 1.4em; background: #fff; transform: rotate(45deg); border-radius: .2em; }
+.d-char .scribble { position: relative; }
+.d-char .scribble::before { content: ""; position: absolute; inset: 0; border: .16em solid #2a1e16; border-radius: inherit; filter: url(#rough); pointer-events: none; }
+.d-char .you { align-self: flex-end; background: #ffe1c6; padding: .5em .9em; border-radius: 1.1em; font-size: 1.05em; }
+.d-char .ask { margin-top: auto; background: #fff; border-radius: 1.4em; padding: .8em 1.1em; color: #8a7666; display: flex; align-items: center; }
+.d-char .ask .mic { margin-left: auto; width: 2em; height: 2em; border-radius: 50%; background: #ff8a3d; color: #fff; display: grid; place-items: center; font-size: .9em; }
+.d-char .card { background: #fff; border-radius: 1.5em; padding: 1.3em 1.6em; }
+.d-char h3 { font-family: "Noteworthy", "Bradley Hand", cursive; font-weight: 700; font-size: 2.3em; margin: 0 0 .3em; line-height: 1.1; }
+.d-char h3 .count { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; background: #ffd23f; font-size: .6em; vertical-align: .35em; margin-left: .3em; }
+.d-char .t { display: flex; align-items: center; gap: .9em; padding: .55em 0; font-size: 1.15em; }
+.d-char .t + .t { border-top: 1px dashed #e6d8c6; }
+.d-char .tick { width: 1.5em; height: 1.5em; flex: none; }
+.d-char .t small { margin-left: auto; font-size: .78em; color: #8a7666; }
+.d-char .sticker { margin-left: auto; background: #ff5f4a; color: #fff; font-family: "Noteworthy", cursive; font-weight: 700; font-size: .8em; padding: .15em .7em; border-radius: 1em; transform: rotate(-4deg); box-shadow: 0 .15em 0 rgba(0,0,0,.12); }
+.d-char .t.done span.txt { text-decoration: line-through; text-decoration-color: #ff8a3d; text-decoration-thickness: .16em; color: #9a8878; }
+.d-char .mini { display: flex; align-items: center; gap: 1em; background: #fff; border-radius: 1.5em; padding: 1em 1.4em; font-size: 1.1em; }
+.d-char .mini .doodle { width: 2.6em; height: 2.6em; flex: none; }
+.d-char .mini b { font-size: 1.35em; }
+.moods { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.mood { background: #fbf6ec; border-radius: 14px; padding: 14px 10px 10px; text-align: center; font-size: 13px; color: #6b5a4c; }
+.mood svg { width: 84px; height: 100px; display: block; margin: 0 auto 6px; }
+.mood b { display: block; color: #2a1e16; font-size: 14px; }
+@keyframes sway { 0%, 100% { transform: rotate(-2.5deg) translateY(0); } 50% { transform: rotate(2.5deg) translateY(-2%); } }
+@keyframes flick { 0%, 100% { transform: scaleY(1) scaleX(1); } 40% { transform: scaleY(1.06) scaleX(.97); } 70% { transform: scaleY(.97) scaleX(1.02); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes zz { 0% { opacity: 0; transform: translate(0, 0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -14px); } }
+@keyframes wave { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ember-sway { transform-origin: 50% 95%; animation: sway 4.5s ease-in-out infinite; }
+.ember-flick { transform-origin: 50% 100%; animation: flick 1.6s ease-in-out infinite; }
+.ember-eye { transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
+
+/* ================= 2. Ember matrix ================= */
+.d-matrix { background: #0d0c0b; color: #ece7df; font-family: "Geist", "SF Pro Text", -apple-system, sans-serif; }
+.d-matrix .screen { grid-template-columns: 33% 1fr; }
+.d-matrix .rail { border-right: 1px solid #262220; }
+.d-matrix .mono { font-family: "Geist Mono", "SF Mono", Menlo, monospace; letter-spacing: .02em; }
+.d-matrix .lab { font-family: "SF Mono", Menlo, monospace; font-size: .72em; letter-spacing: .16em; text-transform: uppercase; color: #8d857b; }
+.d-matrix .dm { display: inline-grid; grid-auto-flow: column; gap: var(--g, .55em); }
+.d-matrix .dm .ch { display: grid; grid-template-columns: repeat(5, var(--s, .5em)); grid-template-rows: repeat(7, var(--s, .5em)); gap: var(--dg, .12em); }
+.d-matrix .dm i { border-radius: 50%; background: #1b1816; }
+.d-matrix .dm i.on { background: #ece7df; }
+.d-matrix .dm.hot i.on { background: #ff6a2a; box-shadow: 0 0 .5em rgba(255,106,42,.7); }
+.dots { display: inline-grid; grid-template-columns: repeat(var(--n), var(--s)); gap: var(--gap); }
+.dots i { width: var(--s); height: var(--s); border-radius: 50%; background: #1a1715; }
+.dots i.l1 { background: #9a2f0e; box-shadow: 0 0 calc(var(--s) * .6) rgba(170,50,10,.35); }
+.dots i.l2 { background: #ff5a1f; box-shadow: 0 0 calc(var(--s) * 1.1) rgba(255,90,31,.55); }
+.dots i.l3 { background: #ffa63d; box-shadow: 0 0 calc(var(--s) * 1.4) rgba(255,166,61,.65); }
+.dots i.l4 { background: #fff1c4; box-shadow: 0 0 calc(var(--s) * 1.8) rgba(255,230,170,.8); }
+.dots i.tw { animation: twinkle var(--t, 2.4s) ease-in-out infinite; animation-delay: var(--d, 0s); }
+.dots i.scan { animation: scan 1.4s linear infinite; animation-delay: var(--d, 0s); }
+.dots i.blink { animation: blinkdot 1.1s steps(1) infinite; }
+.dots i.pulse { animation: pulse 1.3s ease-in-out infinite; animation-delay: var(--d, 0s); }
+@keyframes twinkle { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(.6); } }
+@keyframes scan { 0% { filter: brightness(.35); } 15% { filter: brightness(1.6); } 40%, 100% { filter: brightness(.35); } }
+@keyframes blinkdot { 0% { opacity: 1; } 50% { opacity: .08; } }
+@keyframes pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.d-matrix .ember { --s: .44em; --gap: .17em; align-self: flex-start; }
+.d-matrix .clock { --s: .62em; --dg: .16em; }
+.d-matrix .msg { font-size: 1.1em; line-height: 1.5; color: #d9d2c8; }
+.d-matrix .you { align-self: flex-end; border: 1px solid #3a3430; padding: .45em .9em; border-radius: 1em; color: #ece7df; }
+.d-matrix .ask { margin-top: auto; border: 1px solid #3a3430; border-radius: 1.2em; padding: .75em 1em; display: flex; align-items: center; color: #8d857b; }
+.d-matrix .ask .rec { margin-left: auto; width: .8em; height: .8em; border-radius: 50%; background: #ff6a2a; box-shadow: 0 0 .7em #ff6a2a; }
+.d-matrix .card { border: 1px solid #2c2825; border-radius: 1.1em; padding: 1.3em 1.5em; background: #141210; }
+.d-matrix .card .head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: .8em; }
+.d-matrix .card .head .big { --s: .55em; --dg: .13em; }
+.d-matrix .t { display: flex; align-items: center; gap: .9em; padding: .6em 0; border-top: 1px solid #221f1c; font-size: 1.08em; }
+.d-matrix .t .pip { width: .7em; height: .7em; border-radius: 50%; border: 1.5px solid #6d665e; flex: none; }
+.d-matrix .t .pip.hot { border: 0; background: #ff6a2a; box-shadow: 0 0 .7em #ff6a2a; }
+.d-matrix .t small { margin-left: auto; font-family: "SF Mono", Menlo, monospace; font-size: .78em; color: #8d857b; }
+.d-matrix .t small.hot { color: #ff8a55; }
+.d-matrix .fl { display: flex; align-items: center; gap: 1.4em; }
+.d-matrix .fl .codes { --s: .5em; --dg: .12em; }
+.d-matrix .fl .price { --s: .5em; --dg: .12em; --g: .4em; }
+.d-matrix .letter { display: flex; align-items: center; gap: 1em; font-size: 1.05em; }
+.d-matrix .letter .dot { width: .7em; height: .7em; border-radius: 50%; background: #ece7df; }
+.states { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.state { background: #0d0c0b; border-radius: 14px; padding: 16px 10px 12px; text-align: center; font-size: 13px; color: #8d857b; }
+.state .dots { --s: 5px; --gap: 2.5px; margin-bottom: 10px; }
+.state b { display: block; color: #ece7df; font-size: 14px; }
+@keyframes ring { 0% { opacity: 1; } 100% { opacity: .15; } }
+
+/* ================= 3. Home-made ================= */
+.d-home { background: #e9dcc6; color: #2b2118; font-family: "Avenir Next", -apple-system, sans-serif;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .12  0 0 0 .16 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.d-home .marker { font-family: "Marker Felt", "Chalkboard SE", "Noteworthy", cursive; }
+.d-home .flame { transform: rotate(-6deg); }
+.d-home .sticky { background: #ffe66d; padding: 1em 1.2em; font-family: "Marker Felt", cursive; font-size: 1.15em; line-height: 1.3; width: 46%; transform: rotate(-2.5deg);
+  box-shadow: 0 .3em .7em rgba(80,50,20,.2); align-self: flex-end; margin-right: 6%; }
+.d-home .greet { font-family: "Marker Felt", "Chalkboard SE", cursive; font-size: 2.7em; line-height: 1.05; color: #c2410c; }
+.d-home .greet u { text-decoration: none; background: linear-gradient(transparent 62%, #ffd23f 62% 88%, transparent 88%); color: #2b2118; }
+.d-home .note { background: #fffdf6; padding: 1em 1.2em; transform: rotate(-1deg); box-shadow: 0 .3em .8em rgba(80,50,20,.18); position: relative; font-size: 1.1em; line-height: 1.4; }
+.d-home .tape { position: absolute; width: 5em; height: 1.4em; background: rgba(255,210,63,.75); top: -.7em; left: 40%; transform: rotate(-4deg);
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.25) 0 .3em, transparent .3em .6em); }
+.d-home .tape.pink { background-color: rgba(255,140,170,.7); }
+.d-home .tape.blue { background-color: rgba(120,190,255,.7); }
+.d-home .you { align-self: flex-end; background: #2b2118; color: #fffdf6; padding: .4em .9em; border-radius: .3em; transform: rotate(1.5deg); font-family: "Marker Felt", cursive; font-size: 1.1em; }
+.d-home .ask { margin-top: auto; background: #fffdf6; border: .15em dashed #2b2118; border-radius: .6em; padding: .7em 1em; color: #7a6a58; font-family: "Marker Felt", cursive; }
+.d-home .card { background: #fffdf6; padding: 1.4em 1.6em 1.2em; position: relative; box-shadow: 0 .4em 1em rgba(80,50,20,.2); }
+.d-home .card.tilt { transform: rotate(.7deg); }
+.d-home h3 { font-family: "Marker Felt", "Chalkboard SE", cursive; font-size: 2.4em; margin: 0 0 .3em; line-height: 1; }
+.d-home .t { display: flex; align-items: center; gap: .9em; padding: .5em 0; font-size: 1.15em; }
+.d-home .crayon { width: 1.5em; height: 1.5em; flex: none; }
+.d-home .t small { margin-left: auto; font-family: "Marker Felt", cursive; font-size: .85em; color: #7a6a58; }
+.d-home .t small.late { color: #fff; background: #e4572e; padding: .05em .55em; border-radius: .2em; transform: rotate(-3deg); }
+.d-home .star { margin-left: auto; width: 3.4em; height: 3.4em; font-size: .7em !important; margin-top: -.6em; margin-bottom: -.6em; display: grid; place-items: center; background: #ffd23f; color: #2b2118; font-family: "Marker Felt", cursive; font-size: .75em;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.d-home .t.done .txt { text-decoration: line-through; text-decoration-thickness: .14em; text-decoration-color: #4f8a3a; }
+.d-home .pair { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.2em; }
+.d-home .pair .card { padding: 1.1em 1.3em; }
+.d-home .pair b { font-family: "Marker Felt", cursive; font-size: 1.7em; display: block; }
+
+/* ================= 4. Elastic voice ================= */
+.d-elastic { background: #f4f1ea; color: #121110; font-family: "Helvetica Neue", "Inter", sans-serif; }
+.d-elastic .screen { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; padding: 2.4em 3em 2em; gap: 1em; }
+.d-elastic .top { display: flex; align-items: center; justify-content: space-between; font-size: 1em; color: #6d675f; }
+.d-elastic .top .dot { width: 1em; height: 1em; border-radius: 50%; background: #ff4d00; box-shadow: 0 0 0 .35em rgba(255,77,0,.15); }
+.d-elastic .words { align-self: center; }
+.d-elastic .big { font-weight: 800; font-size: 8.2em; line-height: .88; letter-spacing: -.04em; white-space: nowrap; }
+.d-elastic .big span { display: inline-block; transform-origin: 50% 100%; animation: breathe 2.8s ease-in-out infinite; animation-delay: calc(var(--i) * -0.12s); }
+.d-elastic .big .w2 { color: #ff4d00; }
+@keyframes breathe { 0%, 100% { transform: scaleX(1) scaleY(1); } 50% { transform: scaleX(1.18) scaleY(.92); } }
+.d-elastic .sub { font-size: 1.5em; margin-top: .6em; color: #3a3632; max-width: 40em; }
+.d-elastic .sub i { font-style: normal; background: #121110; color: #f4f1ea; padding: 0 .3em; }
+.d-elastic .strip { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 2em; border-top: 2px solid #121110; padding-top: 1em; }
+.d-elastic .strip h5 { margin: 0 0 .5em; font-size: .8em; letter-spacing: .14em; text-transform: uppercase; color: #6d675f; }
+.d-elastic .strip .t { font-size: 1.12em; padding: .25em 0; display: flex; gap: .6em; }
+.d-elastic .strip .t b { color: #ff4d00; width: 1.2em; }
+.d-elastic .strip .t small { margin-left: auto; color: #6d675f; }
+.d-elastic .strip .huge { font-weight: 800; font-size: 2.6em; line-height: .95; letter-spacing: -.03em; }
+.d-elastic .voice { display: flex; align-items: center; gap: 1em; font-size: 1.05em; color: #6d675f; }
+.d-elastic .bars { display: flex; gap: .25em; align-items: center; height: 1.6em; }
+.d-elastic .bars i { width: .3em; background: #ff4d00; border-radius: .2em; animation: bar 1s ease-in-out infinite; animation-delay: calc(var(--i) * -0.13s); }
+@keyframes bar { 0%, 100% { height: 20%; } 50% { height: 100%; } }
+
+/* ================= 5. Ember Aero ================= */
+.d-aero { color: #13324b; font-family: "Avenir Next", "Segoe UI", -apple-system, sans-serif;
+  background: radial-gradient(60% 50% at 78% 18%, rgba(255,214,140,.95), transparent 60%), radial-gradient(90% 60% at 10% 110%, #6fd0a0 0%, transparent 60%),
+    linear-gradient(180deg, #6ec6ff 0%, #bfe8ff 45%, #fff3dc 100%); }
+.d-aero .sun { position: absolute; right: 7%; top: 5%; width: 16%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff 0, #fff3c4 20%, #ffc35a 50%, #ff8a2a 85%); box-shadow: 0 0 6em 2em rgba(255,190,90,.6); opacity: .85; }
+.d-aero .bubble { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 28%, rgba(255,255,255,.95) 0 8%, rgba(255,255,255,.25) 22%, rgba(255,255,255,.05) 60%, rgba(140,210,255,.35) 100%);
+  border: 1px solid rgba(255,255,255,.7); }
+.d-aero .gloss { background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.62) 48%, rgba(255,255,255,.42) 52%, rgba(255,255,255,.58));
+  border: 1px solid rgba(255,255,255,.95); border-radius: 1.4em; box-shadow: 0 .8em 2em rgba(30,90,140,.22), inset 0 -.3em .8em rgba(110,190,255,.25); }
+.d-aero .rail { margin: 1.4em 0 1.4em 1.4em; padding: 1.6em; }
+.d-aero .stage { padding: 1.4em 1.4em 1.4em 1.2em; }
+.d-aero .orb { width: 5em; height: 5em; border-radius: 50%; background: radial-gradient(circle at 35% 28%, #fff 0 10%, #ffe9b0 22%, #ffb347 55%, #ff7a1a 85%);
+  box-shadow: 0 .6em 1.4em rgba(255,140,40,.45), inset 0 -.6em 1em rgba(200,80,0,.35); position: relative; }
+.d-aero .orb::after { content: ""; position: absolute; left: 18%; top: 8%; width: 55%; height: 32%; border-radius: 50%; background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,0)); }
+.d-aero .greet { font-size: 2.2em; font-weight: 700; color: #0e5a8a; text-shadow: 0 1px 0 #fff; line-height: 1.1; }
+.d-aero .you { align-self: flex-end; background: linear-gradient(180deg, #7fe0a8, #2fb36e); color: #fff; padding: .45em 1em; border-radius: 1.2em; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 .2em .5em rgba(30,120,70,.3); text-shadow: 0 1px 1px rgba(0,80,40,.4); }
+.d-aero .msg { font-size: 1.1em; line-height: 1.45; }
+.d-aero .ask { margin-top: auto; background: #fff; border-radius: 2em; padding: .7em 1em; display: flex; align-items: center; color: #5a7b92; box-shadow: inset 0 .15em .3em rgba(30,90,140,.18); }
+.d-aero .ask .go { margin-left: auto; width: 2em; height: 2em; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 12%, #8fd3ff 35%, #1c8be0 100%); box-shadow: 0 .2em .4em rgba(20,90,160,.4); }
+.d-aero .card { padding: 1.3em 1.6em; }
+.d-aero h3 { margin: 0 0 .4em; font-size: 2.1em; color: #0e5a8a; text-shadow: 0 1px 0 #fff; }
+.d-aero .t { display: flex; align-items: center; gap: .9em; padding: .55em .8em; border-radius: 1em; background: rgba(255,255,255,.65); margin-bottom: .4em; font-size: 1.08em; box-shadow: inset 0 1px 0 #fff; }
+.d-aero .drop { width: 1.25em; height: 1.25em; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 15%, #bfe8ff 45%, #59b7f0 100%); box-shadow: inset 0 -1px 2px rgba(0,60,120,.3); flex: none; }
+.d-aero .t small { margin-left: auto; color: #4a6f8a; }
+.d-aero .pill { margin-left: auto; background: linear-gradient(180deg, #ffb27a, #ff6a2a); color: #fff; font-weight: 700; font-size: .75em; padding: .15em .7em; border-radius: 1em; box-shadow: inset 0 1px 0 rgba(255,255,255,.7); }
+.d-aero .fl { display: flex; align-items: center; gap: 1.2em; padding: 1.1em 1.5em; }
+.d-aero .fl b { font-size: 1.9em; color: #0e5a8a; }
+
+/* ================= 6. Desktop core, home edition ================= */
+.d-desk { color: #1b1530; font-family: "Monaco", "SF Mono", monospace; background-color: #c9b8f2;
+  background-image: radial-gradient(#b3a0e8 1px, transparent 1px); background-size: .6em .6em; }
+.d-desk .win { background: #fdfbf3; border: .14em solid #1b1530; border-radius: .5em; box-shadow: .35em .35em 0 #1b1530; overflow: hidden; }
+.d-desk .bar { display: flex; align-items: center; gap: .5em; background: #ffd23f; border-bottom: .14em solid #1b1530; padding: .35em .6em; font-size: .85em; font-weight: 700; }
+.d-desk .bar.pink { background: #ff9ecb; } .d-desk .bar.mint { background: #8ff0c4; } .d-desk .bar.blue { background: #8fd0ff; }
+.d-desk .bar .btns { margin-left: auto; display: flex; gap: .3em; }
+.d-desk .bar .btns i { width: .9em; height: .9em; border: .12em solid #1b1530; background: #fdfbf3; display: inline-block; }
+.d-desk .body { padding: 1em 1.2em; }
+.d-desk .rail { padding: 1.6em; }
+.d-desk .pix { width: 4.8em; height: 4.8em; image-rendering: pixelated; }
+.d-desk .greet { font-family: "Avenir Next", sans-serif; font-weight: 800; font-size: 2.1em; line-height: 1.05; }
+.d-desk .bubble { background: #fff; border: .14em solid #1b1530; border-radius: .9em; padding: .6em .9em; font-size: .95em; position: relative; }
+.d-desk .bubble.you { align-self: flex-end; background: #8fd0ff; }
+.d-desk .ask { margin-top: auto; }
+.d-desk .ask .body { display: flex; align-items: center; font-size: .9em; color: #6a5f8a; }
+.d-desk .ask .body kbd { margin-left: auto; font: inherit; background: #1b1530; color: #fdfbf3; padding: .1em .5em; border-radius: .2em; }
+.d-desk .t { display: flex; align-items: center; gap: .8em; padding: .45em 0; font-size: 1em; border-bottom: .1em dotted #b9b0d6; }
+.d-desk .box { width: 1.1em; height: 1.1em; border: .14em solid #1b1530; flex: none; background: #fff; }
+.d-desk .box.x { background: #8ff0c4; position: relative; }
+.d-desk .box.x::after { content: "✓"; position: absolute; left: .08em; top: -.25em; font-weight: 700; }
+.d-desk .t small { margin-left: auto; font-size: .8em; }
+.d-desk .t small.late { background: #ff5f4a; color: #fff; padding: 0 .4em; }
+.d-desk .toast { position: absolute; right: 2.2em; bottom: 2.2em; width: 34%; }
+.d-desk .toast .body { display: flex; gap: .8em; align-items: center; font-size: .95em; }
+.d-desk .grid2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.2em; align-items: start; }
+.d-desk .fl b { font-family: "Avenir Next", sans-serif; font-weight: 800; font-size: 1.8em; display: block; }
+</style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="4"/></filter>
+  <filter id="rough2"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="2"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
+</svg>
+<div class="page">
+  <header>
+    <h1>Foyelle: six directions from 2026</h1>
+    <p>From what stands out this year: human-made over polished (polish is what AI makes for free), one owned signature (like Nothing's dots or Snapchat's ghost), edited nostalgia, and type and motion as identity. Same screen as before. The ember character and the ember matrix show their moods and states under the screen; things move.</p>
+  </header>
+  <nav class="index" id="index" aria-label="Directions"></nav>
+  <main id="dirs"></main>
+</div>
+<script>
+// Static content only, so the mockups are written as HTML strings.
+const L = { late: "Pay the electricity bill", dentist: "Call the dentist", milk: "Buy milk, bread and coffee" };
+
+/* ---- The ember as a character: one hand-drawn flame, its face and extras changing with its mood. ---- */
+function buddy(mood, cls = "") {
+  const eyes = {
+    happy: `<ellipse class="ember-eye" cx="40" cy="74" rx="4.2" ry="6"/><ellipse class="ember-eye" cx="60" cy="74" rx="4.2" ry="6"/>`,
+    listening: `<circle cx="40" cy="73" r="5.5"/><circle cx="60" cy="73" r="5.5"/><circle cx="41.5" cy="71.5" r="1.8" fill="#fff"/><circle cx="61.5" cy="71.5" r="1.8" fill="#fff"/>`,
+    thinking: `<ellipse cx="43" cy="70" rx="3.6" ry="5"/><ellipse cx="62" cy="70" rx="3.6" ry="5"/>`,
+    waiting: `<ellipse class="ember-eye" cx="40" cy="74" rx="4.2" ry="6"/><ellipse class="ember-eye" cx="60" cy="74" rx="4.2" ry="6"/>`,
+    proud: `<path d="M35 74 q5 -7 10 0" stroke="#2a1e16" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M55 74 q5 -7 10 0" stroke="#2a1e16" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    asleep: `<path d="M35 75 q5 4 10 0" stroke="#2a1e16" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M55 75 q5 4 10 0" stroke="#2a1e16" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  }[mood];
+  const mouth = {
+    happy: `<path d="M43 86 q7 7 14 0" stroke="#2a1e16" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    listening: `<ellipse cx="50" cy="88" rx="4" ry="4.5" fill="#2a1e16"/>`,
+    thinking: `<path d="M45 89 h10" stroke="#2a1e16" stroke-width="3" stroke-linecap="round"/>`,
+    waiting: `<path d="M44 87 q6 4 12 0" stroke="#2a1e16" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    proud: `<path d="M41 84 q9 11 18 0 z" fill="#2a1e16"/>`,
+    asleep: `<path d="M46 89 q4 2 8 0" stroke="#2a1e16" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  }[mood];
+  const extra = {
+    listening: `<g stroke="#ff8a3d" stroke-width="3" fill="none" stroke-linecap="round"><path d="M8 62 q-5 12 0 24" style="animation:wave 1.2s infinite"/><path d="M92 62 q5 12 0 24" style="animation:wave 1.2s infinite"/><path d="M1 56 q-7 18 0 36" style="animation:wave 1.2s .3s infinite"/><path d="M99 56 q7 18 0 36" style="animation:wave 1.2s .3s infinite"/></g>`,
+    thinking: `<g transform="translate(80 22)"><circle r="9" fill="#fff" stroke="#2a1e16" stroke-width="2.5"/><path d="M-4 -1 a4 4 0 1 1 4 4 v2" stroke="#2a1e16" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="0" cy="8.5" r="1.5"/></g><circle cx="72" cy="38" r="3" fill="#fff" stroke="#2a1e16" stroke-width="2"/>`,
+    waiting: `<g transform="translate(84 36)" style="animation:wave 1s infinite"><circle r="8" fill="#ff5f4a"/><text y="4.5" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" font-family="Avenir Next, sans-serif">!</text></g>`,
+    proud: `<g fill="#ffd23f" stroke="#2a1e16" stroke-width="1.5"><path d="M12 30 l3 6 6 1 -4.5 4 1 6 -5.5 -3 -5.5 3 1 -6 -4.5 -4 6 -1z"/><path d="M86 16 l2 4 4.5 .7 -3.3 3 .8 4.4 -4 -2.2 -4 2.2 .8 -4.4 -3.3 -3 4.5 -.7z"/></g>`,
+    asleep: `<g font-family="Noteworthy, cursive" font-weight="700" fill="#7a6a9a"><text x="74" y="34" font-size="13" style="animation:zz 2.4s infinite">z</text><text x="82" y="22" font-size="17" style="animation:zz 2.4s .8s infinite">z</text></g>`,
+  }[mood] || "";
+  const dim = mood === "asleep" ? ' opacity=".75"' : "";
+  return `<svg class="${cls}" viewBox="-4 0 108 122" aria-label="the ember, ${mood}">
+    <defs><radialGradient id="fg-${mood}" cx="50%" cy="72%" r="65%"><stop offset="0" stop-color="${mood === "asleep" ? "#ffcf9e" : "#fff1b8"}"/><stop offset=".45" stop-color="${mood === "asleep" ? "#f2a36b" : "#ffb347"}"/><stop offset="1" stop-color="${mood === "asleep" ? "#c9764a" : "#ff6a2a"}"/></radialGradient></defs>
+    ${extra}
+    <g class="ember-sway"><g class="ember-flick"${dim}>
+      <path filter="url(#rough2)" d="M50 6 C 60 26, 90 44, 88 78 C 86 104, 68 116, 50 116 C 30 116, 12 102, 12 80 C 12 60, 26 52, 32 34 C 38 46, 44 48, 50 6 Z"
+        fill="url(#fg-${mood})" stroke="#2a1e16" stroke-width="3.2" stroke-linejoin="round"/>
+      <path d="M50 52 C 56 64, 68 72, 66 88 C 64 100, 56 104, 50 104 C 42 104, 34 98, 34 88 C 34 78, 44 72, 50 52 Z" fill="#fff6d6" opacity=".55"/>
+      <ellipse cx="31" cy="86" rx="5" ry="3" fill="#ff8a6b" opacity=".55"/><ellipse cx="69" cy="86" rx="5" ry="3" fill="#ff8a6b" opacity=".55"/>
+      <g fill="#2a1e16">${eyes}</g>${mouth}
+    </g></g></svg>`;
+}
+const tick = (done, late) => `<svg class="tick" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="${late ? "#fff0e6" : "none"}" stroke="${late ? "#ff5f4a" : "#2a1e16"}" stroke-width="2.2" filter="url(#rough2)"/>${done ? '<path d="M6.5 12.5 l4 4 7.5 -9" stroke="#ff8a3d" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' : ""}</svg>`;
+const plane = `<svg class="doodle" viewBox="0 0 40 40"><g fill="#cfe8ff" stroke="#2a1e16" stroke-width="2" stroke-linejoin="round" filter="url(#rough2)"><path d="M4 22 L36 8 L28 34 L20 24 Z"/><path d="M20 24 L36 8"/></g></svg>`;
+const envelope = `<svg class="doodle" viewBox="0 0 40 40"><g fill="#ffe1c6" stroke="#2a1e16" stroke-width="2" stroke-linejoin="round" filter="url(#rough2)"><rect x="5" y="10" width="30" height="21" rx="2"/><path d="M5 11 L20 23 L35 11" fill="none"/></g><circle cx="33" cy="10" r="4" fill="#ff5f4a"/></svg>`;
+
+/* ---- Ember matrix: a 5x7 dot font for the few characters shown, and a flame made of dots. ---- */
+const FONT = {
+  "0": ["01110","10001","10011","10101","11001","10001","01110"], "1": ["00100","01100","00100","00100","00100","00100","01110"],
+  "2": ["01110","10001","00001","00010","00100","01000","11111"], "3": ["11110","00001","00001","01110","00001","00001","11110"],
+  "4": ["00010","00110","01010","10010","11111","00010","00010"], "6": ["00110","01000","10000","11110","10001","10001","01110"],
+  "8": ["01110","10001","10001","01110","10001","10001","01110"], ":": ["00000","00100","00100","00000","00100","00100","00000"],
+  "H": ["10001","10001","10001","11111","10001","10001","10001"], "K": ["10001","10010","10100","11000","10100","10010","10001"],
+  "G": ["01110","10001","10000","10111","10001","10001","01111"], "I": ["01110","00100","00100","00100","00100","00100","01110"],
+  "S": ["01111","10000","10000","01110","00001","00001","11110"], "T": ["11111","00100","00100","00100","00100","00100","00100"],
+  "€": ["00111","01000","11110","01000","11110","01000","00111"], ">": ["01000","00100","00010","00001","00010","00100","01000"], " ": ["00000","00000","00000","00000","00000","00000","00000"],
+};
+const dm = (text, cls = "") => `<span class="dm ${cls}">${[...text].map((c) => `<span class="ch">${(FONT[c] || FONT[" "]).join("").split("").map((b) => `<i${b === "1" ? ' class="on"' : ""}></i>`).join("")}</span>`).join("")}</span>`;
+// The ember, dot by dot: 0 off, 1 deep red, 2 orange, 3 amber, 4 white-hot core.
+const FLAME = [
+  "0000000100000", "0000001000000", "0000001100000", "0000012100000", "0000122210000", "0001222221000", "0012223221000",
+  "0012233322100", "0122333332210", "0122334332210", "1223344433221", "1223344433221", "1223344433221", "0122334332210",
+  "0012233322100", "0001222221000", "0000011100000",
+];
+function dotEmber(mode = "idle", pad = 4) {
+  const fh = FLAME.length, fw = FLAME[0].length, W = fw + pad * 2, H = fh + pad * 2;
+  const cx = (W - 1) / 2, cy = pad + fh * .58, R = Math.min(W, H) / 2 - .6;
+  let seed = 11; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  let out = "";
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const fx = x - pad, fy = y - pad;
+    let lv = fy >= 0 && fy < fh && fx >= 0 && fx < fw ? +FLAME[fy][fx] : 0;
+    let cls = "";
+    const ring = Math.abs(Math.hypot(x - cx, (y - cy) * 1.05) - R) < .55;
+    if (mode === "asleep") { lv = fy > fh * .45 ? Math.min(lv, lv > 2 ? 2 : lv) : 0; if (lv) lv = Math.max(1, lv - 1); }
+    if (mode === "listening" && ring && !lv) { lv = 2; cls = "pulse"; }
+    if (mode === "waiting" && ring && !lv && (x + y) % 2 === 0) { lv = 3; cls = "blink"; }
+    if (mode === "thinking" && lv) cls = "scan";
+    if (mode === "asleep" && !lv && ((x === W - 4 && y === 3) || (x === W - 3 && y === 2) || (x === W - 2 && y === 1))) lv = 1;
+    if (lv && !cls) cls = "tw";
+    const delay = cls === "scan" ? -((H - y) * .07) : cls === "pulse" ? -(Math.atan2(y - cy, x - cx) / Math.PI) * .65 : -rnd() * 3;
+    out += lv ? `<i class="l${lv} ${cls}" style="--d:${delay.toFixed(2)}s;--t:${(1.6 + rnd() * 1.8).toFixed(2)}s"></i>` : "<i></i>";
+  }
+  return `<span class="dots" style="--n:${W}">${out}</span>`;
+}
+
+const DIRS = [
+  { id: "char", name: "The ember, a character", idea: "The ember becomes a small hand-drawn companion with moods: it listens, thinks, waits for you, is proud when something's done, and dozes at night. Cards keep a drawn, warm hand. In 2026, visibly human-made is what stands out, and a character is what people remember and talk about.",
+    facts: ["Signature: the ember character and its moods", "Type: Nunito or Figtree + Gochi Hand for a few words", "Moves: sways, flickers, blinks; reacts to voice"],
+    html: `<div class="screen"><div class="rail">
+      ${buddy("happy", "buddy")}
+      <div class="say hand">Evening, Ann! Three things today, and the bill is a day late.</div>
+      <div class="you">What's on today?</div>
+      <div class="ask">Ask, or hold Space to talk<span class="mic">●</span></div></div>
+      <div class="stage"><div class="card scribble"><h3>Today<span class="count">3</span></h3>
+        <div class="t">${tick(false, true)}<span class="txt">${L.late}</span><span class="sticker">a day late!</span></div>
+        <div class="t">${tick(false)}<span class="txt">${L.dentist}</span><small>9:00</small></div>
+        <div class="t done">${tick(true)}<span class="txt">${L.milk}</span><small>done</small></div></div>
+        <div class="mini scribble">${plane}<b>Lisbon → Istanbul</b><span>Mon 21 Dec, nonstop</span><b class="end">€468</b></div>
+        <div class="mini scribble">${envelope}<span><b style="font-size:1.1em">Anna</b> asks: dinner on Saturday?</span><small class="end" style="color:#8a7666">2 h ago</small></div></div></div>`,
+    extra: `<h4>Its moods</h4><div class="moods">${[["listening", "Listening", "while you talk"], ["thinking", "Thinking", "working on it"], ["waiting", "Needs you", "an approval waits"], ["proud", "Done", "after a task is ticked"], ["asleep", "Asleep", "at night, nothing to do"]]
+      .map(([m, n, d]) => `<div class="mood">${buddy(m)}<b>${n}</b>${d}</div>`).join("")}</div>` },
+
+  { id: "matrix", name: "Ember matrix", idea: "Quiet monochrome, and one warm light made of dots: the ember, the time and the counts are drawn in glowing dots, like an LED left on in a dark house. A mechanical signature you'd recognise from across the room (as people do Nothing's dots); everything else plain and very readable.",
+    facts: ["Signature: the dot ember and dot numerals", "Type: Geist + Geist Mono, a 5×7 dot face for numbers", "Moves: dots twinkle; states are patterns"],
+    html: `<div class="screen"><div class="rail">
+      <div class="ember">${dotEmber("idle", 3)}</div>
+      <div>${dm("18:42", "clock")}</div><div class="lab">Thursday 22 October · good evening, Ann</div>
+      <div class="you">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk<span class="rec"></span></div></div>
+      <div class="stage"><div class="card"><div class="head"><div><div class="lab">Today · Todoist</div><div style="font-size:1.9em;font-weight:600;letter-spacing:-.02em">Three things</div></div>${dm("3", "big hot")}</div>
+        <div class="t"><span class="pip hot"></span>${L.late}<small class="hot">late · yesterday</small></div>
+        <div class="t"><span class="pip"></span>${L.dentist}<small>09:00</small></div>
+        <div class="t"><span class="pip"></span>${L.milk}<small>today</small></div></div>
+        <div class="card fl"><div><div class="lab">Flight · Kiwi</div><div class="mono" style="font-size:2.1em;letter-spacing:.06em">HKG → IST</div><div class="lab" style="letter-spacing:.08em">Mon 21 Dec · 09:45 · nonstop</div></div>
+          <div class="end" style="display:flex;align-items:flex-end;gap:.5em"><span class="mono" style="font-size:1.3em;color:#ff8a55">€</span>${dm("468", "price hot")}</div></div>
+        <div class="card letter"><span class="dot"></span><span><b>Anna</b> · Dinner on Saturday?</span><span class="lab end">2 h ago</span></div></div></div>`,
+    extra: `<h4>Its states, in dots</h4><div class="states">${[["idle", "Here", "breathing softly"], ["listening", "Listening", "a ring while you talk"], ["thinking", "Thinking", "a running pattern"], ["waiting", "Needs you", "a ring that blinks"], ["asleep", "Asleep", "dim, at night"]]
+      .map(([m, n, d]) => `<div class="state">${dotEmber(m, 4)}<b>${n}</b>${d}</div>`).join("")}</div>` },
+
+  { id: "home", name: "Home-made", idea: "The kitchen table: hand-lettered headings, crayon ticks, tape and stickers, paper you can almost feel. Kid-core warmth for grown-ups; nothing about it looks like software, which is the point.",
+    facts: ["Signature: tape, stickers and crayon marks", "Type: Permanent Marker / Gochi Hand + Nunito", "Moves: stickers pop on, crayon draws the tick"],
+    html: `<div class="screen"><div class="rail">
+      <svg class="flame" viewBox="0 0 60 72" style="width:4.6em;height:5.5em"><g filter="url(#rough)" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M30 4 C36 18 54 26 52 46 C51 60 41 68 30 68 C18 68 8 60 8 47 C8 36 16 31 19 21 C23 29 27 30 30 4 Z" fill="#ff7a2f" stroke="#2b2118" stroke-width="3"/>
+        <path d="M30 30 C34 38 42 43 41 53 C40 60 35 63 30 63 C24 63 20 59 20 53 C20 46 27 43 30 30 Z" fill="#ffd23f" stroke="#2b2118" stroke-width="2"/>
+        <path d="M14 30 q-5 -4 -4 -10 M47 24 q5 -3 5 -9" stroke="#2b2118" stroke-width="2.4" fill="none"/></g></svg>
+      <div class="greet">Evening, <u>Ann</u>!</div>
+      <div class="note"><span class="tape"></span>Three things today, and the electricity bill is a day late.</div>
+      <div class="you">What's on today?</div>
+      <div class="ask">Ask, or hold Space to talk…</div></div>
+      <div class="stage"><div class="card tilt"><span class="tape pink" style="left:8%"></span><span class="tape blue" style="left:auto;right:8%;transform:rotate(5deg)"></span><h3>Today</h3>
+        <div class="t"><svg class="crayon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#2b2118" stroke-width="2.4" filter="url(#rough)"/></svg><span class="txt">${L.late}</span><small class="late">late!</small></div>
+        <div class="t"><svg class="crayon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#2b2118" stroke-width="2.4" filter="url(#rough)"/></svg><span class="txt">${L.dentist}</span><small>9:00</small></div>
+        <div class="t done"><svg class="crayon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="#2b2118" stroke-width="2.4" filter="url(#rough)"/><path d="M6 12 l4 5 9 -11" stroke="#4f8a3a" stroke-width="3.4" fill="none" stroke-linecap="round" filter="url(#rough)"/></svg><span class="txt">${L.milk}</span><span class="star">done</span></div></div>
+        <div class="pair"><div class="card"><span class="tape" style="left:30%"></span><b>HKG → IST</b>Mon 21 Dec · nonstop · €468</div>
+          <div class="card tilt"><span class="tape pink" style="left:30%"></span><b>✉ Anna</b>Dinner on Saturday?</div></div>
+        <div class="sticky">Saturday: Anna's dinner at 7. Bring the map!</div></div></div>` },
+
+  { id: "elastic", name: "Elastic voice", idea: "The words are the brand. Foyelle's answer is set huge in a variable typeface that stretches and breathes with the ember, and with your voice while you talk. Everything else steps back to a quiet strip.",
+    facts: ["Signature: breathing, stretching type", "Type: a variable grotesk with a width axis (e.g. Anybody, Bricolage Grotesque)", "Moves: letters stretch with the voice"],
+    html: `<div class="screen">
+      <div class="top"><span class="row"><span class="dot"></span>Foyelle</span><span>18:42 · Thursday 22 October</span></div>
+      <div class="words"><div class="big">${[..."Three things"].map((c, i) => `<span class="${i > 5 ? "w2" : ""}" style="--i:${i}">${c === " " ? "&nbsp;" : c}</span>`).join("")}</div>
+        <div class="big" style="font-size:5.4em">${[..."today."].map((c, i) => `<span style="--i:${i + 3}">${c}</span>`).join("")}</div>
+        <div class="sub">And the <i>electricity bill</i> was due yesterday. You asked: “What's on today?”</div></div>
+      <div class="strip"><div><h5>Today · Todoist</h5><div class="t"><b>1</b>${L.late}<small>late</small></div><div class="t"><b>2</b>${L.dentist}<small>09:00</small></div><div class="t"><b>3</b>${L.milk}<small>today</small></div></div>
+        <div><h5>Flight · Kiwi</h5><div class="huge">HKG→IST</div>Mon 21 Dec · €468</div>
+        <div><h5>Letter</h5><div class="huge" style="font-size:1.8em">Anna</div>Dinner on Saturday?<div class="voice" style="margin-top:.8em"><span class="bars">${[0,1,2,3,4,5,6].map((i) => `<i style="--i:${i}"></i>`).join("")}</span>hold Space to talk</div></div></div></div>` },
+
+  { id: "aero", name: "Ember Aero", idea: "Edited optimism from the Frutiger Aero revival: sky, sun, bubbles and glossy, dewy surfaces, warmed with amber instead of Vista blue. Hopeful and a little nostalgic, on purpose.",
+    facts: ["Signature: glossy sun-ember and dew-drop ticks", "Type: Nunito Sans / Frutiger-like humanist", "Moves: bubbles drift, gloss catches the light"],
+    html: `<div class="sun"></div><div class="bubble" style="left:40%;top:70%;width:7%;aspect-ratio:1"></div><div class="bubble" style="left:47%;top:84%;width:3.5%;aspect-ratio:1"></div><div class="bubble" style="right:5%;bottom:10%;width:5%;aspect-ratio:1"></div>
+      <div class="screen"><div class="rail gloss">
+      <div class="orb"></div><div class="greet">Good evening, Ann</div>
+      <div class="you">What's on today?</div>
+      <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+      <div class="ask">Ask, or hold Space to talk<span class="go"></span></div></div>
+      <div class="stage"><div class="gloss card"><h3>Today</h3>
+        <div class="t"><span class="drop"></span>${L.late}<span class="pill">Late</span></div>
+        <div class="t"><span class="drop"></span>${L.dentist}<small>09:00</small></div>
+        <div class="t"><span class="drop"></span>${L.milk}<small>Today</small></div></div>
+        <div class="gloss fl"><b>HKG → IST</b><span>Mon 21 Dec · nonstop</span><b class="end">€468</b></div>
+        <div class="gloss fl"><b>✉</b><span>Anna · Dinner on Saturday?</span><span class="end" style="color:#4a6f8a">2 h ago</span></div></div></div>` },
+
+  { id: "desk", name: "Desktop core, home edition", idea: "Interface nostalgia as graphics: cards are little windows with title bars, news arrives as a friendly pop-up, a pixel ember, stickers and hard shadows. Playful and instantly recognisable; risks reading as a joke if overdone.",
+    facts: ["Signature: windows with coloured title bars, hard shadows", "Type: Space Mono / Press Start 2P (titles only) + Inter", "Moves: windows pop in, toasts slide"],
+    html: `<div class="screen"><div class="rail">
+      <svg class="pix" viewBox="0 0 12 12" shape-rendering="crispEdges"><g fill="#1b1530"><rect x="5" y="0" width="1" height="1"/><rect x="4" y="1" width="1" height="2"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="2" width="1" height="2"/><rect x="3" y="3" width="1" height="2"/><rect x="8" y="4" width="1" height="4"/><rect x="2" y="5" width="1" height="3"/><rect x="3" y="8" width="1" height="2"/><rect x="7" y="8" width="1" height="2"/><rect x="4" y="10" width="3" height="1"/></g>
+        <g fill="#ff6a2a"><rect x="5" y="1" width="1" height="2"/><rect x="4" y="3" width="3" height="2"/><rect x="3" y="5" width="5" height="3"/><rect x="4" y="8" width="3" height="2"/></g><g fill="#ffd23f"><rect x="5" y="5" width="1" height="3"/><rect x="4" y="7" width="3" height="2"/></g></svg>
+      <div class="greet">Good evening, Ann</div>
+      <div class="bubble you">What's on today?</div>
+      <div class="bubble">Three things today. The electricity bill was due yesterday.</div>
+      <div class="win ask"><div class="bar mint">ask.exe<span class="btns"><i></i><i></i></span></div><div class="body">Ask, or hold Space<kbd>␣</kbd></div></div></div>
+      <div class="stage"><div class="grid2"><div class="win"><div class="bar">today.todo<span class="btns"><i></i><i></i><i></i></span></div><div class="body">
+          <div class="t"><span class="box"></span>${L.late}<small class="late">LATE</small></div>
+          <div class="t"><span class="box"></span>${L.dentist}<small>09:00</small></div>
+          <div class="t"><span class="box x"></span>${L.milk}<small>today</small></div></div></div>
+        <div class="win fl"><div class="bar blue">flight.kiwi<span class="btns"><i></i></span></div><div class="body"><b>HKG→IST</b>Mon 21 Dec<br>nonstop · €468</div></div></div>
+        <div class="win" style="width:62%"><div class="bar mint">this-week.cal<span class="btns"><i></i><i></i></span></div><div class="body">
+          <div class="t"><b style="width:3.2em">Fri</b>Lunch with Sam<small>12:30</small></div>
+          <div class="t"><b style="width:3.2em">Sat</b>Dinner at Anna's<small>19:00</small></div>
+          <div class="t" style="border:0"><b style="width:3.2em">Sun</b><span style="color:#6a5f8a">nothing yet</span></div></div></div></div>
+      <div class="win toast"><div class="bar pink">new letter!<span class="btns"><i></i></span></div><div class="body">✉ <span><b>Anna</b>: dinner on Saturday?</span></div></div></div>` },
+];
+
+const index = document.getElementById("index"), dirs = document.getElementById("dirs");
+DIRS.forEach((d, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = `${i + 1}. ${d.name}`;
+  b.addEventListener("click", () => document.getElementById("dir-" + d.id).scrollIntoView({ behavior: "smooth" }));
+  index.appendChild(b);
+  const sec = document.createElement("section");
+  sec.className = "dir"; sec.id = "dir-" + d.id;
+  sec.innerHTML = `<div class="dir-head"><span class="dir-num">${String(i + 1).padStart(2, "0")}</span><h2>${d.name}</h2>
+    <p class="idea">${d.idea}</p><div class="facts">${d.facts.map((f) => `<span><b>${f.split(":")[0]}:</b>${f.slice(f.indexOf(":") + 1)}</span>`).join("")}</div></div>
+    <div class="mock d-${d.id}">${d.html}</div>${d.extra ? `<div class="extra d-${d.id}-extra">${d.extra}</div>` : ""}`;
+  dirs.appendChild(sec);
+});
+// "#only=<id>": one look, filling the window (for a close look, or a screenshot).
+const only = /only=([a-z]+)/.exec(location.hash);
+if (only && document.getElementById("dir-" + only[1])) {
+  document.body.classList.add("only");
+  document.querySelector(".page > header").remove();
+  index.remove();
+  DIRS.forEach((d) => { if (d.id !== only[1]) document.getElementById("dir-" + d.id).remove(); });
+}
+// "#solo=<id>": one direction with its notes and extras, nothing else.
+const solo = /solo=([a-z]+)/.exec(location.hash);
+if (solo && document.getElementById("dir-" + solo[1])) {
+  document.querySelector(".page > header").remove();
+  index.remove();
+  DIRS.forEach((d) => { if (d.id !== solo[1]) document.getElementById("dir-" + d.id).remove(); });
+}
+// Shown as a card: the shared runtime connects to the canvas and reports the page's height.
+if (window.FoyelleView) FoyelleView.start({ name: "foyelle-design-2026", load: function () {} });
+</script>

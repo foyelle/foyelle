@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:27:55 +0000
+Subject: [PATCH 05/15] foyelle: do not borrow Codex CLI or Claude Code logins
+ by default
+
+adopt_external_logins_enabled() now defaults to False, including when
+the config is unreadable, so Hermes never reads ~/.codex or the Claude
+Code credentials unless the user opts in.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ agent/credential_sources.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/agent/credential_sources.py b/agent/credential_sources.py
+index c95d21247b898914879e824bff5ef1be94b5b53d..3edb3ece6eb6f165761c996354a425c34d5f8e71 100644
+--- a/agent/credential_sources.py
++++ b/agent/credential_sources.py
+@@ -30,7 +30,7 @@ _notice_logged = False
+ 
+ 
+ def adopt_external_logins_enabled() -> bool:
+-    """``auth.adopt_external_logins`` (default True).
++    """``auth.adopt_external_logins`` (Foyelle default: False).
+ 
+     Codex and Claude OAuth refresh tokens are single-use and rotate, so once Hermes borrows a CLI's
+     token pair the two programs hold one token family and whichever refreshes first logs the other
+@@ -41,8 +41,8 @@ def adopt_external_logins_enabled() -> bool:
+         from hermes_cli.config import load_config_readonly
+         auth_cfg = (load_config_readonly() or {}).get("auth")
+     except Exception:
+-        return True
+-    enabled = not isinstance(auth_cfg, dict) or bool(auth_cfg.get("adopt_external_logins", True))
++        return False
++    enabled = isinstance(auth_cfg, dict) and bool(auth_cfg.get("adopt_external_logins", False))
+     if not enabled and not _notice_logged:
+         _notice_logged = True
+         logger.info(EXTERNAL_LOGINS_NOT_ADOPTED_NOTICE)

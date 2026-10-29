@@ -1,0 +1,75 @@
+<main>
+  <div class="toolbar">
+    <h1>Agenda</h1><span class="spacer"></span>
+    <button id="prev" type="button" aria-label="Previous week">Previous</button>
+    <button id="today" type="button">Today</button>
+    <button id="next" type="button" aria-label="Next week">Next</button>
+  </div>
+  <p id="range" class="muted"></p>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div id="days"></div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h, rangeStart = null, tz;
+  function iso(d) { return d.toISOString(); }
+  function dayKey(e) { return (e.start || "").slice(0, 10); }
+  function time(e) {
+    if (e.all_day) return "All day";
+    return V.fmtDate(e.start, { timeStyle: "short", timeZone: tz }) + " – " + V.fmtDate(e.end, { timeStyle: "short", timeZone: tz });
+  }
+  function respond(e, response) {
+    V.run("respond_invite", { uid: e.uid, response: response }, "Waiting for approval…").then(function (r) {
+      if (r) { V.status("Replied: " + r.response.toLowerCase() + "."); load(); }
+    });
+  }
+  function card(e) {
+    var tentative = e.status === "TENTATIVE";
+    var actions = null;
+    if (e.is_invite) {
+      actions = h("div", { class: "toolbar" },
+        h("span", { class: "badge warn", text: "Invitation · " + (e.my_status || "").toLowerCase() }),
+        h("button", { type: "button", text: "Accept", onclick: function () { respond(e, "accept"); } }),
+        h("button", { type: "button", text: "Maybe", onclick: function () { respond(e, "tentative"); } }),
+        h("button", { type: "button", text: "Decline", onclick: function () { respond(e, "decline"); } }));
+    } else if (!e.attendees.length) {
+      actions = h("div", { class: "toolbar" },
+        tentative ? h("button", { type: "button", text: "Confirm", onclick: function () {
+          V.run("update_event", { uid: e.uid, status: "CONFIRMED" }, "Saving…").then(function (r) { if (r) load(); });
+        } }) : null,
+        h("button", { type: "button", class: "danger", text: "Delete", onclick: function () {
+          V.run("delete_event", { uid: e.uid }, "Waiting for approval…").then(function (r) { if (r) load(); });
+        } }));
+    }
+    return h("div", { class: "card" },
+      h("div", null, h("strong", { text: e.summary || "(untitled)" }), " ", tentative ? h("span", { class: "badge", text: "tentative" }) : null,
+        e.status === "CANCELLED" ? h("span", { class: "badge bad", text: "cancelled" }) : null),
+      h("div", { class: "muted", text: time(e) + (e.location ? " · " + e.location : "") }),
+      e.attendees.length ? h("div", { class: "muted ellipsis", text: e.attendees.length + " attendee(s)" + (e.organizer ? ", organised by " + e.organizer : "") }) : null,
+      actions);
+  }
+  function render(d) {
+    if (!d) return;
+    rangeStart = new Date(d.start);
+    tz = d.timezone;
+    V.$("#range").textContent = V.fmtDate(d.start, { dateStyle: "medium", timeZone: tz }) + " – " + V.fmtDate(d.end, { dateStyle: "medium", timeZone: tz }) + " (" + tz + ")";
+    var days = V.clear(V.$("#days")), groups = {};
+    (d.events || []).forEach(function (e) { (groups[dayKey(e)] = groups[dayKey(e)] || []).push(e); });
+    Object.keys(groups).sort().forEach(function (k) {
+      days.appendChild(h("section", { "aria-label": k }, h("h2", { text: V.fmtDate(k + "T12:00:00Z", { dateStyle: "full", timeZone: "UTC" }) }), groups[k].map(card)));
+    });
+    if (!days.firstChild) days.appendChild(h("p", { class: "muted", text: "Nothing scheduled." }));
+  }
+  function load(start) {
+    var args = { days: 7 };
+    if (start) args.start = iso(start); else if (rangeStart) args.start = iso(rangeStart);
+    return V.run("list_events", args, "Loading…").then(render);
+  }
+  function shift(days) { var d = new Date(rangeStart || Date.now()); d.setDate(d.getDate() + days); load(d); }
+  V.$("#prev").addEventListener("click", function () { shift(-7); });
+  V.$("#next").addEventListener("click", function () { shift(7); });
+  V.$("#today").addEventListener("click", function () { rangeStart = null; load(); });
+  // The agent added or moved an event: the same week, as it is now.
+  V.start({ name: "foyelle-calendar-agenda", render: render, load: function () { return load(); }, refresh: function () { load(); } });
+})();
+</script>

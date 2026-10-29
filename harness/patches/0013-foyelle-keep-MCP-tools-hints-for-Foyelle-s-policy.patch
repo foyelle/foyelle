@@ -1,0 +1,69 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 06:06:37 +0000
+Subject: [PATCH 13/15] foyelle: keep MCP tools' hints for Foyelle's policy
+
+Foyelle's policy gives a tool its tier from the server's own hints
+(readOnlyHint, destructiveHint, idempotentHint, openWorldHint) when its
+review didn't list the tool, and a reviewed tool that starts claiming
+destructiveHint asks every time. record_tool now keeps the boolean hints,
+and tool_annotations(registry_name) returns them.
+---
+ tests/tools/test_mcp_surfaces.py |  8 ++++++++
+ tools/mcp_surfaces.py            | 20 ++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
+
+diff --git a/tests/tools/test_mcp_surfaces.py b/tests/tools/test_mcp_surfaces.py
+index 49b753690aec9eaaf95d576449706dbf5aeb994a..633f5bbb390f95891e27163c954838ec6e08a123 100644
+--- a/tests/tools/test_mcp_surfaces.py
++++ b/tests/tools/test_mcp_surfaces.py
+@@ -166,3 +166,11 @@ def test_gateway_registers_surface_methods_on_the_long_pool():
+         assert name in METHODS
+         assert name in server._LONG_HANDLERS
+     assert "surface.open" in EVENTS
++
++
++def test_tool_hints_are_kept_for_the_policy():
++    mcp_surfaces.record_tool("svc", {"name": "wipe", "inputSchema": {"type": "object"},
++                                     "annotations": {"destructiveHint": True, "readOnlyHint": False, "title": "x"}},
++                             "mcp_svc_wipe")
++    assert mcp_surfaces.tool_annotations("mcp_svc_wipe") == {"destructiveHint": True, "readOnlyHint": False}
++    assert mcp_surfaces.tool_annotations("mcp_svc_unknown") == {}
+diff --git a/tools/mcp_surfaces.py b/tools/mcp_surfaces.py
+index 79bd2dba5ac1b40a623a2c956dbf1cf8a71d14d1..b1fe19525b63437c9999d70d101aadaf5daff411 100644
+--- a/tools/mcp_surfaces.py
++++ b/tools/mcp_surfaces.py
+@@ -37,6 +37,25 @@ _no_arg_ui_tools: dict[tuple[str, str], str] = {}
+ _origin: contextvars.ContextVar[str] = contextvars.ContextVar("foyelle_tool_call_origin", default="model")
+ 
+ 
++# registry tool name -> the server's own hints (readOnlyHint, destructiveHint, idempotentHint,
++# openWorldHint): Foyelle's policy uses them for tools its review didn't list.
++_annotations: dict[str, dict] = {}
++_HINTS = ("readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint")
++
++
++def _hints(tool: Any) -> dict:
++    raw = tool.get("annotations") if isinstance(tool, dict) else getattr(tool, "annotations", None)
++    if raw is not None and not isinstance(raw, dict):
++        raw = raw.model_dump() if hasattr(raw, "model_dump") else vars(raw)
++    return {k: v for k, v in (raw or {}).items() if k in _HINTS and isinstance(v, bool)}
++
++
++def tool_annotations(registry_name: str) -> dict:
++    """The MCP tool's own hints (only the boolean ones), or {} for a tool that declared none."""
++    with _lock:
++        return dict(_annotations.get(registry_name) or {})
++
++
+ def current_origin() -> str:
+     """Who started the tool call being dispatched: ``model`` or ``surface``."""
+     return _origin.get()
+@@ -72,6 +91,7 @@ def record_tool(server_name: str, tool: Any, registry_name: str) -> None:
+     with _lock:
+         _tools[registry_name] = (server_name, tool_name)
+         _registry_names[(server_name, tool_name)] = registry_name
++        _annotations[registry_name] = _hints(tool)
+         if uri:
+             _ui_uris[registry_name] = uri
+             if not required:

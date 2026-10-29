@@ -1,0 +1,111 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Mon, 19 Oct 2026 09:54:12 +0000
+Subject: [PATCH 12/15] foyelle: a surface opened from the list gets its tool's
+ result
+
+Many MCP Apps (the official system monitor among them) start only from
+the result of the tool that shows them, so opened from the surface list
+they waited forever. When a server has a tool linked to the surface that
+needs no arguments, opening the surface runs it as the surface's own
+call (through the policy and audit) and returns its result with the
+page.
+---
+ tests/tools/test_mcp_surfaces.py | 21 +++++++++++++++++++--
+ tools/mcp_surfaces.py            | 23 +++++++++++++++++++++--
+ 2 files changed, 40 insertions(+), 4 deletions(-)
+
+diff --git a/tests/tools/test_mcp_surfaces.py b/tests/tools/test_mcp_surfaces.py
+index d59ed6003e5bfd2c48c196f3706f7e4e9efe62ea..49b753690aec9eaaf95d576449706dbf5aeb994a 100644
+--- a/tests/tools/test_mcp_surfaces.py
++++ b/tests/tools/test_mcp_surfaces.py
+@@ -10,10 +10,12 @@ from tools import mcp_surfaces
+ 
+ @pytest.fixture(autouse=True)
+ def _clean_registry():
+-    for table in (mcp_surfaces._tools, mcp_surfaces._registry_names, mcp_surfaces._ui_uris):
++    for table in (mcp_surfaces._tools, mcp_surfaces._registry_names, mcp_surfaces._ui_uris,
++                  mcp_surfaces._no_arg_ui_tools):
+         table.clear()
+     yield
+-    for table in (mcp_surfaces._tools, mcp_surfaces._registry_names, mcp_surfaces._ui_uris):
++    for table in (mcp_surfaces._tools, mcp_surfaces._registry_names, mcp_surfaces._ui_uris,
++                  mcp_surfaces._no_arg_ui_tools):
+         table.clear()
+ 
+ 
+@@ -94,6 +96,21 @@ def test_surface_document_picks_html_and_ui_meta(monkeypatch):
+     assert doc == {"html": "<p>x</p>", "csp": {"connectDomains": ["https://api.example"]}, "permissions": {"camera": {}}}
+ 
+ 
++def test_resource_payload_runs_the_surface_tool_that_needs_no_arguments(monkeypatch):
++    monkeypatch.setattr(mcp_surfaces, "surface_document", lambda server, uri: {"html": "<p/>"})
++    calls = []
++    monkeypatch.setattr(mcp_surfaces, "call_tool",
++                        lambda server, tool, args, session_id="": calls.append((server, tool)) or {"content": []})
++    meta = {"ui": {"resourceUri": "ui://mon/app.html"}}
++    mcp_surfaces.record_tool("mon", {"name": "info", "inputSchema": {"type": "object"}, "_meta": meta}, "mcp_mon_info")
++    mcp_surfaces.record_tool("mon", {"name": "detail", "inputSchema": {"type": "object", "required": ["id"]},
++                                     "_meta": {"ui": {"resourceUri": "ui://mon/detail.html"}}}, "mcp_mon_detail")
++    out = mcp_surfaces.resource_payload("mon", "ui://mon/app.html", "s1")
++    assert out["tool"] == "info" and out["tool_result"] == {"content": []} and calls == [("mon", "info")]
++    # A surface whose tool needs arguments opens without a result.
++    assert "tool_result" not in mcp_surfaces.resource_payload("mon", "ui://mon/detail.html", "s1")
++
++
+ def test_resource_payload_refuses_non_ui_uris():
+     with pytest.raises(ValueError):
+         mcp_surfaces.resource_payload("files", "file:///etc/passwd")
+diff --git a/tools/mcp_surfaces.py b/tools/mcp_surfaces.py
+index 3cbfefe438ebe19be4ff06f9816401b2ee9b11d1..79bd2dba5ac1b40a623a2c956dbf1cf8a71d14d1 100644
+--- a/tools/mcp_surfaces.py
++++ b/tools/mcp_surfaces.py
+@@ -30,6 +30,8 @@ _tools: dict[str, tuple[str, str]] = {}
+ _registry_names: dict[tuple[str, str], str] = {}
+ # registry tool name -> ui:// resource URI
+ _ui_uris: dict[str, str] = {}
++# (server, ui uri) -> a tool that shows that surface and needs no arguments.
++_no_arg_ui_tools: dict[tuple[str, str], str] = {}
+ 
+ # "model" for calls the agent makes, "surface" while a surface's own tool call is dispatched.
+ _origin: contextvars.ContextVar[str] = contextvars.ContextVar("foyelle_tool_call_origin", default="model")
+@@ -65,11 +67,17 @@ def record_tool(server_name: str, tool: Any, registry_name: str) -> None:
+     if not tool_name or not registry_name:
+         return
+     uri = tool_ui_uri(tool)
++    schema = tool.get("inputSchema") if isinstance(tool, dict) else getattr(tool, "inputSchema", None)
++    required = (schema or {}).get("required") if isinstance(schema, dict) else None
+     with _lock:
+         _tools[registry_name] = (server_name, tool_name)
+         _registry_names[(server_name, tool_name)] = registry_name
+         if uri:
+             _ui_uris[registry_name] = uri
++            if not required:
++                _no_arg_ui_tools[(server_name, uri)] = tool_name
++            elif _no_arg_ui_tools.get((server_name, uri)) == tool_name:
++                del _no_arg_ui_tools[(server_name, uri)]
+         else:
+             _ui_uris.pop(registry_name, None)
+ 
+@@ -229,8 +237,19 @@ def resource_payload(server_name: str, uri: str, session_id: str = "") -> dict:
+     """The ``surface.open_resource`` result: a surface opened without a tool call."""
+     if not uri.startswith("ui://"):
+         raise ValueError("surface URIs must use the ui:// scheme")
+-    return {"surface_id": f"s-{uuid.uuid4().hex[:16]}", "session_id": session_id, "server": server_name,
+-            "uri": uri, **surface_document(server_name, uri)}
++    payload = {"surface_id": f"s-{uuid.uuid4().hex[:16]}", "session_id": session_id, "server": server_name,
++               "uri": uri, **surface_document(server_name, uri)}
++    # Many MCP Apps only start from the result of the tool that shows them. Opened from the
++    # surface list, run that tool (when it needs no arguments) as the surface's own call, through
++    # the policy and audit like any surface call, and hand its result to the app.
++    with _lock:
++        tool = _no_arg_ui_tools.get((server_name, uri))
++    if tool:
++        try:
++            payload.update(tool=tool, tool_input={}, tool_result=call_tool(server_name, tool, {}, session_id=session_id))
++        except Exception as exc:
++            logger.warning("surfaces: opening %s, %s.%s failed: %s", uri, server_name, tool, exc)
++    return payload
+ 
+ 
+ # Surfaces the agent made (Foyelle's workshop connector) may call other connectors' tools, named

@@ -1,0 +1,51 @@
+<main>
+  <div class="toolbar"><h1>Audit log</h1></div>
+  <form id="filters" class="toolbar" aria-label="Filters">
+    <input id="f-session" type="search" placeholder="Session" aria-label="Session id">
+    <input id="f-tool" type="search" placeholder="Tool" aria-label="Tool">
+    <select id="f-decision" aria-label="Decision"><option value="">Any decision</option><option>allow</option><option>ask</option><option>deny</option></select>
+    <button type="submit" class="primary">Filter</button>
+  </form>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <table>
+    <thead><tr><th scope="col">Time</th><th scope="col">Tool</th><th scope="col">Decision</th><th scope="col">Approval</th><th scope="col">Status</th><th scope="col">Origin</th><th scope="col">Session</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="toolbar"><button id="more" type="button" hidden>Older entries</button></div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h, offset = 0;
+  function args() {
+    var a = { limit: 100, offset: offset };
+    var s = V.$("#f-session").value.trim(), t = V.$("#f-tool").value.trim(), d = V.$("#f-decision").value;
+    if (s) a.session_id = s; if (t) a.tool = t; if (d) a.decision = d;
+    return a;
+  }
+  function render(d, append) {
+    if (!d) return;
+    var rows = V.$("#rows");
+    if (!append) V.clear(rows);
+    (d.entries || []).forEach(function (e) {
+      var kind = e.decision === "deny" ? "bad" : e.decision === "ask" ? "warn" : "ok";
+      rows.appendChild(h("tr", null,
+        h("td", { text: V.fmtDate(e.ts) }),
+        h("td", null, h("code", { text: (e.connector ? e.connector + "." : "") + (e.tool || "") })),
+        h("td", null, h("span", { class: "badge " + kind, text: e.decision || "" })),
+        h("td", { text: e.approval || "" }),
+        h("td", { text: e.status || "" }),
+        h("td", { text: (e.origin || "") + (e.tainted ? " · tainted" : "") }),
+        h("td", { class: "mono ellipsis", title: e.session_id || "", text: (e.session_id || "").slice(0, 10) })));
+    });
+    if (!rows.firstChild) rows.appendChild(h("tr", null, h("td", { colspan: 7, class: "muted", text: d.exists === false ? "No audit log yet." : "No matching entries." })));
+    V.$("#more").hidden = !d.has_more;
+  }
+  function load(append) {
+    if (!append) offset = 0;
+    return V.run("audit_query", args(), "Loading…").then(function (d) { render(d, append); });
+  }
+  V.onSubmit(V.$("#filters"), function () { load(false); });
+  V.$("#more").addEventListener("click", function () { offset += 100; load(true); });
+  V.start({ name: "foyelle-shell-audit", render: function (d) { render(d, false); }, load: function () { return load(false); } });
+})();
+</script>

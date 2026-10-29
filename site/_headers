@@ -1,0 +1,12 @@
+# Cloudflare Pages headers. The OAuth client document is fetched by services' sign-in servers.
+/oauth/client.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+  Access-Control-Allow-Origin: *
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+/fonts/*
+  Cache-Control: public, max-age=31536000

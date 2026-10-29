@@ -1,0 +1,93 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:27:41 +0000
+Subject: [PATCH 03/15] foyelle: no remote model, plugin or skills catalogues
+
+The model catalogue manifest, the live plugin catalogue and the skills
+index were fetched from hermes-agent.nousresearch.com on timers. Their
+URLs are now empty and each fetcher returns early, so the bundled,
+in-tree data is used. Disabling the model catalogue also stops the
+gateway watcher's Nous Portal recommended-models and OpenRouter polls,
+which refresh_catalogs() only runs when the catalogue is enabled.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ hermes_cli/model_catalog.py  | 10 ++++------
+ hermes_cli/plugin_catalog.py |  4 +++-
+ tools/skills_hub_search.py   |  4 +++-
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/hermes_cli/model_catalog.py b/hermes_cli/model_catalog.py
+index 9a0454913c2b88f029f044068490ba5affd17b5a..5a7e233c09328cfa63d63c0962e772396f5826f2 100644
+--- a/hermes_cli/model_catalog.py
++++ b/hermes_cli/model_catalog.py
+@@ -23,13 +23,11 @@ from utils import atomic_json_write
+ 
+ logger = logging.getLogger(__name__)
+ 
+-DEFAULT_CATALOG_URL = (
+-    "https://hermes-agent.nousresearch.com/docs/api/model-catalog.json")
++# Foyelle: the model catalogue ships in the image; there is no remote manifest.
++DEFAULT_CATALOG_URL = ""
+ # The Docusaurus site sits behind Vercel, which occasionally 403s non-browser clients (bot
+ # challenge); the raw GitHub copy is the same manifest and is not bot-gated.
+-DEFAULT_CATALOG_FALLBACK_URLS: tuple[str, ...] = (
+-    "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/website/static/api/model-catalog.json",
+-)
++DEFAULT_CATALOG_FALLBACK_URLS: tuple[str, ...] = ()
+ DEFAULT_TTL_MINUTES = 20
+ # Legacy key, honoured only when the user set it explicitly; ``ttl_minutes`` is the shipped default.
+ DEFAULT_TTL_HOURS = DEFAULT_TTL_MINUTES / 60.0
+@@ -110,7 +108,7 @@ def _load_catalog_config() -> dict[str, Any]:
+         ttl_minutes = DEFAULT_TTL_MINUTES
+ 
+     return {
+-        "enabled": bool(raw.get("enabled", True)),
++        "enabled": bool(raw.get("enabled", False)) and bool(raw.get("url")),
+         "url": str(raw.get("url") or DEFAULT_CATALOG_URL),
+         "ttl_hours": ttl_minutes / 60.0,
+         "providers": raw.get("providers") if isinstance(raw.get("providers"), dict) else {}}
+diff --git a/hermes_cli/plugin_catalog.py b/hermes_cli/plugin_catalog.py
+index 89829ba4fd93b7ead45c3686386a7f7eab0af777..d01723945c4218472c0c19ffe2b28a309a308111 100644
+--- a/hermes_cli/plugin_catalog.py
++++ b/hermes_cli/plugin_catalog.py
+@@ -32,7 +32,7 @@ CATALOG_TIERS = ("official", "verified", "community")
+ # Browse taxonomy for the catalog page / picker. Entries without one land on the Desktop shelf
+ # (the common case for community submissions); "general" is for plugins that fit no shelf.
+ CATALOG_CATEGORIES = ("desktop", "memory", "platform", "web", "tools", "voice", "automation", "models", "general")
+-LIVE_CATALOG_URL = "https://hermes-agent.nousresearch.com/docs/api/plugin-catalog.json"
++LIVE_CATALOG_URL = ""  # Foyelle: no live plugin catalogue; the in-tree catalogue is used
+ LIVE_CATALOG_TTL_SECONDS = 6 * 60 * 60
+ # Offline pins expire, but cached removals remain a permanent kill list.
+ LIVE_CATALOG_MAX_STALE_SECONDS = 24 * 60 * 60
+@@ -358,6 +358,8 @@ def fetch_live_catalog(*, force: bool = False) -> Optional[dict[str, Any]]:
+     :data:`LIVE_CATALOG_FAILURE_TTL_SECONDS` so a dead host costs one timeout per TTL window, not one
+     per call (``force`` bypasses both caches)."""
+     global _live_fetch_failed_until
++    if not LIVE_CATALOG_URL:
++        return None
+     cache = _live_cache_path()
+     try:
+         if not force and cache.is_file() and time.time() - cache.stat().st_mtime < LIVE_CATALOG_TTL_SECONDS:
+diff --git a/tools/skills_hub_search.py b/tools/skills_hub_search.py
+index fabdf931e58352fbdfc5d7dea6be22d05fcc1809..e5d10a012fba0a2e620fac931b7d2ef438b99304 100644
+--- a/tools/skills_hub_search.py
++++ b/tools/skills_hub_search.py
+@@ -24,7 +24,7 @@ from tools.skills_hub_sources import BrowseShSource, LobeHubSource, UrlSource, W
+ # Log-record parity with the origin module.
+ logger = logging.getLogger("tools.skills_hub")
+ 
+-HERMES_INDEX_URL = "https://hermes-agent.nousresearch.com/docs/api/skills-index.json"
++HERMES_INDEX_URL = ""  # Foyelle: no remote skills index
+ HERMES_INDEX_TTL = 6 * 3600  # 6 hours
+ 
+ 
+@@ -43,6 +43,8 @@ def _load_hermes_index() -> Optional[dict]:
+     Skills Hub. gzip/deflate first; the identity retry covers proxies that
+     ignore the header and return Brotli anyway.
+     """
++    if not HERMES_INDEX_URL:
++        return None
+     from tools.skills_hub import _read_json_if_fresh
+     cache_file = _hermes_index_cache_file()
+     cached = _read_json_if_fresh(cache_file, HERMES_INDEX_TTL)

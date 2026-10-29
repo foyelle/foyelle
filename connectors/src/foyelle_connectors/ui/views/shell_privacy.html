@@ -1,0 +1,101 @@
+<style>
+  body { padding: 20px 26px 24px; }
+  .pv-head { display: flex; gap: 14px; align-items: center; margin-bottom: 6px; }
+  .pv-icon { flex: none; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+  .pv-icon.is-out { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+  .pv-icon svg { width: 24px; height: 24px; }
+  .pv-kicker { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg2); font-weight: 600; }
+  .pv-head h1 { font-size: calc(30px * var(--hand-scale)); margin: 2px 0 0; }
+  .pv-lead { font-size: 15px; color: var(--fg2); margin: 10px 0 18px; }
+  .pv-section { border: 1px solid var(--border); border-radius: 14px; background: var(--bg2); padding: 12px 16px; margin: 10px 0; }
+  .pv-section h2 { margin: 0 0 6px; font-size: 13px; color: var(--fg2); font-weight: 600; }
+  .pv-section p { margin: 4px 0; }
+  .pv-rows { list-style: none; margin: 0; padding: 0; }
+  .pv-rows li { display: flex; gap: 12px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--border); }
+  .pv-rows li:first-child { border-top: none; }
+  .pv-rows .what { flex: 1; }
+  .pv-rows .when { color: var(--fg2); font-size: 12.5px; font-variant-numeric: tabular-nums; text-align: right; }
+  .pv-none { color: var(--fg2); }
+  .pv-home { background: transparent; }
+  .pv-foot { display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+</style>
+<main>
+  <header class="pv-head">
+    <div id="icon" class="pv-icon" aria-hidden="true"></div>
+    <div><div class="pv-kicker">Your home, today</div><h1>What left this computer</h1></div>
+  </header>
+  <p id="lead" class="pv-lead"></p>
+  <section class="pv-section" aria-labelledby="h-model"><h2 id="h-model">Our conversation</h2><p id="model"></p></section>
+  <section class="pv-section" aria-labelledby="h-out"><h2 id="h-out">Went out</h2><ul id="out" class="pv-rows"></ul></section>
+  <section id="shared-box" class="pv-section" aria-labelledby="h-shared"><h2 id="h-shared">Shown to the online model</h2><ul id="shared" class="pv-rows"></ul></section>
+  <section id="held-box" class="pv-section" aria-labelledby="h-held"><h2 id="h-held">Held back</h2><ul id="held" class="pv-rows"></ul></section>
+  <section class="pv-section pv-home" aria-labelledby="h-home">
+    <h2 id="h-home">Always stays home</h2>
+    <p>Your files, memories and settings, and this record of what I did, live on this computer. Nothing here is sent anywhere unless it shows up above.</p>
+  </section>
+  <div class="pv-foot"><button id="refresh" type="button">Refresh</button><span id="status" class="status" role="status" aria-live="polite"></span></div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  var ICONS = {
+    home: "M4 11 12 4l8 7M6 10v10h12V10M10 20v-5h4v5",
+    door: "M6 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M3 21h18M13 12h.01"
+  };
+  function icon(name) {
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("fill", "none"); g.setAttribute("stroke", "currentColor"); g.setAttribute("stroke-width", "1.8");
+    g.setAttribute("stroke-linecap", "round"); g.setAttribute("stroke-linejoin", "round");
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", ICONS[name]);
+    g.appendChild(path);
+    svg.appendChild(g);
+    return svg;
+  }
+  function time(ts) { return V.fmtDate(ts, { hour: "2-digit", minute: "2-digit" }); }
+  function times(list) {
+    var shown = list.slice(-4).map(time);
+    return (list.length > 4 ? "… " : "") + shown.join(", ");
+  }
+  function rows(ul, items, none) {
+    V.clear(ul);
+    if (!items.length) { ul.appendChild(h("li", { class: "pv-none", text: none })); return; }
+    items.forEach(function (it) {
+      ul.appendChild(h("li", null, h("span", { class: "what", text: it.what }), h("span", { class: "when", text: it.when })));
+    });
+  }
+  function render(d) {
+    if (!d) return;
+    var m = d.model || {}, out = d.went_out || [], shared = d.shared || [], held = d.held_back || [];
+    var anything = out.length || shared.length;
+    var box = V.$("#icon");
+    V.clear(box).appendChild(icon(anything ? "door" : "home"));
+    box.classList.toggle("is-out", !!anything);
+
+    var n = out.reduce(function (a, o) { return a + o.count; }, 0) + shared.reduce(function (a, s) { return a + s.count; }, 0);
+    V.$("#lead").textContent = !anything
+      ? "Nothing left your home today" + (m.online ? " apart from our conversation." : ".")
+      : n === 1 ? "One thing left your home today. Here it is." : n + " things left your home today. Here is each one.";
+
+    V.$("#model").textContent = m.online
+      ? "Your messages go online" + (m.provider ? " to " + m.provider : "") + " so the model" + (m.name ? " (" + m.name + ")" : "") +
+        " can think. Your files and memories only go with them when you say so."
+      : "Your messages stay on this computer. The model" + (m.name ? " (" + m.name + ")" : "") + " thinks here, with nothing sent online.";
+
+    rows(V.$("#out"), out.map(function (o) { return { what: o.label, when: times(o.times || []) }; }),
+      "Nothing was sent or looked up online.");
+    V.$("#shared-box").hidden = !m.online && !shared.length;
+    rows(V.$("#shared"), shared.map(function (s) {
+      return { what: "Your " + s.label + (s.count > 1 ? " (" + s.count + " times)" : ""), when: times(s.times || []) };
+    }), "Nothing from your files, mail or memories.");
+    V.$("#held-box").hidden = !held.length;
+    rows(V.$("#held"), held.map(function (e) { return { what: e.label, when: time(e.ts) }; }), "");
+  }
+  function load() { return V.run("privacy_today", {}, "Looking…").then(render); }
+  V.$("#refresh").addEventListener("click", load);
+  V.start({ name: "foyelle-shell-privacy", render: render, load: load });
+})();
+</script>

@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:27:08 +0000
+Subject: [PATCH 01/15] foyelle: never create a Nous guest identity or
+ free-tier trial
+
+guest_allowed() now returns False unconditionally, which closes the
+connector guest mint, the desktop welcome trial and free inference.
+mint_guest() raises as a second line of defence.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ hermes_cli/anon_auth.py      | 9 ++++++++-
+ hermes_cli/auth_constants.py | 2 +-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/hermes_cli/anon_auth.py b/hermes_cli/anon_auth.py
+index aee02ce2ae6321dd4fb41a4b1bd5f13cf81264c8..db9f481ce954d89c051cc9c24325011332bc0d45 100644
+--- a/hermes_cli/anon_auth.py
++++ b/hermes_cli/anon_auth.py
+@@ -154,7 +154,11 @@ def anon_failure_copy(code: str, *, retry_after: Any = None) -> str:
+ 
+ 
+ def guest_allowed() -> bool:
+-    """``nous.guest`` (default True) has not switched guests off: no connector guest, no trial."""
++    """Foyelle: never. No anonymous Nous identity is created and there is no free trial."""
++    return False
++
++
++def _upstream_guest_allowed() -> bool:
+     try:
+         from hermes_cli.config import load_config_readonly
+         nous_cfg = load_config_readonly().get("nous")
+@@ -211,6 +215,8 @@ def free_inference_active(state: Any = None) -> bool:
+     """The welcome trial carries inference: a guest that claimed it and guests
+     still allowed. Only the claim is the local Desktop's (``welcome_trial``); once claimed, every
+     surface of the install runs on it. *state* defaults to the profile's."""
++    if not guest_allowed():  # Foyelle: the welcome trial never carries inference
++        return False
+     state = current_nous_state() if state is None else state
+     return is_guest_state(state) and state.get(WELCOME_CLAIM_FLAG) is True and guest_allowed()
+ 
+@@ -367,6 +373,7 @@ def mint_request_body() -> dict[str, Any]:
+ 
+ def mint_guest(client: httpx.Client, portal_base_url: str) -> dict[str, Any]:
+     """``POST /api/anonymous/create`` -> ``{user_id, org_id, token, idle_ttl_days}``. Token shown once."""
++    raise RuntimeError("Foyelle does not create Nous accounts")
+     response = client.post(
+         f"{portal_base_url.rstrip('/')}/api/anonymous/create", headers=_anon_headers(), json=mint_request_body())
+     payload = _raise_for_anon_status(response, action="sign-up")
+diff --git a/hermes_cli/auth_constants.py b/hermes_cli/auth_constants.py
+index 4694ee2264b603c7bb6d562094ddae9a00393fa0..1d8a56e8478efbc7173805c837890fe3f87fa391 100644
+--- a/hermes_cli/auth_constants.py
++++ b/hermes_cli/auth_constants.py
+@@ -56,7 +56,7 @@ DEFAULT_NOUS_INFERENCE_URL = "https://inference-api.nousresearch.com/v1"
+ # The free tier's (anonymous account) inference host. NAS hands it to the client on every token
+ # exchange (``inference_base_url``); this literal is the fallback when that field is absent or fails
+ # the host allowlist, because the paid host cross-refuses an anonymous JWT with a 400.
+-DEFAULT_NOUS_WELCOME_URL = "https://welcome-api.nousresearch.com/v1"
++DEFAULT_NOUS_WELCOME_URL = "https://welcome.invalid/v1"  # Foyelle: no free-tier trial host
+ DEFAULT_NOUS_CLIENT_ID = "hermes-cli"
+ # On every guest minted since the welcome trial: True when the desktop's first install claimed it
+ # (``hermes_cli.welcome_trial``), False for a connector mint. Absent = minted before the trial existed.

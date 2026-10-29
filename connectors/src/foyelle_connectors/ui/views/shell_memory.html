@@ -1,0 +1,73 @@
+<main>
+  <div class="toolbar">
+    <h1>Memory</h1><span class="spacer"></span>
+    <button id="export" type="button">Export</button>
+    <button id="refresh" type="button">Reload</button>
+  </div>
+  <div class="toolbar" role="tablist" aria-label="Memory file">
+    <button type="button" role="tab" id="tab-MEMORY.md" data-file="MEMORY.md" aria-selected="true">Agent notes (MEMORY.md)</button>
+    <button type="button" role="tab" id="tab-USER.md" data-file="USER.md" aria-selected="false">About you (USER.md)</button>
+  </div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <ul id="entries" class="list" aria-label="Entries"></ul>
+  <h2>Add an entry</h2>
+  <label for="new">New entry</label>
+  <textarea id="new" rows="3"></textarea>
+  <div class="toolbar"><button id="add" type="button" class="primary">Add</button></div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  var files = {}, current = "MEMORY.md";
+  function save(entries, done) {
+    var f = files[current];
+    var content = entries.join("\n§\n") + (entries.length ? "\n" : "");
+    V.run("memory_write", { file: current, content: content, expected_sha256: f ? f.sha256 : null }, "Saving…")
+      .then(function (r) { if (r) { V.status("Saved. Previous version kept as " + (r.backup || "no backup (file was empty)") + "."); load(); if (done) done(); } });
+  }
+  // getElementById: in a CSS selector "#tab-MEMORY.md" would mean id "tab-MEMORY" with class "md".
+  function tab(name) { return document.getElementById("tab-" + name); }
+  function renderEntries() {
+    tab("MEMORY.md").setAttribute("aria-selected", String(current === "MEMORY.md"));
+    tab("USER.md").setAttribute("aria-selected", String(current === "USER.md"));
+    var list = V.clear(V.$("#entries")), f = files[current];
+    var entries = f ? f.entries.slice() : [];
+    if (!entries.length) list.appendChild(h("li", { class: "muted", text: "No entries." }));
+    entries.forEach(function (text, i) {
+      var area = h("textarea", { rows: Math.min(8, text.split("\n").length + 1), "aria-label": "Entry " + (i + 1) });
+      area.value = text;
+      list.appendChild(h("li", null, area, h("div", { class: "toolbar" },
+        h("button", { type: "button", text: "Save", onclick: function () { entries[i] = area.value.trim(); save(entries.filter(Boolean)); } }),
+        h("button", { type: "button", class: "danger", text: "Delete", onclick: function () { entries.splice(i, 1); save(entries); } }))));
+    });
+  }
+  function render(d) {
+    if (!d || !d.files) return;
+    d.files.forEach(function (f) { files[f.name] = f; });
+    // Opened for one file (memory_read file=USER.md): show that one.
+    if (d.files.length === 1) current = d.files[0].name;
+    renderEntries();
+  }
+  function load() { return V.run("memory_read", {}, "Loading…").then(render); }
+  ["MEMORY.md", "USER.md"].forEach(function (name) {
+    tab(name).addEventListener("click", function () { current = name; renderEntries(); });
+  });
+  V.$("#refresh").addEventListener("click", load);
+  V.$("#add").addEventListener("click", function () {
+    var text = V.$("#new").value.trim();
+    if (!text) return;
+    var f = files[current], entries = f ? f.entries.slice() : [];
+    entries.push(text);
+    save(entries, function () { V.$("#new").value = ""; });
+  });
+  V.$("#export").addEventListener("click", function () {
+    V.run("memory_export", {}, "Exporting…").then(function (r) {
+      if (!r) return;
+      V.downloadFile(r.filename, r.content, r.mime_type).then(function (res) {
+        V.status(res && res.isError ? "The host could not save the file." : "Export handed to the host as " + r.filename + ".");
+      }, function () { V.status("This host cannot save files.", "error"); });
+    });
+  });
+  V.start({ name: "foyelle-shell-memory", render: render, load: load });
+})();
+</script>

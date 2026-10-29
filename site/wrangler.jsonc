@@ -1,0 +1,11 @@
+// foyelle.org on Cloudflare: static files only (no Worker code), built by scripts/deploy-site into out/site.
+{
+  "name": "foyelle-site",
+  "compatibility_date": "2026-10-23",
+  "assets": {
+    "directory": "../out/site",
+    "not_found_handling": "404-page"
+  },
+  "routes": [{ "pattern": "foyelle.org", "custom_domain": true }],
+  "workers_dev": false
+}

@@ -1,0 +1,95 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:28:34 +0000
+Subject: [PATCH 07/15] foyelle: point update and artifact origins away from
+ Nous
+
+Pinned binary inputs no longer fall back to hermes-assets.nousresearch.com,
+the release-channel base is a non-resolving .invalid host (updates arrive
+as Nix system changes), and the official repository used by update and
+fork detection is foyelle/foyelle.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ hermes_cli/source_releases.py |  5 +++--
+ hermes_cli/update_cmd_git.py  | 12 +++++++-----
+ pm/artifact-mirror.json       |  2 +-
+ pm/artifact_mirror.py         |  3 ++-
+ pm/network.py                 |  2 +-
+ 5 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/hermes_cli/source_releases.py b/hermes_cli/source_releases.py
+index 8944a1198a53461d14c717ff1a3a369aee4d619b..7ae0933fced630acd8a015b0e5bde6c9e1face73 100644
+--- a/hermes_cli/source_releases.py
++++ b/hermes_cli/source_releases.py
+@@ -13,8 +13,9 @@ import urllib.request
+ from hermes_cli.update_channel import STABLE_TAG_RE, is_canary_tag
+ 
+ logger = logging.getLogger(__name__)
+-_PUBLIC_BASE = "https://hermes-assets.nousresearch.com"
+-OFFICIAL_REPOSITORY = "NousResearch/hermes-agent"
++# Foyelle: releases are Nix system changes; there is no release-channel host.
++_PUBLIC_BASE = "https://releases.invalid"
++OFFICIAL_REPOSITORY = "foyelle/foyelle"
+ _GITHUB_ORIGIN = re.compile(
+     r"^(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)"
+     r"([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$", re.IGNORECASE,
+diff --git a/hermes_cli/update_cmd_git.py b/hermes_cli/update_cmd_git.py
+index 95a241cf605db6a06d8bce330b38337ec32acc1e..62d18315ee34b654bc5bd29baa092a298767c0df 100644
+--- a/hermes_cli/update_cmd_git.py
++++ b/hermes_cli/update_cmd_git.py
+@@ -271,13 +271,15 @@ def _print_parked_branch_kept_notice(current_branch: str, target_branch: str, un
+     )
+ 
+ 
++from hermes_cli.source_releases import OFFICIAL_REPOSITORY as _OFFICIAL_REPOSITORY
++
+ OFFICIAL_REPO_URLS = {
+-    "https://github.com/NousResearch/hermes-agent.git",
+-    "git@github.com:NousResearch/hermes-agent.git",
+-    "https://github.com/NousResearch/hermes-agent",
+-    "git@github.com:NousResearch/hermes-agent",
++    f"https://github.com/{_OFFICIAL_REPOSITORY}.git",
++    f"git@github.com:{_OFFICIAL_REPOSITORY}.git",
++    f"https://github.com/{_OFFICIAL_REPOSITORY}",
++    f"git@github.com:{_OFFICIAL_REPOSITORY}",
+ }
+-OFFICIAL_REPO_URL = "https://github.com/NousResearch/hermes-agent.git"
++OFFICIAL_REPO_URL = f"https://github.com/{_OFFICIAL_REPOSITORY}.git"
+ SKIP_UPSTREAM_PROMPT_FILE = ".skip_upstream_prompt"
+ 
+ 
+diff --git a/pm/artifact-mirror.json b/pm/artifact-mirror.json
+index d5a2b74ece5750172ee97ae71184f7175bddab9f..4691826bf8d8a42c356c78fea17e4dd91ae42757 100644
+--- a/pm/artifact-mirror.json
++++ b/pm/artifact-mirror.json
+@@ -1,4 +1,4 @@
+ {
+-  "origin": "https://hermes-assets.nousresearch.com",
++  "origin": "https://artifacts.invalid",
+   "prefix": "upstream/sha256/"
+ }
+diff --git a/pm/artifact_mirror.py b/pm/artifact_mirror.py
+index 3d3030b8fd33731911db33e3a64a2d71ba08814d..9b9cce662e410573d3de36e42c7dd527ede05f2e 100644
+--- a/pm/artifact_mirror.py
++++ b/pm/artifact_mirror.py
+@@ -29,4 +29,5 @@ def pinned_source(url: str, dest: Path, sha256: str) -> Source:
+     archive = mirror_url(sha256)
+     # The lock records registry.npmjs.org; a user's npm mirror serves the same pinned bytes (#123132).
+     url = npm_registry_url(url, os.environ)
+-    return Source(url, dest, sha256, fallbacks=() if url == archive else (archive,))
++    # Foyelle: no third-party artifact mirror; pinned inputs come from their recorded origin only.
++    return Source(url, dest, sha256, fallbacks=())
+diff --git a/pm/network.py b/pm/network.py
+index d12cc1b19278b4a4181a578aaded0f123b376f4a..421be0e700b98b6d760d42272cc11b137a8333a2 100644
+--- a/pm/network.py
++++ b/pm/network.py
+@@ -19,7 +19,7 @@ _ATTEMPTS = 4
+ _MAX_DELAY = 30.0
+ _MAX_RECOVERY_DELAY = 300.0
+ _HTTP_RETRY = frozenset({408, 429, 500, 502, 503, 504})
+-_R2_HOSTS = frozenset({"hermes-assets.nousresearch.com"})
++_R2_HOSTS: frozenset[str] = frozenset()  # Foyelle: no artifact mirror
+ _NETWORK_ERRNOS = frozenset({
+     errno.ECONNABORTED, errno.ECONNREFUSED, errno.ECONNRESET,
+     errno.ENETDOWN, errno.ENETRESET, errno.ENETUNREACH,

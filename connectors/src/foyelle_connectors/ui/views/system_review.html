@@ -1,0 +1,146 @@
+<main>
+  <div class="toolbar"><h1>System changes</h1><span class="spacer"></span><button id="refresh" type="button">Refresh</button></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <section id="overview">
+    <p id="current" class="muted"></p>
+    <div id="disk" hidden>
+      <p><span id="disk-badge" class="badge"></span> <span id="disk-text"></span></p>
+      <button id="disk-change" type="button">Change disk passphrase…</button>
+    </div>
+    <div id="recovery" hidden>
+      <p><span id="recovery-badge" class="badge"></span> <span id="recovery-text" class="muted"></span></p>
+      <button id="recovery-set" type="button">Set recovery password…</button>
+    </div>
+    <h2>Proposals</h2>
+    <ul id="proposals" class="list"></ul>
+    <details>
+      <summary>Generations and rollback</summary>
+      <table><thead><tr><th scope="col">Generation</th><th scope="col">Date</th><th scope="col"></th></tr></thead><tbody id="gens"></tbody></table>
+    </details>
+  </section>
+  <section id="review" hidden aria-labelledby="r-title">
+    <div class="toolbar"><button id="back" type="button">All proposals</button></div>
+    <h2 id="r-title"></h2>
+    <p><span id="r-state" class="badge"></span> <span id="r-boot" class="badge warn" hidden>Boot-level: applies at next boot</span> <span id="r-stale" class="badge bad" hidden>Out of date</span></p>
+    <p id="r-summary" class="pre-line"></p>
+    <h2>Configuration diff</h2>
+    <pre id="r-stat" class="mono"></pre>
+    <pre id="r-diff" class="mono" tabindex="0"></pre>
+    <h2>Package changes</h2>
+    <pre id="r-pkgs" class="mono" tabindex="0"></pre>
+    <pre id="r-log" class="mono" hidden tabindex="0"></pre>
+    <div class="toolbar">
+      <button id="build" type="button">Build</button>
+      <button id="approve" type="button" class="primary">Approve and apply…</button>
+      <button id="reject" type="button" class="danger">Reject</button>
+    </div>
+    <p class="muted">Approving asks for your confirmation, then switches the system and checks it is healthy; it rolls back by itself if not.</p>
+  </section>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h, current = null, buildTimer = 0;
+  var stateKind = { built: "ok", applied: "ok", proposed: "", building: "warn", build_failed: "bad", apply_failed: "bad", rejected: "", rolled_back: "bad", applying: "warn" };
+
+  function showOverview(d) {
+    V.$("#review").hidden = true; V.$("#overview").hidden = false;
+    V.$("#current").textContent = "Host " + d.host + " · generation " + (d.current_generation || "?") + " · " + d.base_branch + " at " + (d.base_commit || "").slice(0, 10) + (d.base_subject ? " (" + d.base_subject + ")" : "");
+    showDisk(d.disk || {});
+    showRecovery(d.recovery || {});
+    var list = V.clear(V.$("#proposals"));
+    (d.recent || []).forEach(function (p) {
+      list.appendChild(h("li", null,
+        h("button", { type: "button", class: "linklike", text: p.title, onclick: function () { review(p.id); } }), " ",
+        h("span", { class: "badge " + (stateKind[p.state] || ""), text: p.state.replace("_", " ") }),
+        p.stale ? h("span", { class: "badge bad", text: "out of date" }) : null,
+        h("div", { class: "muted", text: V.fmtDate(p.created) })));
+    });
+    if (!list.firstChild) list.appendChild(h("li", { class: "muted", text: "No proposals." }));
+    var gens = V.clear(V.$("#gens"));
+    (d.generations || []).forEach(function (g) {
+      gens.appendChild(h("tr", null, h("td", { text: g.generation + (g.current ? " (current)" : "") }), h("td", { text: V.fmtDate(g.date) }),
+        h("td", null, g.current ? null : h("button", { type: "button", text: "Roll back to this", onclick: function () {
+          V.run("rollback", { generation: g.generation }, "Waiting for approval…").then(function (r) { if (r) { V.status("Helper: " + JSON.stringify(r.helper)); load(); } });
+        } }))));
+    });
+  }
+
+  function showDisk(disk) {
+    var box = V.$("#disk");
+    box.hidden = !disk.encrypted;
+    if (!disk.encrypted) return;
+    var weak = disk.initial_passphrase === true;
+    V.$("#disk-badge").className = "badge " + (weak ? "warn" : "ok");
+    V.$("#disk-badge").textContent = weak ? "Disk passphrase not set" : "Disk encrypted";
+    V.$("#disk-text").textContent = disk.prompt_open ? "The passphrase prompt is open on the screen." : (disk.warning || "");
+  }
+
+  function showRecovery(rec) {
+    V.$("#recovery").hidden = !rec.enabled;
+    if (!rec.enabled) return;
+    V.$("#recovery-badge").className = "badge " + (rec.password_set ? "ok" : "warn");
+    V.$("#recovery-badge").textContent = rec.password_set ? "Recovery console ready" : "Recovery console locked";
+    V.$("#recovery-text").textContent = rec.prompt_open ? "The password prompt is open on the screen."
+      : "A text login (Ctrl+Alt+F2) for repairs when the canvas does not work.";
+  }
+
+  function showReview(d) {
+    var p = d.proposal;
+    current = p;
+    V.$("#overview").hidden = true; V.$("#review").hidden = false;
+    V.$("#r-title").textContent = p.title;
+    var st = V.$("#r-state"); st.textContent = p.state.replace("_", " "); st.className = "badge " + (stateKind[p.state] || "");
+    V.$("#r-boot").hidden = !d.boot_level;
+    if (d.boot_level) V.$("#r-boot").textContent = "Boot-level (" + d.boot_changes.join(", ") + "): applies at next boot";
+    V.$("#r-stale").hidden = !p.stale;
+    V.$("#r-summary").textContent = p.summary;
+    V.$("#r-stat").textContent = d.diffstat || "";
+    V.$("#r-diff").textContent = (d.diff || "") + (d.diff_truncated ? "\n[diff truncated]" : "");
+    V.$("#r-pkgs").textContent = d.package_diff || (p.state === "building" ? "Building…" : "Build the proposal to see package changes.");
+    var log = V.$("#r-log"); log.hidden = p.state !== "build_failed"; log.textContent = p.build_log || "";
+    var open = ["applied", "rejected", "rolled_back", "applying"].indexOf(p.state) < 0;
+    V.$("#build").hidden = !open || p.state === "built";
+    V.$("#build").disabled = p.state === "building" || p.stale;
+    V.$("#approve").hidden = !open;
+    V.$("#approve").disabled = p.state !== "built" || p.stale;
+    V.$("#reject").hidden = !open;
+    clearTimeout(buildTimer);
+    if (p.state === "building") buildTimer = setTimeout(function () { review(p.id, true); }, 5000);
+  }
+
+  function render(d) {
+    if (!d) return;
+    if (d.proposal) showReview(d); else if (d.recent) showOverview(d);
+  }
+  function review(id, quiet) { return V.run("diff", { proposal_id: id }, quiet ? null : "Loading…").then(render); }
+  function load() { current = null; return V.run("status", {}, "Loading…").then(render); }
+
+  V.$("#refresh").addEventListener("click", function () { current ? review(current.id) : load(); });
+  V.$("#back").addEventListener("click", load);
+  V.$("#disk-change").addEventListener("click", function () {
+    // The passphrase is typed into a console prompt, never into this surface.
+    V.run("disk_passphrase", {}, "Waiting for your approval, then opening the passphrase prompt…").then(function (r) {
+      if (r) V.status(r.helper && r.helper.message ? r.helper.message : JSON.stringify(r.helper));
+    });
+  });
+
+  V.$("#recovery-set").addEventListener("click", function () {
+    V.run("recovery_password", {}, "Waiting for your approval, then opening the password prompt…").then(function (r) {
+      if (r) V.status(r.helper && r.helper.message ? r.helper.message : JSON.stringify(r.helper));
+    });
+  });
+
+  V.$("#build").addEventListener("click", function () {
+    V.run("build", { proposal_id: current.id, wait_seconds: 5 }, "Building…").then(function () { review(current.id); });
+  });
+  V.$("#approve").addEventListener("click", function () {
+    V.run("apply", { proposal_id: current.id }, "Waiting for your approval, then applying…").then(function (r) {
+      if (r) { V.status("Helper replied: " + (r.helper.message || r.helper.status || "ok")); review(current.id); }
+    });
+  });
+  V.$("#reject").addEventListener("click", function () {
+    V.run("reject", { proposal_id: current.id }, "Rejecting…").then(function (r) { if (r) review(current.id); });
+  });
+  V.start({ name: "foyelle-system-review", render: render, load: load });
+})();
+</script>

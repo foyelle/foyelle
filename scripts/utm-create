@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Create the Foyelle alpha VM in UTM (QEMU backend, Apple Silicon) from a qcow2 built with
+#   nix build .#vm-image     (or scripts/nix-docker build … on a Mac without Nix)
+# UTM copies the disk into the VM bundle. "Shared Network" puts the Mac at 192.168.64.1, where
+# the VM looks for the local model server (Ollama: OLLAMA_HOST=192.168.64.1:11434 OLLAMA_CONTEXT_LENGTH=32768).
+#   scripts/utm-create path/to/foyelle.qcow2 [name] [memory-MiB] [cpus]
+#
+# Voice needs a sound device with input. UTM's AppleScript cannot set one, so after creating the
+# VM this quits UTM, adds {Hardware: intel-hda} to the bundle's config.plist (the entry UTM writes
+# itself for the "virt" machine) and reopens UTM. With UTM's default SPICE audio backend that
+# gives the guest intel-hda + hda-duplex, which has a microphone; the CoreAudio backend cannot
+# capture. Quitting UTM would stop running VMs, so this refuses to start while any VM is not stopped.
+#
+# It also turns on the display's Retina mode (NativeResolution): the guest gets the window's real
+# pixels instead of half of them stretched by the host, so text is as sharp as on the Mac. The
+# canvas zooms by 2 on such a screen (canvas/src/main/density.ts).
+set -euo pipefail
+image="$(cd "$(dirname "${1:?usage: scripts/utm-create path/to/foyelle.qcow2 [name] [memory-MiB] [cpus]}")" && pwd)/$(basename "$1")"
+name="${2:-Foyelle}"
+memory="${3:-6144}"
+cpus="${4:-4}"
+[ -f "$image" ] || { echo "no such image: $image" >&2; exit 1; }
+vms="$HOME/Library/Containers/com.utmapp.UTM/Data/Documents"
+
+busy="$(osascript -e 'tell application "UTM" to get name of every virtual machine whose status is not stopped')"
+[ -z "$busy" ] || { echo "stop these VMs first (adding a sound device means quitting UTM): $busy" >&2; exit 1; }
+
+id="$(osascript <<APPLESCRIPT
+tell application "UTM"
+  -- UTM copies the disk into the VM bundle, which takes minutes for a multi-GB image.
+  with timeout of 1800 seconds
+  set disk to POSIX file "$image"
+  set vm to make new virtual machine with properties {backend:qemu, configuration:{name:"$name", architecture:"aarch64", memory:$memory, cpu cores:$cpus, hypervisor:true, uefi:true, drives:{{removable:false, source:disk}}, network interfaces:{{mode:shared}}, displays:{{hardware:"virtio-gpu-gl-pci", dynamic resolution:true}}}}
+  return id of vm
+  end timeout
+end tell
+APPLESCRIPT
+)"
+echo "$id"
+
+plist=""
+for f in "$vms"/*.utm/config.plist; do
+  if [ "$(/usr/libexec/PlistBuddy -c 'Print :Information:UUID' "$f" 2>/dev/null)" = "$id" ]; then plist="$f"; break; fi
+done
+[ -n "$plist" ] || { echo "created VM $id but found no bundle for it in $vms; add a sound device in UTM by hand" >&2; exit 1; }
+
+osascript -e 'tell application "UTM" to quit'
+while pgrep -xq UTM; do sleep 0.5; done
+cp -p "$plist" "$plist.before-sound"
+/usr/libexec/PlistBuddy -c 'Print :Sound' "$plist" >/dev/null 2>&1 || /usr/libexec/PlistBuddy -c 'Add :Sound array' "$plist"
+/usr/libexec/PlistBuddy -c 'Print :Sound:0' "$plist" >/dev/null 2>&1 || /usr/libexec/PlistBuddy \
+  -c 'Add :Sound:0 dict' -c 'Add :Sound:0:Hardware string intel-hda' "$plist"
+/usr/libexec/PlistBuddy -c 'Set :Display:0:NativeResolution true' "$plist" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c 'Add :Display:0:NativeResolution bool true' "$plist"
+open -a UTM
+echo "sound device intel-hda and Retina display mode set in $(dirname "$plist") (previous config: config.plist.before-sound)" >&2

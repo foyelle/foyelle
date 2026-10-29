@@ -1,0 +1,16 @@
+[project]
+name = "foyelle-policy"
+version = "0.1.0"
+description = "Foyelle policy engine and audit log (a Hermes plugin)"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest==8.4.2"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

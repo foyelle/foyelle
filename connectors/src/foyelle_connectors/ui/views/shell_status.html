@@ -1,0 +1,39 @@
+<main>
+  <div class="toolbar"><h1>Status</h1><span class="spacer"></span><button id="refresh" type="button">Refresh</button></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <h2>Model</h2>
+  <dl id="model" class="grid"></dl>
+  <h2>Connectors</h2>
+  <table><thead><tr><th scope="col">Connector</th><th scope="col">Port</th><th scope="col">State</th></tr></thead><tbody id="connectors"></tbody></table>
+  <h2>Network</h2>
+  <p id="online"></p>
+  <table><thead><tr><th scope="col">Interface</th><th scope="col">State</th><th scope="col">Carrier</th></tr></thead><tbody id="ifaces"></tbody></table>
+  <p id="host" class="muted"></p>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  function badge(state) {
+    var kind = state === "active" || state === "up" ? "ok" : state === "unknown" ? "" : "bad";
+    return h("span", { class: "badge " + kind, text: state });
+  }
+  function render(d) {
+    if (!d) return;
+    var model = V.clear(V.$("#model")), m = d.model || {};
+    var keys = Object.keys(m);
+    if (!keys.length) model.appendChild(h("dd", { class: "muted", text: "No model settings found." }));
+    keys.forEach(function (k) { model.append(h("dt", { text: k.replace("_", " ") }), h("dd", { text: String(m[k]) })); });
+    var tb = V.clear(V.$("#connectors"));
+    (d.connectors || []).forEach(function (c) { tb.appendChild(h("tr", null, h("td", { text: c.name }), h("td", { text: c.port }), h("td", null, badge(c.state)))); });
+    var net = d.network || {};
+    V.$("#online").textContent = net.online === null || net.online === undefined ? "Network state unknown." : net.online ? "Online (default route present)." : "Offline.";
+    var ib = V.clear(V.$("#ifaces"));
+    (net.interfaces || []).forEach(function (i) { ib.appendChild(h("tr", null, h("td", { text: i.name }), h("td", null, badge(i.state)), h("td", { text: i.carrier ? "yes" : "no" }))); });
+    var up = d.uptime_seconds ? " · up " + Math.round(d.uptime_seconds / 3600) + " h" : "";
+    V.$("#host").textContent = (d.hostname || "") + up;
+  }
+  function load() { return V.run("status", {}, "Checking…").then(render); }
+  V.$("#refresh").addEventListener("click", load);
+  V.start({ name: "foyelle-shell-status", render: render, load: load });
+})();
+</script>

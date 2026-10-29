@@ -1,0 +1,70 @@
+<main>
+  <div class="toolbar"><h1>Compose</h1><span class="spacer"></span><span id="state" class="badge"></span></div>
+  <form id="form">
+    <label for="to">To (comma-separated)</label><input id="to" type="text" autocomplete="off">
+    <label for="cc">Cc</label><input id="cc" type="text" autocomplete="off">
+    <label for="bcc">Bcc</label><input id="bcc" type="text" autocomplete="off">
+    <label for="subject">Subject</label><input id="subject" type="text">
+    <label for="body">Message</label><textarea id="body" rows="14"></textarea>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <div class="toolbar">
+      <button id="send" type="button" class="primary">Send…</button>
+      <button id="save" type="button">Save draft</button>
+      <span class="spacer"></span>
+      <button id="discard" type="button" class="danger">Discard draft</button>
+    </div>
+    <p class="muted">Sending always asks for your approval first.</p>
+  </form>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, draft = { draft_id: null, in_reply_to: null, references: null };
+  function split(v) { return v.split(",").map(function (s) { return s.trim(); }).filter(Boolean); }
+  function fields() {
+    var f = { to: split(V.$("#to").value), subject: V.$("#subject").value, body: V.$("#body").value };
+    var cc = split(V.$("#cc").value), bcc = split(V.$("#bcc").value);
+    if (cc.length) f.cc = cc; if (bcc.length) f.bcc = bcc;
+    if (draft.in_reply_to) f.in_reply_to = draft.in_reply_to;
+    if (draft.references) f.references = draft.references;
+    return f;
+  }
+  function state(text, kind) { var s = V.$("#state"); s.textContent = text; s.className = "badge " + (kind || ""); }
+  function render(d) {
+    if (!d) return;
+    draft = { draft_id: d.draft_id || null, in_reply_to: d.in_reply_to || null, references: d.references || null };
+    V.$("#to").value = (d.to || []).join(", ");
+    V.$("#cc").value = (d.cc || []).join(", ");
+    V.$("#bcc").value = (d.bcc || []).join(", ");
+    V.$("#subject").value = d.subject || "";
+    V.$("#body").value = d.body || "";
+    state(draft.draft_id ? "Draft saved" : "New", draft.draft_id ? "ok" : "");
+  }
+  V.onToolInput = function (args) { if (args && args.to) render(args); };
+  V.$("#save").addEventListener("click", function () {
+    var old = draft.draft_id;
+    V.run("draft", fields(), "Saving draft…").then(function (d) {
+      if (!d) return;
+      draft.draft_id = d.draft_id;
+      state("Draft saved", "ok");
+      if (old && old !== d.draft_id) V.run("delete_draft", { draft_id: old }, "Removing the previous version…");
+    });
+  });
+  V.$("#send").addEventListener("click", function () {
+    var f = fields();
+    if (!f.to.length) { V.status("Add at least one recipient.", "error"); return; }
+    if (draft.draft_id) f.draft_id = draft.draft_id;
+    V.run("send", f, "Waiting for approval and sending…").then(function (r) {
+      if (!r) return;
+      state("Sent", "ok");
+      V.status(r.warning || "Sent.");
+      Array.prototype.forEach.call(document.querySelectorAll("#form input, #form textarea, #form button"), function (el) { el.disabled = true; });
+    });
+  });
+  V.$("#discard").addEventListener("click", function () {
+    if (!draft.draft_id) { render({}); return; }
+    V.run("delete_draft", { draft_id: draft.draft_id }, "Discarding…").then(function (r) { if (r) { render({}); state("Discarded"); } });
+  });
+  V.$("#form").addEventListener("submit", function (e) { e.preventDefault(); });
+  V.start({ name: "foyelle-email-compose", render: render, load: function () { render({}); } });
+})();
+</script>

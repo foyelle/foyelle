@@ -1,0 +1,318 @@
+<style>
+  .tk-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; margin-bottom: 14px; }
+  .tk-kicker { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg2); font-weight: 600; }
+  .tk-head h1 { font-size: calc(34px * var(--hand-scale)); line-height: 1.1; margin: 2px 0 2px; }
+  .seg { display: inline-flex; border: var(--edge-w) solid var(--edge); border-radius: var(--pill); padding: 3px; background: var(--bg); box-shadow: var(--lift); }
+  .seg button { border: 0; background: none; border-radius: 999px; padding: 6px 14px; color: var(--fg2); box-shadow: none; transform: none; }
+  .seg button[aria-pressed="true"] { background: var(--sun); color: var(--on-sun); }
+  .tk-add { display: grid; grid-template-columns: minmax(0, 1fr) 11em auto; gap: 8px; padding: 10px; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--bg2); margin-bottom: 4px; }
+  .tk-add input { width: 100%; }
+  @media (max-width: 560px) { .tk-add { grid-template-columns: 1fr auto; } .tk-add .when { grid-column: 1 / -1; grid-row: 2; } }
+  .group { margin-top: 18px; }
+  .group h2 { display: flex; gap: 8px; align-items: baseline; font-size: 13px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--fg2); margin: 0 0 4px; }
+  .group h2 .n { font-weight: 500; }
+  .group.overdue h2 { color: var(--danger); }
+  .tasks { list-style: none; margin: 0; padding: 0; }
+  .task { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 2px 12px; align-items: start; padding: 10px 2px;
+    border-bottom: 1px solid var(--border); transition: opacity .25s ease; }
+  .task.done { opacity: .5; }
+  .task.done .title { text-decoration: line-through; }
+  .check { width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--pc, var(--fg2)); background: var(--pc-soft, transparent);
+    padding: 0; display: grid; place-items: center; color: var(--bg); font-size: 13px; line-height: 1; }
+  .check:hover { background: color-mix(in srgb, var(--pc, var(--fg2)) 22%, transparent); }
+  .task.done .check { background: var(--pc, var(--fg2)); }
+  .p1 { --pc: #d1453b; --pc-soft: color-mix(in srgb, #d1453b 10%, transparent); }
+  .p2 { --pc: #eb8909; --pc-soft: color-mix(in srgb, #eb8909 10%, transparent); }
+  .p3 { --pc: #246fe0; --pc-soft: color-mix(in srgb, #246fe0 10%, transparent); }
+  .title { font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
+  .notes { font-size: 13px; color: var(--fg2); margin-top: 2px; white-space: pre-line; overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--fg2); margin-top: 4px; }
+  .meta .late { color: var(--danger); font-weight: 600; }
+  .meta .soon { color: var(--ok); font-weight: 600; }
+  .chip { padding: 0 7px; border-radius: 999px; border: 1px solid var(--border); }
+  .acts { display: flex; gap: 4px; opacity: 0; transition: opacity .15s ease; }
+  .task:hover .acts, .task:focus-within .acts { opacity: 1; }
+  @media (hover: none) { .acts { opacity: 1; } }
+  .acts button { font-size: 12.5px; padding: 3px 9px; border-radius: var(--pill); }
+  .empty { padding: 28px 0; text-align: center; color: var(--fg2); }
+  .toast { position: sticky; bottom: 8px; display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: 12px;
+    padding: 8px 8px 8px 14px; border-radius: 999px; background: var(--fg); color: var(--bg); font-size: 13.5px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  .toast button { background: none; border: 0; color: inherit; font-weight: 800; text-decoration: underline; box-shadow: none; transform: none; }
+  .tk-foot { font-size: 12.5px; margin-top: 14px; }
+</style>
+<main>
+  <header class="tk-head">
+    <div>
+      <div class="tk-kicker">Tasks · Todoist</div>
+      <h1 id="title">Tasks</h1>
+      <div id="sub" class="muted"></div>
+    </div>
+    <div class="seg" role="group" aria-label="Show">
+      <button type="button" data-view="today" aria-pressed="false">Today</button>
+      <button type="button" data-view="week" aria-pressed="false">Next 7 days</button>
+      <button type="button" data-view="all" aria-pressed="false">Everything</button>
+    </div>
+  </header>
+  <form id="add" class="tk-add" aria-label="Add a task">
+    <input id="new" type="text" placeholder="Add a task, e.g. Call the plumber" aria-label="New task" autocomplete="off">
+    <input id="when" class="when" type="text" placeholder="When? e.g. tomorrow 9am" aria-label="When" autocomplete="off">
+    <button type="submit" class="primary">Add</button>
+  </form>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div id="groups"></div>
+  <div id="toast" class="toast" role="status" hidden><span id="toast-text"></span><button type="button" id="undo">Undo</button></div>
+  <p class="muted tk-foot">Your tasks stay in Todoist, in step with its apps. Changes made here show up there.</p>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  // `all` is every open task (one fetch, filtered here by this computer's calendar, so switching
+  // views is instant); `found` is what the agent's own search returned (the "search" view).
+  var all = null, found = null, search = null, projects = {}, view = "today", undo = null, toastTimer = 0;
+  var fetching = null, again = false;
+  // Todoist's find-tasks needs a filter; this one matches every open task.
+  var EVERYTHING = { filter: "no date | !no date" };
+  var PAGE = 100, PAGES = 3;  // Todoist answers 10 tasks unless asked; up to 300 here
+  var locale = function () { return (V.hostContext && V.hostContext.locale) || undefined; };
+
+  // A Todoist date is a day ("2026-10-22") or a local time ("2026-10-22T09:00:00", maybe with a zone).
+  function due(s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(s);
+    if (!m) return null;
+    var timed = m[4] !== undefined;
+    var d = /[zZ]|[+-]\d{2}:?\d{2}$/.test(s) && timed ? new Date(s) : new Date(+m[1], +m[2] - 1, +m[3], timed ? +m[4] : 0, timed ? +m[5] : 0);
+    return { date: d, timed: timed };
+  }
+  function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function daysFromToday(d) { return Math.round((startOfDay(d) - startOfDay(new Date())) / 864e5); }
+  function dayLabel(d) {
+    var n = daysFromToday(d);
+    if (n === 0) return "Today";
+    if (n === 1) return "Tomorrow";
+    if (n === -1) return "Yesterday";
+    var opts = Math.abs(n) < 7 ? { weekday: "long" } : { weekday: "short", day: "numeric", month: "short" };
+    return d.toLocaleDateString(locale(), opts);
+  }
+  function whenText(t) {
+    var d = due(t.dueDate);
+    if (!d) return null;
+    return dayLabel(d.date) + (d.timed ? " " + d.date.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) : "");
+  }
+  function groupOf(t) {
+    var d = due(t.dueDate);
+    if (!d) return { key: "z", label: "No date" };
+    var n = daysFromToday(d.date);
+    if (n < 0) return { key: "a", label: "Overdue", overdue: true };
+    if (n === 0) return { key: "b", label: "Today" };
+    if (n === 1) return { key: "c", label: "Tomorrow" };
+    if (n < 7) return { key: "d" + n, label: d.date.toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" }) };
+    return { key: "y", label: "Later" };
+  }
+
+  function call(name, args, busy) { return V.run(name, args, busy === undefined ? null : busy); }
+
+  // Todoist reads "today" and "tomorrow" in its own account's time zone, which can differ from this
+  // computer's: the card says exact days, from this computer's calendar.
+  function isoDay(offset) {
+    var d = new Date(); d.setDate(d.getDate() + offset);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function dueBefore(days) { return { filter: "due before: " + isoDay(days) }; }  // overdue included
+
+  function showToast(text, undoFn) {
+    V.$("#toast-text").textContent = text;
+    undo = undoFn;
+    V.$("#undo").hidden = !undoFn;
+    V.$("#toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { V.$("#toast").hidden = true; undo = null; }, 6000);
+  }
+
+  function taskRow(t) {
+    var row;
+    var check = h("button", { type: "button", class: "check " + (t.priority || "p4"), "aria-label": (t.checked ? "Not done: " : "Done: ") + t.content,
+      text: t.checked ? "✓" : "" });
+    check.addEventListener("click", function () { toggle(t, row, check); });
+    var meta = h("div", { class: "meta" });
+    var when = whenText(t), d = due(t.dueDate);
+    if (when) meta.appendChild(h("span", { class: d && daysFromToday(d.date) < 0 ? "late" : d && daysFromToday(d.date) === 0 ? "soon" : null, text: when }));
+    if (t.recurring) meta.appendChild(h("span", { title: typeof t.recurring === "string" ? t.recurring : "Repeats", text: "↻ " + (typeof t.recurring === "string" ? t.recurring : "repeats") }));
+    if (t.deadlineDate) { var dl = due(t.deadlineDate); if (dl) meta.appendChild(h("span", { text: "Deadline " + dl.date.toLocaleDateString(locale(), { day: "numeric", month: "short" }) })); }
+    if (projects[t.projectId] && !projects[t.projectId].inboxProject) meta.appendChild(h("span", { text: "# " + projects[t.projectId].name }));
+    (t.labels || []).forEach(function (l) { meta.appendChild(h("span", { class: "chip", text: l })); });
+    var acts = h("div", { class: "acts" },
+      h("button", { type: "button", text: "Tomorrow", title: "Move to tomorrow", onclick: function () { move(t, isoDay(1), "tomorrow"); } }),
+      h("button", { type: "button", text: "Next week", title: "Move to a week from today", onclick: function () { move(t, isoDay(7), "next week"); } }));
+    row = h("li", { class: "task" + (t.checked ? " done" : "") }, check,
+      h("div", null, h("div", { class: "title", text: t.content }), t.description ? h("div", { class: "notes", text: t.description }) : null,
+        meta.childNodes.length ? meta : null),
+      t.checked ? null : acts);
+    return row;
+  }
+
+  /** Whether an open task belongs in the view, by this computer's calendar (overdue counts as today). */
+  function inView(t) {
+    if (view === "all" || view === "search") return true;
+    var d = due(t.dueDate);
+    if (!d) return false;
+    var n = daysFromToday(d.date);
+    return view === "overdue" ? n < 0 : view === "today" ? n <= 0 : n < 7;
+  }
+  function shown() {
+    var list = view === "search" ? found || [] : all || (found || []);
+    return list.filter(function (t) { return !t.isDeleted && !t.isUncompletable && inView(t); });
+  }
+
+  function setView(v) {
+    view = v;
+    Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-view") === v)); });
+    V.$("#title").textContent = v === "search" ? (search && search.args.searchText ? "“" + search.args.searchText + "”" : "Tasks")
+      : { today: "Today", week: "Next 7 days", all: "Everything", overdue: "Overdue" }[v] || "Tasks";
+  }
+
+  function render() {
+    var root = V.clear(V.$("#groups"));
+    var open = shown();
+    var overdue = open.filter(function (t) { var d = due(t.dueDate); return d && !t.checked && daysFromToday(d.date) < 0; }).length;
+    var todo = open.filter(function (t) { return !t.checked; }).length;
+    V.$("#sub").textContent = todo + (todo === 1 ? " task" : " tasks") + (overdue ? " · " + overdue + " overdue" : "");
+    if (!open.length) {
+      var waiting = fetching && (view === "search" ? !found : !all);
+      root.appendChild(h("p", { class: "empty", text: waiting ? "Looking at your tasks…" : view === "today" ? "Nothing for today. Enjoy it." : "No tasks here." }));
+      return;
+    }
+    var groups = {};
+    open.forEach(function (t) {
+      var g = groupOf(t);
+      (groups[g.key] = groups[g.key] || { g: g, items: [] }).items.push(t);
+    });
+    Object.keys(groups).sort().forEach(function (k) {
+      var grp = groups[k];
+      // By day; on a day, timed tasks first, by time; then by priority.
+      var order = function (t) { var d = due(t.dueDate); return d ? +startOfDay(d.date) + (d.timed ? d.date - startOfDay(d.date) : 864e5 - 1) : Infinity; };
+      grp.items.sort(function (a, b) { return order(a) - order(b) || (a.priority || "p4").localeCompare(b.priority || "p4"); });
+      root.appendChild(h("section", { class: "group" + (grp.g.overdue ? " overdue" : "") },
+        h("h2", null, grp.g.label, h("span", { class: "n", text: String(grp.items.filter(function (t) { return !t.checked; }).length) })),
+        h("ul", { class: "tasks" }, grp.items.map(taskRow))));
+    });
+  }
+
+  /** A search with all its pages (Todoist answers 10 unless asked; up to 300 here), or null. */
+  function pages(name, args) {
+    var out = [];
+    function page(cursor, n) {
+      var a = Object.assign({}, args, { limit: PAGE });
+      delete a.cursor;
+      if (cursor) a.cursor = cursor;
+      return call(name, a).then(function (d) {
+        if (!d) return null;
+        out = out.concat(d.tasks || []);
+        return d.hasMore && d.nextCursor && n + 1 < PAGES ? page(d.nextCursor, n + 1) : out;
+      });
+    }
+    return page(null, 0);
+  }
+
+  /** Every open task, fresh from Todoist; a request during a fetch runs once more after it. */
+  function fetchAll() {
+    if (fetching) { again = true; return fetching; }
+    if (!all) render();
+    fetching = pages("find_tasks", EVERYTHING).then(function (list) {
+      fetching = null;
+      if (list) all = list;
+      else if (!all) V.status("Todoist didn't answer. Try again in a moment.", "error");
+      render();
+      if (again) { again = false; return fetchAll(); }
+    });
+    return fetching;
+  }
+  function refreshSearch() {
+    if (!search) return Promise.resolve();
+    return pages(search.name, search.args).then(function (list) { if (list) { found = list; render(); } });
+  }
+  function reload() { return view === "search" ? Promise.all([fetchAll(), refreshSearch()]) : fetchAll(); }
+  function show(v) {
+    setView(v);
+    render();
+    if (!all) fetchAll();
+  }
+
+  function toggle(t, row, check) {
+    var done = !t.checked;
+    t.checked = done;
+    row.classList.toggle("done", done);
+    check.textContent = done ? "✓" : "";
+    call(done ? "complete_tasks" : "uncomplete_tasks", { ids: [t.id] }).then(function (r) {
+      if (!r || (r.failureCount && !r.successCount)) {
+        t.checked = !done; row.classList.toggle("done", !done); check.textContent = !done ? "✓" : "";
+        V.status("Todoist didn't take that change.", "error");
+        return;
+      }
+      if (done) showToast("Done: " + t.content, function () { toggle(t, row, check); });
+      else V.$("#toast").hidden = true;
+    });
+  }
+
+  function move(t, day, label) {
+    var before = t.dueDate;
+    t.dueDate = day;  // shown at once; Todoist confirms
+    render();
+    call("update_tasks", { tasks: [{ id: t.id, dueString: day }] }).then(function (r) {
+      if (!r) { t.dueDate = before; render(); return; }
+      showToast("Moved to " + label + ": " + t.content, null);
+      reload();
+    });
+  }
+
+  function loadProjects() {
+    return call("find_projects", { limit: 200 }).then(function (d) {
+      (d && d.projects || []).forEach(function (p) { projects[p.id] = p; });
+      render();
+    });
+  }
+
+  V.onSubmit(V.$("#add"), function () {
+    var content = V.$("#new").value.trim(), when = V.$("#when").value.trim();
+    if (!content) { V.$("#new").focus(); return; }
+    var task = { content: content };
+    if (when) task.dueString = when;  // the person's own words; Todoist reads them
+    else if (view === "today") task.dueString = isoDay(0);
+    call("add_tasks", { tasks: [task] }, "Adding…").then(function (r) {
+      if (!r || !r.successCount) { V.status("Todoist didn't add it.", "error"); return; }
+      V.$("#new").value = ""; V.$("#when").value = "";
+      showToast("Added: " + content, null);
+      fetchAll();
+    });
+  });
+  V.$("#undo").addEventListener("click", function () { var fn = undo; V.$("#toast").hidden = true; undo = null; if (fn) fn(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+    b.addEventListener("click", function () { show(b.getAttribute("data-view")); });
+  });
+
+  V.start({
+    name: "foyelle-tasks",
+    render: function (d, args) {
+      // Opened by the agent: its result shows at once, under the view that matches what it asked
+      // for; every open task is fetched behind it so the view buttons are instant.
+      var a = Object.assign({}, args || {});
+      found = (d && d.tasks) || [];
+      var byDate = !!(a.startDate || a.overdueOption);
+      search = { name: byDate ? "find_tasks_by_date" : "find_tasks", args: a };
+      setView(byDate ? (a.overdueOption === "overdue-only" ? "overdue" : a.daysCount > 1 ? "week" : "today")
+        : a.filter === EVERYTHING.filter ? "all"
+        : a.filter === dueBefore(1).filter ? "today" : a.filter === dueBefore(7).filter ? "week" : "search");
+      render();
+      loadProjects();
+      fetchAll();
+      if (view === "search" && d && d.hasMore) refreshSearch();
+    },
+    load: function () { show("today"); loadProjects(); },
+    // The agent added, moved or ticked off tasks: show the list as it is now.
+    refresh: function () { reload(); },
+  });
+})();
+</script>

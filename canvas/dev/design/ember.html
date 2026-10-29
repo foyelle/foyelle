@@ -1,0 +1,216 @@
+<style>
+/* A dev-only page: ten takes on the ember as a character. Each shows the character large (it
+   moves), its five moods, and an icon test at app-icon and small sizes. */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #f3eee6; color: #2a1e16; font: 15px/1.5 -apple-system, system-ui, sans-serif; }
+.page { max-width: 1240px; margin: 0 auto; padding: 28px 28px 80px; }
+.page > header h1 { font: 700 34px/1.15 -apple-system, sans-serif; letter-spacing: -.02em; margin: 0 0 6px; }
+.page > header p { margin: 0 0 18px; color: #6b5d50; max-width: 64em; }
+.index { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; position: sticky; top: 0; padding: 10px 0; background: #f3eee6; z-index: 5; }
+.index button { font: inherit; font-size: 13px; border: 1px solid #d8cdbd; background: #fbf8f3; border-radius: 999px; padding: 5px 12px; cursor: pointer; color: #3b2f25; }
+.var { display: grid; grid-template-columns: 420px 1fr; gap: 28px; margin: 0 0 44px; scroll-margin-top: 64px; background: #fbf8f3; border-radius: 20px; padding: 22px; }
+.hero { border-radius: 16px; display: grid; place-items: center; aspect-ratio: 1; position: relative; overflow: hidden; }
+.hero svg { width: 74%; height: 74%; }
+.info h2 { font: 700 26px/1.2 -apple-system, sans-serif; letter-spacing: -.01em; margin: 2px 0 6px; }
+.info .num { font: 600 13px/1 ui-monospace, Menlo, monospace; color: #9a8b7c; }
+.info p { margin: 0 0 10px; color: #4b3f34; max-width: 46em; }
+.info .why { font-size: 13.5px; color: #6b5d50; }
+.icons { display: flex; align-items: flex-end; gap: 18px; margin: 10px 0 16px; }
+.icon { border-radius: 22%; display: grid; place-items: center; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.1), 0 4px 12px rgba(0,0,0,.08); }
+.icon svg { width: 82%; height: 82%; }
+.icon.lg { width: 76px; height: 76px; } .icon.sm { width: 30px; height: 30px; } .icon.xs { width: 18px; height: 18px; border-radius: 5px; }
+.icons small { display: block; text-align: center; font-size: 11px; color: #9a8b7c; margin-top: 4px; }
+.moods { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.mood { border-radius: 12px; padding: 10px 6px 8px; text-align: center; font-size: 12px; color: #6b5d50; }
+.mood svg { width: 72px; height: 86px; display: block; margin: 0 auto 4px; }
+.mood b { display: block; font-size: 13px; color: #2a1e16; }
+body.only .page { max-width: none; padding: 0; } body.only .var { margin: 0; border-radius: 0; }
+@keyframes sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg) translateY(-1.5%); } }
+@keyframes flick { 0%, 100% { transform: scale(1, 1); } 40% { transform: scale(.97, 1.06); } 70% { transform: scale(1.02, .97); } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3%); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes glow { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes zz { 0% { opacity: 0; transform: translate(0, 0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -14px); } }
+@keyframes wave { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+.sway { transform-box: fill-box; transform-origin: 50% 95%; animation: sway 4.5s ease-in-out infinite; }
+.flick { transform-box: fill-box; transform-origin: 50% 100%; animation: flick 1.6s ease-in-out infinite; }
+.bob { animation: bob 3s ease-in-out infinite; }
+.eye { transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
+.glow { animation: glow 2.2s ease-in-out infinite; }
+</style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="2"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
+  <filter id="brush"><feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="5"/><feDisplacementMap in="SourceGraphic" scale="4.5"/></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="hot"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</svg>
+<div class="page">
+  <header>
+    <h1>The ember, ten characters</h1>
+    <p>Ten takes on the ember as Foyelle's companion: different shapes, drawing styles and faces, each in its five moods (listening, thinking, needs you, done, asleep). The icon test shows whether it still reads as an app icon and at 30 and 18 pixels: an iconic character has to.</p>
+  </header>
+  <nav class="index" id="index" aria-label="Characters"></nav>
+  <main id="vars"></main>
+</div>
+<script>
+// Static content only, so the drawings are written as SVG strings.
+let uid = 0;
+const MOODS = [["listening", "Listening"], ["thinking", "Thinking"], ["waiting", "Needs you"], ["proud", "Done"], ["asleep", "Asleep"]];
+
+/* A face for any body: eyes, mouth and cheeks by mood, placed by the body's options. */
+function face(m, o) {
+  const ink = o.ink || "#2a1e16", L = 50 - (o.ex || 10), R = 50 + (o.ex || 10), y = o.ey || 74, my = o.my || y + 13, s = o.scale || 1;
+  const up = m === "thinking" ? -3 : 0, side = m === "thinking" ? 2.5 : 0;
+  let eyes = "";
+  if (m === "proud") eyes = [L, R].map((x) => `<path d="M${x - 5 * s} ${y + 1} q${5 * s} ${-7 * s} ${10 * s} 0" stroke="${ink}" stroke-width="${3 * s}" fill="none" stroke-linecap="round"/>`).join("");
+  else if (m === "asleep") eyes = [L, R].map((x) => `<path d="M${x - 5 * s} ${y} q${5 * s} ${4 * s} ${10 * s} 0" stroke="${ink}" stroke-width="${3 * s}" fill="none" stroke-linecap="round"/>`).join("");
+  else if (o.eye === "white") eyes = [L, R].map((x) => `<g class="eye"><circle cx="${x}" cy="${y}" r="${7.5 * s}" fill="#fff"/><circle cx="${x + side}" cy="${y + up + (m === "listening" ? 0 : 1)}" r="${(m === "listening" ? 4.2 : 3.6) * s}" fill="${ink}"/></g>`).join("");
+  else if (o.eye === "big") eyes = [L, R].map((x) => `<g class="eye"><ellipse cx="${x + side}" cy="${y + up}" rx="${5.4 * s}" ry="${(m === "listening" ? 7.4 : 6.8) * s}" fill="${ink}"/><circle cx="${x + side + 1.8 * s}" cy="${y + up - 2.4 * s}" r="${2 * s}" fill="#fff"/></g>`).join("");
+  else if (o.eye === "dot") eyes = [L, R].map((x) => `<circle class="eye" cx="${x + side}" cy="${y + up}" r="${(m === "listening" ? 3.6 : 3) * s}" fill="${ink}"/>`).join("");
+  else if (o.eye === "glow") eyes = [L, R].map((x) => `<ellipse class="eye" cx="${x + side}" cy="${y + up}" rx="${3.4 * s}" ry="${(m === "listening" ? 5 : 4.2) * s}" fill="#ffe6a6" filter="url(#hot)"/>`).join("");
+  else if (o.eye === "cut") eyes = [L, R].map((x) => `<ellipse class="eye" cx="${x + side}" cy="${y + up}" rx="${4.2 * s}" ry="${(m === "listening" ? 7 : 6) * s}" fill="${o.cut || "#fff"}"/>`).join("");
+  else eyes = [L, R].map((x) => `<ellipse class="eye" cx="${x + side}" cy="${y + up}" rx="${4.2 * s}" ry="${(m === "listening" ? 6.6 : 6) * s}" fill="${ink}"/>`).join("");
+  if (o.noMouth) return eyes;
+  const w = 7 * s;
+  const mouth = {
+    listening: `<ellipse cx="50" cy="${my + 1}" rx="${3.6 * s}" ry="${4.2 * s}" fill="${ink}"/>`,
+    thinking: `<path d="M${50 - 4 * s} ${my + 2} h${8 * s}" stroke="${ink}" stroke-width="${3 * s}" stroke-linecap="round"/>`,
+    waiting: `<path d="M${50 - 5 * s} ${my} q${5 * s} ${4 * s} ${10 * s} 0" stroke="${ink}" stroke-width="${3 * s}" fill="none" stroke-linecap="round"/>`,
+    proud: `<path d="M${50 - 9 * s} ${my - 2} q${9 * s} ${11 * s} ${18 * s} 0 z" fill="${ink}"/>`,
+    asleep: `<path d="M${50 - 4 * s} ${my + 2} q${4 * s} ${2 * s} ${8 * s} 0" stroke="${ink}" stroke-width="${2.5 * s}" fill="none" stroke-linecap="round"/>`,
+    idle: `<path d="M${50 - w} ${my - 1} q${w} ${w} ${2 * w} 0" stroke="${ink}" stroke-width="${3 * s}" fill="none" stroke-linecap="round"/>`,
+  }[m];
+  const cheeks = o.cheeks && m !== "asleep" ? `<ellipse cx="${L - 9 * s}" cy="${y + 10 * s}" rx="${5 * s}" ry="${3 * s}" fill="${o.cheeks}" opacity=".55"/><ellipse cx="${R + 9 * s}" cy="${y + 10 * s}" rx="${5 * s}" ry="${3 * s}" fill="${o.cheeks}" opacity=".55"/>` : "";
+  return cheeks + eyes + mouth;
+}
+/* What floats around the character in each mood. */
+function extras(m, c = {}) {
+  const ink = c.ink || "#2a1e16", a = c.accent || "#ff8a3d";
+  return {
+    listening: `<g stroke="${a}" stroke-width="3" fill="none" stroke-linecap="round"><path d="M2 60 q-5 12 0 24" style="animation:wave 1.2s infinite"/><path d="M98 60 q5 12 0 24" style="animation:wave 1.2s infinite"/><path d="M-5 54 q-7 18 0 36" style="animation:wave 1.2s .3s infinite"/><path d="M105 54 q7 18 0 36" style="animation:wave 1.2s .3s infinite"/></g>`,
+    thinking: `<g transform="translate(84 16)"><circle r="9" fill="#fff" stroke="${ink}" stroke-width="2.5"/><path d="M-4 -1 a4 4 0 1 1 4 4 v2" stroke="${ink}" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="0" cy="8.5" r="1.5" fill="${ink}"/></g><circle cx="76" cy="32" r="3" fill="#fff" stroke="${ink}" stroke-width="2"/>`,
+    waiting: `<g transform="translate(88 30)" style="animation:wave 1s infinite"><circle r="9" fill="#ff4d3a"/><text y="5" text-anchor="middle" font-size="14" font-weight="800" fill="#fff" font-family="Avenir Next, sans-serif">!</text></g>`,
+    proud: `<g fill="#ffd23f" stroke="${ink}" stroke-width="1.5"><path d="M10 28 l3 6 6 1 -4.5 4 1 6 -5.5 -3 -5.5 3 1 -6 -4.5 -4 6 -1z"/><path d="M90 12 l2 4 4.5 .7 -3.3 3 .8 4.4 -4 -2.2 -4 2.2 .8 -4.4 -3.3 -3 4.5 -.7z"/></g>`,
+    asleep: `<g font-family="Noteworthy, cursive" font-weight="700" fill="${c.zz || "#7a6a9a"}"><text x="76" y="30" font-size="13" style="animation:zz 2.4s infinite">z</text><text x="85" y="18" font-size="17" style="animation:zz 2.4s .8s infinite">z</text></g>`,
+  }[m] || "";
+}
+const svg = (inner, label, vb = "-10 -6 120 132") => `<svg viewBox="${vb}" aria-label="${label}">${inner}</svg>`;
+const dimmed = (m, inner) => m === "asleep" ? `<g style="filter:saturate(.55) brightness(.92)">${inner}</g>` : inner;
+
+const FLAME = "M50 6 C 60 26, 90 44, 88 78 C 86 104, 68 116, 50 116 C 30 116, 12 102, 12 80 C 12 60, 26 52, 32 34 C 38 46, 44 48, 50 6 Z";
+const MOCHI = "M52 14 C 50 22, 56 26, 62 34 C 76 48, 88 60, 88 80 C 88 102, 70 114, 50 114 C 30 114, 12 102, 12 80 C 12 58, 30 44, 42 32 C 48 26, 46 18, 52 14 Z";
+
+const V = [
+  { id: "drawn", name: "Drawn flame", bg: "#fbf0dd", icon: "#ffe2b8",
+    idea: "The one from the 2026 page: a hand-drawn flame with a wobbly ink line, a light inside, rosy cheeks. Warm and human.",
+    why: "Strong at large sizes; the wobbly line and details blur at 18 px.",
+    draw(m) { const id = ++uid; return svg(`${extras(m)}<defs><radialGradient id="g${id}" cx="50%" cy="72%" r="65%"><stop offset="0" stop-color="#fff1b8"/><stop offset=".45" stop-color="#ffb347"/><stop offset="1" stop-color="#ff6a2a"/></radialGradient></defs>
+      ${dimmed(m, `<g class="sway"><g class="flick"><path filter="url(#rough)" d="${FLAME}" fill="url(#g${id})" stroke="#2a1e16" stroke-width="3.2" stroke-linejoin="round"/>
+      <path d="M50 52 C 56 64, 68 72, 66 88 C 64 100, 56 104, 50 104 C 42 104, 34 98, 34 88 C 34 78, 44 72, 50 52 Z" fill="#fff6d6" opacity=".55"/>${face(m, { cheeks: "#ff8a6b" })}</g></g>`)}`, "drawn flame " + m); } },
+
+  { id: "mochi", name: "Mochi", bg: "#fff1e6", icon: "#ffd9bd",
+    idea: "Chubby and soft: a round flame with a little curl on top, no outline, big shiny eyes. Like a sweet you want to squeeze.",
+    why: "Very lovable and simple; reads well small thanks to the big eyes.",
+    draw(m) { const id = ++uid; return svg(`${extras(m)}<defs><radialGradient id="g${id}" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#ffd59a"/><stop offset=".55" stop-color="#ff9f4a"/><stop offset="1" stop-color="#ff6b3d"/></radialGradient></defs>
+      ${dimmed(m, `<g class="bob"><g class="flick"><path d="${MOCHI}" fill="url(#g${id})"/><ellipse cx="34" cy="56" rx="8" ry="12" fill="#fff" opacity=".35" transform="rotate(-25 34 56)"/>${face(m, { eye: "big", ey: 76, ex: 13, cheeks: "#ff5f6d" })}</g></g>`)}`, "mochi " + m); } },
+
+  { id: "flat", name: "Bold & flat", bg: "#fff4d6", icon: "#ff5a1f",
+    idea: "Three flat layers, red, orange and yellow, with no outline and white eyes with pupils. Confident and clear, like the best app mascots.",
+    why: "The most legible: works at every size and in one colour for stickers and prints.",
+    draw(m) { return svg(`${extras(m)}${dimmed(m, `<g class="sway"><g class="flick"><path d="${FLAME}" fill="#ff4a1c"/><path d="M50 30 C 58 46, 80 58, 78 82 C 76 100, 64 108, 50 108 C 34 108, 22 98, 22 82 C 22 66, 34 60, 38 46 C 42 54, 46 54, 50 30 Z" fill="#ff8a1f"/>
+      <path d="M50 62 C 56 72, 66 78, 64 92 C 63 101, 57 104, 50 104 C 42 104, 36 99, 36 92 C 36 82, 46 78, 50 62 Z" fill="#ffc93c"/>${face(m, { eye: "white", ey: 70, ex: 12 })}</g></g>`)}`, "flat " + m); } },
+
+  { id: "line", name: "One line", bg: "#f7f3ec", icon: "#fdfaf4",
+    idea: "A single ink stroke that draws the flame and curls into its tip, with one dab of warm colour inside. A signature you could draw on a napkin.",
+    why: "Elegant and very ownable as a mark; quieter as a character.",
+    draw(m) { return svg(`${extras(m)}${dimmed(m, `<g class="sway"><ellipse cx="50" cy="88" rx="22" ry="20" fill="#ffc46b" opacity=".75"/>
+      <path filter="url(#rough)" d="M46 34 C 40 46, 26 56, 18 74 C 10 96, 26 114, 50 114 C 74 114, 90 98, 84 74 C 80 56, 62 44, 54 22 C 52 14, 56 8, 62 10 C 66 12, 64 18, 60 18" fill="none" stroke="#2a1e16" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>${face(m, { eye: "dot", ey: 80, ex: 11, my: 92 })}</g>`)}`, "one line " + m); } },
+
+  { id: "candle", name: "Candle buddy", bg: "#f3ead9", icon: "#2f2a4a",
+    idea: "The candle is the character and the flame is its hair: it flares when proud, flickers when thinking, and goes out to a curl of smoke at night. Homely and gentle.",
+    why: "Memorable story (the light left on at home); the candle shape reads well small.",
+    draw(m) { const id = ++uid; const flame = m === "asleep" ? `<path d="M50 50 c-6 -8 6 -12 0 -20 c-6 -8 6 -12 0 -20" stroke="#9a8fa8" stroke-width="2.5" fill="none" stroke-linecap="round" style="animation:wave 2s infinite"/>`
+        : `<g class="flick"><path d="M50 ${m === "proud" ? 0 : 10} C 58 ${m === "proud" ? 18 : 24}, 66 34, 64 44 C 62 52, 56 56, 50 56 C 44 56, 38 52, 36 44 C 34 34, 44 ${m === "proud" ? 22 : 28}, 50 ${m === "proud" ? 0 : 10} Z" fill="url(#g${id})"/></g>`;
+      return svg(`${extras(m, { zz: "#9a8fa8" })}<defs><radialGradient id="g${id}" cx="50%" cy="75%" r="70%"><stop offset="0" stop-color="#fff4c2"/><stop offset=".5" stop-color="#ffb347"/><stop offset="1" stop-color="#ff6a2a"/></radialGradient></defs>
+      <g class="bob">${flame}<rect x="48" y="52" width="4" height="8" rx="2" fill="#2a1e16"/>
+      <path d="M26 64 Q26 58 32 58 H68 Q74 58 74 64 V112 Q74 118 68 118 H32 Q26 118 26 112 Z" fill="#fdf6e8" stroke="#2a1e16" stroke-width="3"/>
+      <path d="M30 60 q4 10 8 0 q4 14 9 0" fill="#fdf6e8" stroke="#2a1e16" stroke-width="2.4" stroke-linejoin="round"/>
+      ${face(m, { ey: 84, ex: 10, my: 98, cheeks: "#ffb0a0", scale: .9 })}</g>`, "candle " + m); } },
+
+  { id: "coal", name: "The ember, literally", bg: "#241a17", icon: "#1e1614", dark: true,
+    idea: "A real ember: a small dark coal with glowing cracks and glowing eyes. It brightens when it talks and fades to a soft glow when asleep. Unusual, a bit mysterious, unmistakably Foyelle.",
+    why: "The most original; the glowing cracks need a dark background to sing.",
+    draw(m) { const id = ++uid; const hot = m === "asleep" ? .35 : m === "proud" ? 1 : .85;
+      return svg(`${extras(m, { ink: "#f3e6d3", accent: "#ff9a3d", zz: "#b9a6c9" })}<defs><radialGradient id="g${id}" cx="45%" cy="40%" r="75%"><stop offset="0" stop-color="#5b3a30"/><stop offset=".7" stop-color="#2e1f1b"/><stop offset="1" stop-color="#1b1210"/></radialGradient>
+        <radialGradient id="h${id}" cx="50%" cy="60%" r="60%"><stop offset="0" stop-color="#ff7a2a" stop-opacity="${.55 * hot}"/><stop offset="1" stop-color="#ff4a10" stop-opacity="0"/></radialGradient></defs>
+      <ellipse cx="50" cy="80" rx="60" ry="50" fill="url(#h${id})" class="glow"/>
+      <g class="bob"><path d="M22 70 C 18 52, 34 40, 52 42 C 72 40, 88 54, 86 74 C 90 96, 72 112, 50 110 C 28 112, 12 96, 22 70 Z" fill="url(#g${id})" stroke="#120c0a" stroke-width="2"/>
+      <g stroke="#ff8a2a" stroke-width="2.6" fill="none" stroke-linecap="round" filter="url(#hot)" opacity="${hot}" class="glow"><path d="M22 84 l7 3 -2 7"/><path d="M84 66 l-5 5 4 6"/><path d="M38 106 l6 -4 6 3"/><path d="M68 104 l5 -5"/><path d="M60 46 l-3 5"/></g>
+      ${m === "asleep" ? "" : `<g class="flick" opacity="${hot}"><path d="M50 18 C 54 28, 62 32, 60 40 C 58 44, 42 44, 40 40 C 38 32, 46 28, 50 18 Z" fill="#ffb347" filter="url(#hot)"/></g>`}
+      ${face(m, { eye: "glow", ey: 76, ex: 12, my: 90, ink: "#ffcf7a" })}</g>`, "coal " + m); } },
+
+  { id: "pixel", name: "Pixel sprite", bg: "#efe9ff", icon: "#3a2a6b",
+    idea: "A 16-bit-style sprite: crisp pixels, a two-frame flicker, tiny pixel faces. Playful and nostalgic, and every mood is a new little drawing.",
+    why: "Great at small sizes (it's made of pixels); a strong fit with the dot-matrix ideas.",
+    draw(m) {
+      const P = ["......#.......", ".....##.......", ".....#o#......", "....#oo#......", "...#oooo#.....", "...#oyyo##....", "..#ooyyyoo#...", "..#oyyyyyo#...", ".#ooyyyyyoo#..",
+        ".#oyyyyyyyo#..", ".#oyyyyyyyo#..", ".#oyyyyyyyo#..", "..#oyyyyyo#...", "...#ooooo#....", "....#####....."];
+      const C = { "#": "#2a1e16", o: m === "asleep" ? "#d88a5a" : "#ff6a2a", y: m === "asleep" ? "#f0c48a" : "#ffc23a" };
+      let px = "";
+      P.forEach((row, y) => [...row].forEach((c, x) => { if (C[c]) px += `<rect x="${x}" y="${y}" width="1" height="1" fill="${C[c]}"/>`; }));
+      const eye = (x, y) => m === "proud" ? `<rect x="${x - 1}" y="${y + 1}" width="1" height="1"/><rect x="${x}" y="${y}" width="1" height="1"/><rect x="${x + 1}" y="${y + 1}" width="1" height="1"/>`
+        : m === "asleep" ? `<rect x="${x - 1}" y="${y + 1}" width="3" height="1"/>` : m === "thinking" ? `<rect x="${x}" y="${y - 1}" width="1" height="2"/>` : `<rect x="${x}" y="${y}" width="1" height="2"/>`;
+      const mouth = m === "listening" ? `<rect x="6" y="12" width="2" height="1"/>` : m === "proud" ? `<rect x="5" y="11" width="4" height="1"/><rect x="6" y="12" width="2" height="1"/>` : m === "thinking" ? `<rect x="6" y="12" width="2" height="1"/>` : `<rect x="5" y="11" width="1" height="1"/><rect x="6" y="12" width="2" height="1"/><rect x="8" y="11" width="1" height="1"/>`;
+      return svg(`<g transform="translate(-6 -6) scale(1)">${extras(m, { accent: "#7a5cff" })}</g><g class="bob"><g transform="translate(8 8) scale(6.4)" shape-rendering="crispEdges">${px}<g fill="#2a1e16">${eye(4, 8)}${eye(8, 8)}${mouth}</g></g></g>`, "pixel " + m); } },
+
+  { id: "soft3d", name: "Soft 3D", bg: "#ffe9dd", icon: "#ff9b5a",
+    idea: "Rounded and rendered: soft shading, a highlight on top, a warm rim light. Feels like a little toy from an animated film.",
+    why: "Instantly appealing; needs care so it doesn't feel generic.",
+    draw(m) { const id = ++uid; return svg(`${extras(m)}<defs><radialGradient id="g${id}" cx="40%" cy="35%" r="80%"><stop offset="0" stop-color="#ffe7b8"/><stop offset=".35" stop-color="#ffab5c"/><stop offset=".8" stop-color="#ff5f2e"/><stop offset="1" stop-color="#c8361c"/></radialGradient>
+      <linearGradient id="r${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+      <ellipse cx="50" cy="118" rx="30" ry="5" fill="#000" opacity=".12"/>
+      ${dimmed(m, `<g class="bob"><g class="flick"><path d="${MOCHI}" fill="url(#g${id})"/><path d="M30 46 C 36 36, 46 30, 50 22 C 44 34, 38 42, 34 56 Z" fill="url(#r${id})" opacity=".8"/>
+      <path d="M78 66 C 86 80, 84 100, 70 108" stroke="#ffd59a" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>${face(m, { eye: "big", ey: 76, ex: 12, cheeks: "#ff3f5f" })}</g></g>`)}`, "soft 3d " + m); } },
+
+  { id: "brush", name: "Ink & brush", bg: "#f6f1e6", icon: "#f6f1e6",
+    idea: "A calligraphic brush stroke for the flame over a soft wash of colour, with two ink dots for eyes. Calm, crafted, a little poetic.",
+    why: "Sophisticated and rare in tech; moods are subtle, by design.",
+    draw(m) { return svg(`${extras(m, { accent: "#e2572a" })}${dimmed(m, `<circle cx="52" cy="80" r="34" fill="#ffa25a" opacity=".55" filter="url(#soft)" class="glow"/>
+      <g class="sway"><path filter="url(#brush)" d="M50 4 C 54 22, 86 42, 86 76 C 86 100, 70 114, 50 114 C 32 114, 14 102, 14 80 C 14 66, 22 56, 30 48 C 30 58, 34 64, 40 66 C 30 50, 44 32, 50 4 Z M50 104 C 64 104, 76 94, 76 78 C 76 56, 58 42, 54 24 C 52 44, 36 54, 36 72 C 30 70, 26 64, 24 60 C 22 66, 22 74, 24 82 C 26 96, 38 104, 50 104 Z" fill="#1d1410" fill-rule="evenodd"/>
+      ${face(m, { eye: "dot", ey: 80, ex: 10, my: 92, ink: "#1d1410", scale: 1.1 })}</g>`)}`, "brush " + m); } },
+
+  { id: "mark", name: "Logo mark", bg: "#ff5a1f", icon: "#ff5a1f", light: true,
+    idea: "The simplest possible version: one solid flame shape, eyes cut out of it, nothing else. Built to be a logo, a favicon and a sticker first, and a character second.",
+    why: "The most iconic at tiny sizes (the Snapchat-ghost route); expresses moods mostly through the eyes.",
+    draw(m) { return svg(`${extras(m, { ink: "#fff", accent: "#fff", zz: "#fff" })}<g class="sway"><path d="M50 4 C 62 24, 92 42, 90 78 C 88 104, 70 118, 50 118 C 28 118, 10 104, 10 80 C 10 58, 24 50, 30 32 C 36 44, 42 46, 50 4 Z" fill="#fff"/>
+      ${face(m, { eye: "cut", ey: 78, ex: 13, my: 94, ink: "#ff5a1f", cut: "#ff5a1f", noMouth: m !== "proud" && m !== "listening" })}</g>`, "mark " + m); } },
+];
+
+const index = document.getElementById("index"), vars = document.getElementById("vars");
+V.forEach((v, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = `${i + 1}. ${v.name}`;
+  b.addEventListener("click", () => document.getElementById("v-" + v.id).scrollIntoView({ behavior: "smooth" }));
+  index.appendChild(b);
+  const sec = document.createElement("section");
+  sec.className = "var"; sec.id = "v-" + v.id;
+  const moodBg = v.dark ? "#241a17" : v.bg, moodInk = v.dark ? "#e8d8c8" : "#6b5d50";
+  sec.innerHTML = `<div class="hero" style="background:${v.bg}">${v.draw("idle")}</div>
+    <div class="info"><span class="num">${String(i + 1).padStart(2, "0")}</span><h2>${v.name}</h2><p>${v.idea}</p><p class="why">${v.why}</p>
+      <div class="icons"><div><div class="icon lg" style="background:${v.icon}">${v.draw("idle")}</div><small>app icon</small></div>
+        <div><div class="icon sm" style="background:${v.icon}">${v.draw("idle")}</div><small>30 px</small></div>
+        <div><div class="icon xs" style="background:${v.icon}">${v.draw("idle")}</div><small>18 px</small></div></div>
+      <div class="moods">${MOODS.map(([m, n]) => `<div class="mood" style="background:${moodBg};color:${moodInk}">${v.draw(m)}<b style="color:${v.dark ? "#fff3e3" : "#2a1e16"}">${n}</b></div>`).join("")}</div></div>`;
+  vars.appendChild(sec);
+});
+// "#only=<id>": one character, nothing else (for a close look, or a screenshot).
+const only = /only=([a-z0-9]+)/.exec(location.hash);
+if (only && document.getElementById("v-" + only[1])) {
+  document.body.classList.add("only");
+  document.querySelector(".page > header").remove();
+  index.remove();
+  V.forEach((v) => { if (v.id !== only[1]) document.getElementById("v-" + v.id).remove(); });
+}
+// Shown as a card: the shared runtime connects to the canvas and reports the page's height.
+if (window.FoyelleView) FoyelleView.start({ name: "foyelle-design-ember", load: function () {} });
+</script>

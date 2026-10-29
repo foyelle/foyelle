@@ -1,0 +1,72 @@
+<main>
+  <div class="toolbar"><h1>Settings</h1><span class="spacer"></span><button id="refresh" type="button">Reload</button></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <h2 id="key-title">Remote model</h2>
+  <p id="key-state" class="muted"></p>
+  <form id="key-form" class="toolbar" autocomplete="off">
+    <label for="key" class="muted">API key</label>
+    <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your API key">
+    <button type="submit" class="primary">Save and use</button>
+    <button id="key-clear" type="button" class="danger" hidden>Remove</button>
+  </form>
+  <p class="muted">The key is stored only in the harness's private files on this machine and is never shown again. The model is set under model.main.</p>
+  <h2>You can change</h2>
+  <form id="form" class="grid"></form>
+  <h2>Effective settings <span class="muted">(managed by the system configuration)</span></h2>
+  <pre id="effective" class="mono" tabindex="0"></pre>
+  <p id="source" class="muted"></p>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  function get(obj, key) { return key.split(".").reduce(function (o, k) { return o && typeof o === "object" ? o[k] : undefined; }, obj); }
+  function render(d) {
+    if (!d) return;
+    V.$("#key-title").textContent = "Remote model (" + (d.remote_provider || "remote") + ")";
+    V.$("#key").placeholder = "Paste your " + (d.remote_provider || "") + " API key";
+    V.$("#key-state").textContent = d.remote_key_configured ? "A key is saved. The remote route uses it." : "No key saved: the agent uses the local model on this machine's host.";
+    V.$("#key-clear").hidden = !d.remote_key_configured;
+    var form = V.clear(V.$("#form"));
+    Object.keys(d.allowed || {}).forEach(function (key) {
+      var spec = d.allowed[key], id = "s-" + key.replace(/\W/g, "-"), cur = get(d.effective, key), input;
+      if (spec.kind === "enum") {
+        input = h("select", { id: id }, spec.choices.map(function (c) { return h("option", { value: c, text: c }); }));
+      } else if (spec.kind === "bool") {
+        input = h("input", { id: id, type: "checkbox" });
+        input.checked = !!cur;
+      } else {
+        input = h("input", { id: id, type: spec.kind === "number" ? "number" : "text", step: spec.kind === "number" ? "0.05" : null, min: spec.minimum, max: spec.maximum });
+      }
+      if (spec.kind !== "bool" && cur !== undefined && cur !== null) input.value = String(cur);
+      var overridden = Object.prototype.hasOwnProperty.call(d.overrides || {}, key);
+      form.append(
+        h("dt", null, h("label", { for: id, text: spec.description }), h("code", { class: "muted", text: key })),
+        h("dd", null, input, " ",
+          h("button", { type: "button", text: "Apply", onclick: function () {
+            var v = spec.kind === "bool" ? input.checked : spec.kind === "number" ? Number(input.value) : input.value;
+            V.run("settings_set", { key: key, value: v }, "Saving…").then(function (r) { if (r) { V.status("Saved " + key + "."); load(); } });
+          } }), " ",
+          overridden ? h("button", { type: "button", text: "Reset", onclick: function () {
+            V.run("settings_set", { key: key, value: null }, "Resetting…").then(function (r) { if (r) load(); });
+          } }) : null));
+    });
+    V.$("#effective").textContent = JSON.stringify(d.effective || {}, null, 2);
+    V.$("#source").textContent = "From " + d.settings_file + ", overrides in " + d.overrides_file + ".";
+  }
+  function load() { return V.run("settings_get", {}, "Loading…").then(render); }
+  V.$("#refresh").addEventListener("click", load);
+  V.onSubmit(V.$("#key-form"), function () {
+    var input = V.$("#key"), key = input.value.trim();
+    if (!key) return;
+    V.run("model_key_save", { key: key }, "Saving…").then(function (r) {
+      input.value = "";
+      if (r) { V.status("Saved. The agent restarts on the remote model in a few seconds."); load(); }
+    });
+  });
+  V.$("#key-clear").addEventListener("click", function () {
+    V.run("model_key_clear", {}, "Removing…").then(function (r) { if (r) { V.status("Removed. The agent restarts on the local model."); load(); } });
+  });
+  V.$("#form").addEventListener("submit", function (e) { e.preventDefault(); });
+  V.start({ name: "foyelle-shell-settings", render: render, load: load });
+})();
+</script>

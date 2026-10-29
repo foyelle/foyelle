@@ -1,0 +1,105 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:40:57 +0000
+Subject: [PATCH 10/15] foyelle: skip upstream tests of removed Nous data paths
+
+tests/_fixtures/foyelle_removed.py lists the test files and test ids that
+assert behaviour the fork removes (guest identity, free trial, hosted
+connectors, managed gateway, telemetry sending, remote catalogue, release
+channels, artifact mirror, borrowed logins). conftest applies them as
+skips, so the weekly merge stays a clean rebase and the list is reviewed
+at every merge.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ tests/_fixtures/foyelle_removed.py | 60 ++++++++++++++++++++++++++++++
+ tests/conftest.py                  |  2 +
+ 2 files changed, 62 insertions(+)
+ create mode 100644 tests/_fixtures/foyelle_removed.py
+
+diff --git a/tests/_fixtures/foyelle_removed.py b/tests/_fixtures/foyelle_removed.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..c896429957c35a30da6a5dab8b45fafb5699ca29
+--- /dev/null
++++ b/tests/_fixtures/foyelle_removed.py
+@@ -0,0 +1,60 @@
++"""Foyelle: upstream tests of behaviour the fork removes on purpose.
++
++Each entry tests a Nous Research data path that Foyelle's patches switch off (guest identity,
++free-tier trial, hosted connectors, the managed tool gateway, telemetry sending, the remote
++model catalogue, release channels on Nous's asset host, the artifact mirror, and borrowing
++Claude Code logins by default). They are skipped, not deleted, so the weekly upstream merge
++stays a clean rebase; review this list at every merge.
++"""
++
++import pytest
++
++REMOVED_FILE_PREFIXES = (
++    "tests/hermes_cli/test_anon_",
++    "tests/hermes_cli/test_welcome_trial.py",
++    "tests/tui_gateway/test_free_tier_rpc.py",
++    "tests/tui_gateway/test_onboarding_welcome_claim.py",
++    "tests/tools/test_connectors_guest_on_first_use.py",
++    "tests/agent/test_credential_pool_connectors_guest.py",
++    "tests/hermes_cli/test_shared_metrics_send_",
++)
++
++REMOVED_NODES = frozenset({
++    "tests/agent/test_anthropic_external_login_optout.py::test_opt_out_never_reads_or_refreshes_claude_code_login",
++    "tests/hermes_cli/test_model_catalog.py::TestCuratedAccessors::test_openrouter_returns_tuples",
++    "tests/hermes_cli/test_model_catalog.py::TestFallbackChain::test_falls_through_to_raw_github_on_primary_failure",
++    "tests/hermes_cli/test_model_catalog.py::TestFallbackChain::test_get_catalog_uses_fallback_chain",
++    "tests/hermes_cli/test_model_catalog.py::TestFetchFailure::test_dead_override_on_the_manifest_url_keeps_the_fallback_chain",
++    "tests/hermes_cli/test_model_catalog.py::TestFetchFailure::test_fetch_failure_falls_back_to_stale_cache",
++    "tests/hermes_cli/test_model_catalog.py::TestFetchFailure::test_offline_cold_cache_does_not_refetch_on_every_call",
++    "tests/hermes_cli/test_model_catalog.py::TestFetchFailure::test_network_failure_falls_back_to_disk_cache",
++    "tests/hermes_cli/test_model_catalog.py::TestFetchSuccess::test_fetch_and_cache_writes_disk",
++    "tests/hermes_cli/test_shared_metrics_harness.py::test_foreground_terminal_commands_count_by_kind_and_outcome",
++    "tests/hermes_cli/test_shared_metrics_install_run.py::test_receipt_is_recorded_only_on_a_day_the_sender_can_ever_send",
++    "tests/hermes_cli/test_shared_metrics_install_run.py::test_receipt_waits_without_an_open_send_window_and_is_recorded_at_once_when_kept_local",
++    "tests/hermes_cli/test_shared_metrics_install_v4.py::test_in_place_relaunch_is_not_a_startup_but_its_children_are",
++    "tests/hermes_cli/test_shared_metrics_signals.py::test_wire_failures_keep_the_producers_class_to_the_recorded_end",
++    "tests/hermes_cli/test_source_release_channels.py::test_default_stable_only_moves_forward_until_the_channel_is_chosen",
++    "tests/hermes_cli/test_source_release_channels.py::test_missing_pointers_fall_back_only_to_published_releases",
++    "tests/hermes_cli/test_source_release_channels.py::test_origin_tag_cannot_substitute_a_fork_commit",
++    "tests/hermes_cli/test_source_release_channels.py::test_source_check_and_apply_land_on_selected_release",
++    "tests/hermes_cli/test_source_release_channels.py::test_source_check_honors_transient_channel_without_rewriting_record",
++    "tests/hermes_cli/test_source_release_channels.py::test_stable_is_the_latest_published_github_release_without_r2",
++    "tests/hermes_cli/test_source_release_channels.py::test_stable_resolution_uses_promoted_pointer_not_highest_tag",
++    "tests/pm/test_artifact_mirror.py::test_cold_consumers_recover_after_upstream_removal",
++    "tests/tools/test_managed_tool_gateway.py::test_is_managed_tool_gateway_ready_skips_refresh_for_expired_cached_token",
++    "tests/tools/test_managed_tool_gateway.py::test_read_nous_provider_state_falls_back_to_global_root_for_share_auth_profiles",
++    "tests/tools/test_managed_tool_gateway.py::test_resolve_managed_tool_gateway_derives_vendor_origin_from_shared_domain",
++    "tests/tools/test_managed_tool_gateway.py::test_resolve_managed_tool_gateway_uses_vendor_specific_override",
++})
++
++_REASON = "Foyelle removes this Nous Research data path (see harness/patches)"
++
++
++def apply_foyelle_skips(items) -> None:
++    marker = pytest.mark.skip(reason=_REASON)
++    for item in items:
++        path, _, rest = item.nodeid.partition("::")
++        node = f"{path}::{rest.split('[', 1)[0]}"
++        if path.startswith(REMOVED_FILE_PREFIXES) or node in REMOVED_NODES:
++            item.add_marker(marker)
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 8b74a46aaa781a5cd794ca1bd338ec3af5fb5e6f..f70f355e2b663b430b679cae8d4b194d9c2c104e 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -257,6 +257,7 @@ from tests._fixtures.live_system_guard import (
+     _live_system_guard,
+ )
+ from tests._fixtures.model_peer import model_peer  # fixture registers here
++from tests._fixtures.foyelle_removed import apply_foyelle_skips
+ from tests._fixtures.platform_gating import _platforms_gate_reason, _reject_contradictory_platform_marks
+ 
+ 
+@@ -1329,6 +1330,7 @@ def pytest_collection_modifyitems(config, items):
+     skip is diagnosable rather than mysterious.
+     """
+     _reject_contradictory_platform_marks(items)
++    apply_foyelle_skips(items)  # Foyelle: tests of removed Nous data paths
+ 
+     # platforms() gating: skip items whose specs exclude this host. The skip
+     # markers (not -m expressions) are the authoritative host filter on

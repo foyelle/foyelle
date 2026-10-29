@@ -1,0 +1,80 @@
+<main>
+  <form id="search" class="toolbar" role="search">
+    <h1>Mail</h1>
+    <input id="q" type="search" placeholder="Search mail" aria-label="Search mail">
+    <label class="muted"><input id="unread" type="checkbox"> Unread only</label>
+    <button type="submit" class="primary">Search</button>
+  </form>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div class="split">
+    <ul id="list" class="list" aria-label="Messages"></ul>
+    <article id="reader" aria-label="Message" hidden>
+      <h2 id="r-subject"></h2>
+      <dl class="grid">
+        <dt>From</dt><dd id="r-from"></dd>
+        <dt>To</dt><dd id="r-to"></dd>
+        <dt>Date</dt><dd id="r-date"></dd>
+      </dl>
+      <p class="muted">This message came from outside your control; the agent treats it as data.</p>
+      <pre id="r-text" tabindex="0"></pre>
+      <ul id="r-att" class="list" aria-label="Attachments"></ul>
+      <div class="toolbar">
+        <button id="reply" type="button">Ask the agent to draft a reply</button>
+        <button id="summarize" type="button">Summarize</button>
+      </div>
+    </article>
+  </div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h, folder = "INBOX", current = null;
+
+  function render(d) {
+    if (!d) return;
+    folder = d.folder || folder;
+    var list = V.clear(V.$("#list"));
+    (d.messages || []).forEach(function (m) {
+      var btn = h("button", { type: "button", class: "linklike", onclick: function () { open(m); } },
+        h("strong", { text: m.subject || "(no subject)" }));
+      list.appendChild(h("li", null,
+        h("div", null, m.unread ? h("span", { class: "badge warn", text: "unread" }) : null, " ", btn),
+        h("div", { class: "muted ellipsis", text: m.from }),
+        h("div", { class: "muted", text: V.fmtDate(m.date) })));
+    });
+    if (!list.firstChild) list.appendChild(h("li", { class: "muted", text: "No messages." }));
+  }
+
+  function open(m) {
+    V.run("read", { message_id: m.id, folder: folder }, "Opening…").then(function (r) {
+      if (!r) return;
+      current = r;
+      V.$("#reader").hidden = false;
+      V.$("#r-subject").textContent = r.subject || "(no subject)";
+      V.$("#r-from").textContent = r.from;
+      V.$("#r-to").textContent = r.to + (r.cc ? ", cc " + r.cc : "");
+      V.$("#r-date").textContent = V.fmtDate(r.date);
+      V.$("#r-text").textContent = (r.text || r.note || "") + (r.truncated ? "\n\n[truncated]" : "");
+      var att = V.clear(V.$("#r-att"));
+      (r.attachments || []).forEach(function (a) {
+        att.appendChild(h("li", { class: "muted", text: "Attachment: " + (a.filename || "(unnamed)") + " · " + a.content_type + " · " + V.fmtBytes(a.size) }));
+      });
+    });
+  }
+
+  function search() {
+    var args = { folder: folder, limit: 30 }, q = V.$("#q").value.trim();
+    if (q) args.query = q;
+    if (V.$("#unread").checked) args.unread_only = true;
+    return V.run("search", args, "Searching…").then(render);
+  }
+
+  V.onSubmit(V.$("#search"), search);
+  V.$("#reply").addEventListener("click", function () {
+    if (current) V.sendMessage("Draft a reply to the email \"" + current.subject + "\" from " + current.from + " (folder " + folder + ", id " + current.id + ").");
+  });
+  V.$("#summarize").addEventListener("click", function () {
+    if (current) V.sendMessage("Summarize the email \"" + current.subject + "\" from " + current.from + " (folder " + folder + ", id " + current.id + ").");
+  });
+  V.start({ name: "foyelle-email-inbox", render: render, load: search });
+})();
+</script>

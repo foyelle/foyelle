@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:28:09 +0000
+Subject: [PATCH 06/15] foyelle: default config with every Nous path off
+
+Hosted connectors, the remote model catalogue, the telemetry endpoint,
+passive update checks, borrowed logins and the Nous guest identity are
+off in the shipped defaults. The code patches before this one enforce the
+same choices even when a config turns them back on.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ hermes_cli/config_defaults.py | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/hermes_cli/config_defaults.py b/hermes_cli/config_defaults.py
+index 8ac69a3c86a8e3f21a7f545b8d946dda4821167e..84e8e6f4ff96db5415012deeda8af98f7b4f676b 100644
+--- a/hermes_cli/config_defaults.py
++++ b/hermes_cli/config_defaults.py
+@@ -1756,7 +1756,7 @@ DEFAULT_CONFIG = {
+         # and rotate, so two programs on one login can log each other out; set false to make Hermes use only
+         # its own logins (`hermes auth add <provider>`). `hermes auth add openai-codex` still offers the import
+         # interactively.
+-        "adopt_external_logins": True,
++        "adopt_external_logins": False,  # Foyelle
+         # How `hermes auth add openai-codex` / `hermes model` sign in to OpenAI Codex.
+         # "device_code" (default): open a URL, enter a code. "browser": authorization-code + PKCE on
+         # the loopback listener http://localhost:1455/auth/callback (the redirect OpenAI registered
+@@ -2026,7 +2026,7 @@ DEFAULT_CONFIG = {
+         # Remote connector discovery/lifecycle through the Nous tool gateway.
+         # The flag is the user's off switch; availability additionally requires
+         # the portal sign-in every managed tool gates on.
+-        "connectors": {"enabled": True},
++        "connectors": {"enabled": False},  # Foyelle: connectors are local MCP services
+     },
+     "logging": {  # File logging to ~/.hermes/logs/: agent.log captures INFO+, errors.log WARNING+.
+         "level": "INFO",       # minimum level for agent.log: DEBUG, INFO, WARNING
+@@ -2037,8 +2037,8 @@ DEFAULT_CONFIG = {
+     # URL (falls back to the in-repo snapshot on network failure), so picker lists update without a
+     # release. Default URL is served by the docs-site GitHub Pages deploy.
+     "model_catalog": {
+-        "enabled": True,
+-        "url": "https://hermes-agent.nousresearch.com/docs/api/model-catalog.json",
++        "enabled": False,  # Foyelle: the catalogue ships in the image
++        "url": "",
+         # Disk cache TTL in minutes. The gateway refreshes in the background on this cadence; the
+         # CLI refetches on the next /model or `hermes model` once the cache is older. Network
+         # failures silently use the stale cache. Legacy `ttl_hours` is honoured if set.
+@@ -2332,7 +2332,7 @@ DEFAULT_CONFIG = {
+             "send": False,
+             # Ingest endpoint (override for staging/local). Deliberately NOT env- overridable.
+             # Non-HTTPS refused unless the host is localhost.
+-            "endpoint": "https://telemetry.nousresearch.com/v1/telemetry",
++            "endpoint": "",  # Foyelle: never transmitted
+         },
+     },
+ 
+@@ -2343,7 +2343,8 @@ DEFAULT_CONFIG = {
+ 
+     "updates": {
+         # Passive version/banner checks only; explicit `hermes update --check` remains enabled.
+-        "check": True,
++        # Foyelle: off; updates arrive as Nix system changes.
++        "check": False,
+         # Pre-update backup. quick = snapshot small critical state (pairing JSONs, cron jobs,
+         # config.yaml, .env, auth.json, profile DBs) into <HERMES_HOME>/state-snapshots/, skipping
+         # files >1 GiB; restore via ``/snapshot``. full = quick PLUS a ``hermes backup`` zip in
+@@ -2687,7 +2688,7 @@ DEFAULT_CONFIG = {
+         # first use (inference on nous/welcome + connectors) and offers `/login` (terminal:
+         # `hermes auth upgrade`) to sign in. false turns the free tier off entirely: nothing is set
+         # up and nothing is used.
+-        "guest": True,
++        "guest": False,  # Foyelle: no anonymous Nous identity
+     },
+     # Google Vertex AI (Gemini). Auth is OAuth2 from a service-account JSON or ADC, NOT an API key;
+     # the credential path lives in .env (VERTEX_CREDENTIALS_PATH / GOOGLE_APPLICATION_CREDENTIALS).

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Publish foyelle.org: the landing page in site/ and Foyelle's OAuth client document
+# (docs/oauth-client-metadata.json, served at /oauth/client.json), as Cloudflare static assets
+# (site/wrangler.jsonc: no Worker code, foyelle.org attached as a custom domain).
+#   scripts/deploy-site            build into out/site and deploy (wrangler must be signed in)
+#   scripts/deploy-site --dry-run  only build the files into out/site
+set -euo pipefail
+root="$(cd "$(dirname "$0")/.." && pwd)"
+out="$root/out/site"
+wrangler=(npx --yes wrangler@4.155.0)
+
+fonts="$root/canvas/src/renderer/fonts"
+rm -rf "$out" && mkdir -p "$out/oauth" "$out/fonts"
+cp "$root"/site/{index.html,404.html,style.css,ember.svg,favicon.svg,_headers} "$out"/
+# The canvas's own fonts and their licences, so the site keeps Foyelle's default look.
+cp "$fonts"/{Nunito.ttf,GochiHand-Regular.ttf,OFL-Nunito.txt,OFL-GochiHand.txt} "$out/fonts/"
+cp "$root/docs/oauth-client-metadata.json" "$out/oauth/client.json"
+# A Client ID Metadata Document must name its own address as client_id.
+python3 -I - "$out/oauth/client.json" <<'PY'
+import json, sys
+doc = json.load(open(sys.argv[1]))
+want = "https://foyelle.org/oauth/client.json"
+if doc.get("client_id") != want:
+    sys.exit(f"client_id is {doc.get('client_id')!r}, expected {want!r}")
+PY
+echo "built $out"
+[ "${1:-}" = "--dry-run" ] && exit 0
+"${wrangler[@]}" deploy --config "$root/site/wrangler.jsonc"

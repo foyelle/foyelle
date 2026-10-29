@@ -1,0 +1,15 @@
+0001-foyelle-never-create-a-Nous-guest-identity-or-free-t.patch
+0002-foyelle-remove-hosted-connectors-and-the-Nous-manage.patch
+0003-foyelle-no-remote-model-plugin-or-skills-catalogues.patch
+0004-foyelle-shared-metrics-are-never-transmitted.patch
+0005-foyelle-do-not-borrow-Codex-CLI-or-Claude-Code-login.patch
+0006-foyelle-default-config-with-every-Nous-path-off.patch
+0007-foyelle-point-update-and-artifact-origins-away-from-.patch
+0008-foyelle-Foyelle-banner-and-a-foyelle-command.patch
+0009-foyelle-MCP-Apps-surfaces-in-the-gateway.patch
+0010-foyelle-skip-upstream-tests-of-removed-Nous-data-pat.patch
+0011-foyelle-workshop-surfaces-call-other-connectors-tool.patch
+0012-foyelle-a-surface-opened-from-the-list-gets-its-tool.patch
+0013-foyelle-keep-MCP-tools-hints-for-Foyelle-s-policy.patch
+0014-foyelle-required-plugins-in-every-profile-and-cron-i.patch
+0015-foyelle-a-surface-call-runs-in-its-session-s-profile.patch

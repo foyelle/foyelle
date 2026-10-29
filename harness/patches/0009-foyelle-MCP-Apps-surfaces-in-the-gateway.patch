@@ -1,0 +1,1283 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:35:52 +0000
+Subject: [PATCH 09/15] foyelle: MCP Apps surfaces in the gateway
+
+Hermes dropped tool _meta, so ui:// resources (SEP-1865) never reached a
+client. tools/mcp_surfaces.py records which registered MCP tools declare
+_meta.ui.resourceUri, reads the HTML resource over the live session and
+converts tool results to the CallToolResult shape an MCP App expects.
+
+The gateway gains a surface.open event, emitted after such a tool
+completes, and four RPCs on the long-handler pool: surface.list,
+surface.open_resource, surface.read_resource and surface.call_tool. A
+surface's own tool call is dispatched through handle_function_call with
+the session's approval context bound, so plugins (Foyelle's policy
+engine and audit log) and the approval gate treat it like a model call;
+mcp_surfaces.current_origin() tells them it came from a surface.
+
+Contracts are declared in tui_gateway/contracts/surfaces.py and the
+generated TypeScript contract is regenerated.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ apps/shared/src/gateway-contract.generated.ts |  76 ++++
+ apps/shared/src/gateway-contract.openrpc.json | 429 ++++++++++++++++++
+ tests/tools/test_mcp_surfaces.py              | 133 ++++++
+ tools/mcp_surfaces.py                         | 251 ++++++++++
+ tools/mcp_tool_registration.py                |   2 +
+ tui_gateway/contracts/__init__.py             |   1 +
+ tui_gateway/contracts/surfaces.py             | 103 +++++
+ tui_gateway/methods_surfaces.py               |  87 ++++
+ tui_gateway/server.py                         |   5 +-
+ tui_gateway/tool_progress.py                  |   5 +
+ 10 files changed, 1090 insertions(+), 2 deletions(-)
+ create mode 100644 tests/tools/test_mcp_surfaces.py
+ create mode 100644 tools/mcp_surfaces.py
+ create mode 100644 tui_gateway/contracts/surfaces.py
+ create mode 100644 tui_gateway/methods_surfaces.py
+
+diff --git a/apps/shared/src/gateway-contract.generated.ts b/apps/shared/src/gateway-contract.generated.ts
+index 6e777117819228791f0ab497f3f48f0c98efed69..a3b4289d23616af277fa0e4ded5b95ee5f85a017 100644
+--- a/apps/shared/src/gateway-contract.generated.ts
++++ b/apps/shared/src/gateway-contract.generated.ts
+@@ -3684,6 +3684,53 @@ export interface LlmOneshotParams {
+ export interface LlmOneshotResult {
+   text: string
+ }
++export type SurfaceListParams = Record<string, never>
++export interface SurfaceListResult {
++  surfaces: SurfaceEntry[]
++}
++export interface SurfaceEntry {
++  server: string
++  uri: string
++  name: string
++  title: string
++  pinned?: boolean
++}
++export interface SurfaceResourceParams {
++  server: string
++  uri: string
++  session_id?: string | null
++}
++export interface SurfaceDocument {
++  surface_id: string
++  session_id?: string
++  server: string
++  uri: string
++  html: string
++  csp?: SurfaceCsp | null
++  permissions?: unknown
++}
++/** ``_meta.ui.csp`` of the resource: extra origins the surface may reach (empty by default). */
++export interface SurfaceCsp {
++  connectDomains?: string[] | null
++  resourceDomains?: string[] | null
++  [key: string]: unknown
++}
++export interface SurfaceReadResult {
++  contents: unknown[]
++}
++export interface SurfaceCallToolParams {
++  server: string
++  name: string
++  arguments?: Record<string, unknown> | null
++  session_id?: string | null
++  surface_id?: string | null
++}
++export interface SurfaceCallToolResult {
++  content: unknown[]
++  structuredContent?: unknown
++  isError?: boolean | null
++  [key: string]: unknown
++}
+ export interface SystemBatteryParams {
+   profile?: string | null
+ }
+@@ -6015,6 +6062,20 @@ export interface PetHatchProgressPayload {
+ }
+ /** ``change_watcher._CHANGE_WATCHES`` payload fn — ``{}`` for every watch except pet.changed. */
+ export type ChangeSignalPayload = Record<string, unknown>
++/** ``tools.mcp_surfaces.surface_event_for_tool``: a tool with a ``ui://`` surface finished. */
++export interface SurfaceOpenPayload {
++  surface_id: string
++  session_id: string
++  server: string
++  tool: string
++  tool_call_id: string
++  uri: string
++  html: string
++  csp?: SurfaceCsp | null
++  permissions?: unknown
++  tool_input?: unknown
++  tool_result?: unknown
++}
+ export type ConnectorErrorReason = 'INVALID_PARAMS' | 'NOT_OWNER' | 'UNSUPPORTED_RUNTIME' | 'CONNECTOR_REQUEST_FAILED' | 'INVALID_CONNECTOR_RESPONSE' | 'UNKNOWN_TARGET' | 'LINK_STILL_VALID' | 'REISSUE_REFUSED' | 'UNKNOWN_OPERATION' | 'INVALID_ANSWER' | 'NEEDS_NOUS_AUTH' | 'CONNECTOR_NOT_FOUND' | 'TOOLS_UNAVAILABLE' | 'CONNECTORS_UNAVAILABLE' | 'CATALOG_UNAVAILABLE' | 'ACCOUNTS_UNAVAILABLE' | 'CONNECTION_NOT_FOUND' | 'POLICY_UNAVAILABLE' | 'POLICY_CONFLICT' | 'FORBIDDEN_SCOPE' | 'ORG_REQUIRED' | 'ORG_ACCESS_DENIED' | 'INVALID_POLICY' | 'ALIAS_TAKEN'
+ 
+ // ── Client→server methods ──
+@@ -6479,6 +6540,14 @@ export interface RpcMethods {
+   'subscription.state': { params: ProfileParams; result: SubscriptionStateResult }
+   /** Prorate, charge and flip the plan (billing:manage, idempotent). */
+   'subscription.upgrade': { params: SubscriptionUpgradeParams; result: SubscriptionUpgradeResult }
++  /** A surface calls a tool of its own server; the call goes through the policy and approval path. */
++  'surface.call_tool': { params: SurfaceCallToolParams; result: SurfaceCallToolResult }
++  /** Every ui:// resource the connected MCP servers expose. */
++  'surface.list': { params: SurfaceListParams; result: SurfaceListResult }
++  /** Open a surface without a tool call (system surfaces such as status, memory, settings, audit). */
++  'surface.open_resource': { params: SurfaceResourceParams; result: SurfaceDocument }
++  /** resources/read on behalf of a surface. */
++  'surface.read_resource': { params: SurfaceResourceParams; result: SurfaceReadResult }
+   /** Host battery for the status bar; always resolves, ``available: false`` when unreadable. */
+   'system.battery': { params: SystemBatteryParams; result: SystemBatteryResult }
+   /** Record the client's column width for server-side rendering. */
+@@ -6760,6 +6829,10 @@ export const RPC_METHODS = [
+   'subscription.resume',
+   'subscription.state',
+   'subscription.upgrade',
++  'surface.call_tool',
++  'surface.list',
++  'surface.open_resource',
++  'surface.read_resource',
+   'system.battery',
+   'terminal.resize',
+   'tools.configure',
+@@ -7104,6 +7177,8 @@ export interface BackendGatewayEventMap {
+   'subagent.thinking': SubagentEventPayload
+   /** A child called a tool. */
+   'subagent.tool': SubagentEventPayload
++  /** A tool with an MCP Apps surface finished: render html in a sandboxed frame and send it the input and result. */
++  'surface.open': SurfaceOpenPayload
+   /** An agent-owned background process closed. */
+   'terminal.close': TerminalClosePayload
+   /** Legacy thinking-text chunk (thinking_callback). */
+@@ -7199,6 +7274,7 @@ export const GATEWAY_EVENT_TYPES = [
+   'subagent.start',
+   'subagent.thinking',
+   'subagent.tool',
++  'surface.open',
+   'terminal.close',
+   'thinking.delta',
+   'tip.show',
+diff --git a/apps/shared/src/gateway-contract.openrpc.json b/apps/shared/src/gateway-contract.openrpc.json
+index 6b23ca77f245c70d440610ff3cc99134d9aed587..c65c2d002986f5168eb23609a13854d94c801667 100644
+--- a/apps/shared/src/gateway-contract.openrpc.json
++++ b/apps/shared/src/gateway-contract.openrpc.json
+@@ -4146,6 +4146,78 @@
+         }
+       }
+     },
++    {
++      "name": "surface.call_tool",
++      "summary": "A surface calls a tool of its own server; the call goes through the policy and approval path.",
++      "params": [
++        {
++          "name": "params",
++          "schema": {
++            "$ref": "#/components/schemas/SurfaceCallToolParams"
++          }
++        }
++      ],
++      "result": {
++        "name": "result",
++        "schema": {
++          "$ref": "#/components/schemas/SurfaceCallToolResult"
++        }
++      }
++    },
++    {
++      "name": "surface.list",
++      "summary": "Every ui:// resource the connected MCP servers expose.",
++      "params": [
++        {
++          "name": "params",
++          "schema": {
++            "$ref": "#/components/schemas/SurfaceListParams"
++          }
++        }
++      ],
++      "result": {
++        "name": "result",
++        "schema": {
++          "$ref": "#/components/schemas/SurfaceListResult"
++        }
++      }
++    },
++    {
++      "name": "surface.open_resource",
++      "summary": "Open a surface without a tool call (system surfaces such as status, memory, settings, audit).",
++      "params": [
++        {
++          "name": "params",
++          "schema": {
++            "$ref": "#/components/schemas/SurfaceResourceParams"
++          }
++        }
++      ],
++      "result": {
++        "name": "result",
++        "schema": {
++          "$ref": "#/components/schemas/SurfaceDocument"
++        }
++      }
++    },
++    {
++      "name": "surface.read_resource",
++      "summary": "resources/read on behalf of a surface.",
++      "params": [
++        {
++          "name": "params",
++          "schema": {
++            "$ref": "#/components/schemas/SurfaceResourceParams"
++          }
++        }
++      ],
++      "result": {
++        "name": "result",
++        "schema": {
++          "$ref": "#/components/schemas/SurfaceReadResult"
++        }
++      }
++    },
+     {
+       "name": "system.battery",
+       "summary": "Host battery for the status bar; always resolves, ``available: false`` when unreadable.",
+@@ -43296,6 +43368,351 @@
+         "title": "SudoRequestParams",
+         "type": "object"
+       },
++      "SurfaceCallToolParams": {
++        "additionalProperties": false,
++        "properties": {
++          "server": {
++            "title": "Server",
++            "type": "string"
++          },
++          "name": {
++            "title": "Name",
++            "type": "string"
++          },
++          "arguments": {
++            "anyOf": [
++              {
++                "additionalProperties": true,
++                "type": "object"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Arguments"
++          },
++          "session_id": {
++            "anyOf": [
++              {
++                "type": "string"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Session Id"
++          },
++          "surface_id": {
++            "anyOf": [
++              {
++                "type": "string"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Surface Id"
++          }
++        },
++        "required": [
++          "server",
++          "name"
++        ],
++        "title": "SurfaceCallToolParams",
++        "type": "object"
++      },
++      "SurfaceCallToolResult": {
++        "additionalProperties": true,
++        "properties": {
++          "content": {
++            "items": {},
++            "title": "Content",
++            "type": "array"
++          },
++          "structuredContent": {
++            "default": null,
++            "title": "Structuredcontent"
++          },
++          "isError": {
++            "anyOf": [
++              {
++                "type": "boolean"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Iserror"
++          }
++        },
++        "required": [
++          "content"
++        ],
++        "title": "SurfaceCallToolResult",
++        "type": "object"
++      },
++      "SurfaceCsp": {
++        "additionalProperties": true,
++        "description": "``_meta.ui.csp`` of the resource: extra origins the surface may reach (empty by default).",
++        "properties": {
++          "connectDomains": {
++            "anyOf": [
++              {
++                "items": {
++                  "type": "string"
++                },
++                "type": "array"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Connectdomains"
++          },
++          "resourceDomains": {
++            "anyOf": [
++              {
++                "items": {
++                  "type": "string"
++                },
++                "type": "array"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Resourcedomains"
++          }
++        },
++        "title": "SurfaceCsp",
++        "type": "object"
++      },
++      "SurfaceDocument": {
++        "additionalProperties": false,
++        "properties": {
++          "surface_id": {
++            "title": "Surface Id",
++            "type": "string"
++          },
++          "session_id": {
++            "default": "",
++            "title": "Session Id",
++            "type": "string"
++          },
++          "server": {
++            "title": "Server",
++            "type": "string"
++          },
++          "uri": {
++            "title": "Uri",
++            "type": "string"
++          },
++          "html": {
++            "title": "Html",
++            "type": "string"
++          },
++          "csp": {
++            "anyOf": [
++              {
++                "$ref": "#/components/schemas/SurfaceCsp"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null
++          },
++          "permissions": {
++            "default": null,
++            "title": "Permissions"
++          }
++        },
++        "required": [
++          "surface_id",
++          "server",
++          "uri",
++          "html"
++        ],
++        "title": "SurfaceDocument",
++        "type": "object"
++      },
++      "SurfaceEntry": {
++        "additionalProperties": false,
++        "properties": {
++          "server": {
++            "title": "Server",
++            "type": "string"
++          },
++          "uri": {
++            "title": "Uri",
++            "type": "string"
++          },
++          "name": {
++            "title": "Name",
++            "type": "string"
++          },
++          "title": {
++            "title": "Title",
++            "type": "string"
++          },
++          "pinned": {
++            "default": false,
++            "title": "Pinned",
++            "type": "boolean"
++          }
++        },
++        "required": [
++          "server",
++          "uri",
++          "name",
++          "title"
++        ],
++        "title": "SurfaceEntry",
++        "type": "object"
++      },
++      "SurfaceListParams": {
++        "additionalProperties": false,
++        "properties": {},
++        "title": "SurfaceListParams",
++        "type": "object"
++      },
++      "SurfaceListResult": {
++        "additionalProperties": false,
++        "properties": {
++          "surfaces": {
++            "items": {
++              "$ref": "#/components/schemas/SurfaceEntry"
++            },
++            "title": "Surfaces",
++            "type": "array"
++          }
++        },
++        "required": [
++          "surfaces"
++        ],
++        "title": "SurfaceListResult",
++        "type": "object"
++      },
++      "SurfaceOpenPayload": {
++        "additionalProperties": false,
++        "description": "``tools.mcp_surfaces.surface_event_for_tool``: a tool with a ``ui://`` surface finished.",
++        "properties": {
++          "surface_id": {
++            "title": "Surface Id",
++            "type": "string"
++          },
++          "session_id": {
++            "title": "Session Id",
++            "type": "string"
++          },
++          "server": {
++            "title": "Server",
++            "type": "string"
++          },
++          "tool": {
++            "title": "Tool",
++            "type": "string"
++          },
++          "tool_call_id": {
++            "title": "Tool Call Id",
++            "type": "string"
++          },
++          "uri": {
++            "title": "Uri",
++            "type": "string"
++          },
++          "html": {
++            "title": "Html",
++            "type": "string"
++          },
++          "csp": {
++            "anyOf": [
++              {
++                "$ref": "#/components/schemas/SurfaceCsp"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null
++          },
++          "permissions": {
++            "default": null,
++            "title": "Permissions"
++          },
++          "tool_input": {
++            "default": null,
++            "title": "Tool Input"
++          },
++          "tool_result": {
++            "default": null,
++            "title": "Tool Result"
++          }
++        },
++        "required": [
++          "surface_id",
++          "session_id",
++          "server",
++          "tool",
++          "tool_call_id",
++          "uri",
++          "html"
++        ],
++        "title": "SurfaceOpenPayload",
++        "type": "object"
++      },
++      "SurfaceReadResult": {
++        "additionalProperties": false,
++        "properties": {
++          "contents": {
++            "items": {},
++            "title": "Contents",
++            "type": "array"
++          }
++        },
++        "required": [
++          "contents"
++        ],
++        "title": "SurfaceReadResult",
++        "type": "object"
++      },
++      "SurfaceResourceParams": {
++        "additionalProperties": false,
++        "properties": {
++          "server": {
++            "title": "Server",
++            "type": "string"
++          },
++          "uri": {
++            "title": "Uri",
++            "type": "string"
++          },
++          "session_id": {
++            "anyOf": [
++              {
++                "type": "string"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Session Id"
++          }
++        },
++        "required": [
++          "server",
++          "uri"
++        ],
++        "title": "SurfaceResourceParams",
++        "type": "object"
++      },
+       "SystemBatteryParams": {
+         "additionalProperties": false,
+         "properties": {
+@@ -49392,6 +49809,18 @@
+         }
+       ]
+     },
++    {
++      "name": "surface.open",
++      "summary": "A tool with an MCP Apps surface finished: render html in a sandboxed frame and send it the input and result.",
++      "params": [
++        {
++          "name": "payload",
++          "schema": {
++            "$ref": "#/components/schemas/SurfaceOpenPayload"
++          }
++        }
++      ]
++    },
+     {
+       "name": "terminal.close",
+       "summary": "An agent-owned background process closed.",
+diff --git a/tests/tools/test_mcp_surfaces.py b/tests/tools/test_mcp_surfaces.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..bed2fbbf070e42d06247efbe7f6d7ac079b4aa3d
+--- /dev/null
++++ b/tests/tools/test_mcp_surfaces.py
+@@ -0,0 +1,133 @@
++"""Foyelle: MCP Apps surfaces (tools/mcp_surfaces.py) and their gateway wiring."""
++
++import json
++from types import SimpleNamespace
++
++import pytest
++
++from tools import mcp_surfaces
++
++
++@pytest.fixture(autouse=True)
++def _clean_registry():
++    for table in (mcp_surfaces._tools, mcp_surfaces._registry_names, mcp_surfaces._ui_uris):
++        table.clear()
++    yield
++    for table in (mcp_surfaces._tools, mcp_surfaces._registry_names, mcp_surfaces._ui_uris):
++        table.clear()
++
++
++def _tool(name, meta=None):
++    return SimpleNamespace(name=name, meta=meta)
++
++
++def test_tool_ui_uri_reads_nested_and_legacy_formats():
++    assert mcp_surfaces.tool_ui_uri(_tool("a", {"ui": {"resourceUri": "ui://files/browser"}})) == "ui://files/browser"
++    assert mcp_surfaces.tool_ui_uri(_tool("b", {"ui/resourceUri": "ui://mail/inbox"})) == "ui://mail/inbox"
++    assert mcp_surfaces.tool_ui_uri({"name": "c", "_meta": {"ui": {"resourceUri": "ui://x/y"}}}) == "ui://x/y"
++
++
++def test_tool_ui_uri_rejects_other_schemes_and_missing_meta():
++    assert mcp_surfaces.tool_ui_uri(_tool("a", {"ui": {"resourceUri": "https://evil.example/app"}})) is None
++    assert mcp_surfaces.tool_ui_uri(_tool("b")) is None
++    assert mcp_surfaces.tool_ui_uri(_tool("c", {"ui": "ui://not-a-dict"})) is None
++
++
++def test_record_tool_maps_registry_names_both_ways():
++    mcp_surfaces.record_tool("files", _tool("browse", {"ui": {"resourceUri": "ui://files/browser"}}), "mcp_files_browse")
++    mcp_surfaces.record_tool("files", _tool("read"), "mcp_files_read")
++    assert mcp_surfaces.ui_tool("mcp_files_browse") == ("files", "browse", "ui://files/browser")
++    assert mcp_surfaces.ui_tool("mcp_files_read") is None
++    assert mcp_surfaces.registry_name_for("files", "read") == "mcp_files_read"
++    assert mcp_surfaces.server_of("mcp_files_browse") == "files"
++
++
++def test_record_tool_drops_a_surface_removed_on_refresh():
++    mcp_surfaces.record_tool("files", _tool("browse", {"ui": {"resourceUri": "ui://files/browser"}}), "mcp_files_browse")
++    mcp_surfaces.record_tool("files", _tool("browse"), "mcp_files_browse")
++    assert mcp_surfaces.ui_tool("mcp_files_browse") is None
++
++
++@pytest.mark.parametrize(("raw", "expected"), [
++    (json.dumps({"result": "hello"}), {"content": [{"type": "text", "text": "hello"}]}),
++    (json.dumps({"result": "", "structuredContent": {"n": 1}}), {"content": [], "structuredContent": {"n": 1}}),
++    (json.dumps({"result": {"n": 2}}), {"content": [{"type": "text", "text": "{\"n\": 2}"}], "structuredContent": {"n": 2}}),
++    (json.dumps({"error": "boom"}), {"content": [{"type": "text", "text": "boom"}], "isError": True}),
++    ("not json", {"content": [{"type": "text", "text": "not json"}]}),
++])
++def test_tool_result_for_app(raw, expected):
++    assert mcp_surfaces.tool_result_for_app(raw) == expected
++
++
++def test_surface_event_for_tool_builds_the_open_payload(monkeypatch):
++    mcp_surfaces.record_tool("files", _tool("browse", {"ui": {"resourceUri": "ui://files/browser"}}), "mcp_files_browse")
++    monkeypatch.setattr(mcp_surfaces, "surface_document",
++                        lambda server, uri: {"html": "<!doctype html><p>hi</p>", "csp": {"connectDomains": []}})
++    event = mcp_surfaces.surface_event_for_tool("sess-1", "call-1", "mcp_files_browse", {"path": "/"},
++                                                json.dumps({"result": "ok"}))
++    assert event["surface_id"].startswith("s-")
++    assert {k: event[k] for k in ("session_id", "server", "tool", "tool_call_id", "uri", "html")} == {
++        "session_id": "sess-1", "server": "files", "tool": "browse", "tool_call_id": "call-1",
++        "uri": "ui://files/browser", "html": "<!doctype html><p>hi</p>"}
++    assert event["tool_input"] == {"path": "/"}
++    assert event["tool_result"] == {"content": [{"type": "text", "text": "ok"}]}
++    assert mcp_surfaces.surface_event_for_tool("sess-1", "call-2", "mcp_files_read", {}, "{}") is None
++
++
++def test_surface_event_is_skipped_when_the_resource_cannot_be_read(monkeypatch):
++    mcp_surfaces.record_tool("files", _tool("browse", {"ui": {"resourceUri": "ui://files/browser"}}), "mcp_files_browse")
++
++    def _fail(server, uri):
++        raise LookupError("not connected")
++
++    monkeypatch.setattr(mcp_surfaces, "surface_document", _fail)
++    assert mcp_surfaces.surface_event_for_tool("s", "c", "mcp_files_browse", {}, "{}") is None
++
++
++def test_surface_document_picks_html_and_ui_meta(monkeypatch):
++    monkeypatch.setattr(mcp_surfaces, "read_resource", lambda server, uri: {"contents": [
++        {"uri": uri, "mimeType": "application/json", "text": "{}"},
++        {"uri": uri, "mimeType": "text/html;profile=mcp-app", "text": "<p>x</p>",
++         "_meta": {"ui": {"csp": {"connectDomains": ["https://api.example"]}, "permissions": {"camera": {}}}}},
++    ]})
++    doc = mcp_surfaces.surface_document("web", "ui://web/results")
++    assert doc == {"html": "<p>x</p>", "csp": {"connectDomains": ["https://api.example"]}, "permissions": {"camera": {}}}
++
++
++def test_resource_payload_refuses_non_ui_uris():
++    with pytest.raises(ValueError):
++        mcp_surfaces.resource_payload("files", "file:///etc/passwd")
++
++
++def test_call_tool_dispatches_through_handle_function_call_as_a_surface(monkeypatch):
++    import model_tools
++
++    seen = {}
++
++    def _fake(name, args, **kw):
++        seen.update(name=name, args=args, origin=mcp_surfaces.current_origin(), **kw)
++        return json.dumps({"result": "done"})
++
++    monkeypatch.setattr(model_tools, "handle_function_call", _fake)
++    mcp_surfaces.record_tool("files", _tool("trash"), "mcp_files_trash")
++    out = mcp_surfaces.call_tool("files", "trash", {"path": "a.txt"}, session_id="sess-9")
++    assert out == {"content": [{"type": "text", "text": "done"}]}
++    assert seen["name"] == "mcp_files_trash" and seen["args"] == {"path": "a.txt"}
++    assert seen["origin"] == "surface" and seen["session_id"] == "sess-9"
++    assert mcp_surfaces.current_origin() == "model"
++
++
++def test_call_tool_rejects_tools_the_server_did_not_register():
++    with pytest.raises(LookupError):
++        mcp_surfaces.call_tool("files", "rm_rf", {})
++
++
++def test_gateway_registers_surface_methods_on_the_long_pool():
++    from tui_gateway import server
++    from tui_gateway.contracts import EVENTS, METHODS
++
++    for name in ("surface.list", "surface.open_resource", "surface.read_resource", "surface.call_tool"):
++        assert name in server._methods
++        assert name in METHODS
++        assert name in server._LONG_HANDLERS
++    assert "surface.open" in EVENTS
+diff --git a/tools/mcp_surfaces.py b/tools/mcp_surfaces.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..54a9607a7d21ffd7458af307079c5a42eec9e387
+--- /dev/null
++++ b/tools/mcp_surfaces.py
+@@ -0,0 +1,251 @@
++"""Foyelle: MCP Apps (SEP-1865) surfaces for gateway clients.
++
++A connector tool that declares ``_meta.ui.resourceUri`` (or the legacy ``_meta["ui/resourceUri"]``)
++has a visual surface: an HTML resource (``text/html;profile=mcp-app``) that a client renders in a
++sandboxed frame. This module records which registered tools have one, reads those resources over
++the live MCP session, lists the ``ui://`` resources servers expose, and lets a surface call tools of
++its own server through the same dispatch path (plugin hooks, policy, approvals) as a model call.
++"""
++
++from __future__ import annotations
++
++import contextvars
++import json
++import logging
++import threading
++import uuid
++from typing import Any, Optional
++
++logger = logging.getLogger(__name__)
++
++UI_MIME_TYPE = "text/html;profile=mcp-app"
++_LEGACY_META_KEY = "ui/resourceUri"
++_READ_TIMEOUT = 30.0
++_MAX_HTML_BYTES = 2 * 1024 * 1024
++
++_lock = threading.Lock()
++# registry tool name -> (server name, MCP tool name)
++_tools: dict[str, tuple[str, str]] = {}
++# (server name, MCP tool name) -> registry tool name
++_registry_names: dict[tuple[str, str], str] = {}
++# registry tool name -> ui:// resource URI
++_ui_uris: dict[str, str] = {}
++
++# "model" for calls the agent makes, "surface" while a surface's own tool call is dispatched.
++_origin: contextvars.ContextVar[str] = contextvars.ContextVar("foyelle_tool_call_origin", default="model")
++
++
++def current_origin() -> str:
++    """Who started the tool call being dispatched: ``model`` or ``surface``."""
++    return _origin.get()
++
++
++def _meta_of(tool: Any) -> dict:
++    if isinstance(tool, dict):
++        meta = tool.get("_meta") or tool.get("meta")
++    else:
++        meta = getattr(tool, "meta", None)
++        if meta is None:
++            meta = getattr(tool, "_meta", None)
++    return meta if isinstance(meta, dict) else {}
++
++
++def tool_ui_uri(tool: Any) -> Optional[str]:
++    """The ``ui://`` resource a tool declares, in either the nested or the legacy flat format."""
++    meta = _meta_of(tool)
++    ui = meta.get("ui")
++    uri = ui.get("resourceUri") if isinstance(ui, dict) else None
++    uri = uri or meta.get(_LEGACY_META_KEY)
++    return uri if isinstance(uri, str) and uri.startswith("ui://") else None
++
++
++def record_tool(server_name: str, tool: Any, registry_name: str) -> None:
++    """Called at registration for every MCP tool (initial discovery and list_changed refresh)."""
++    tool_name = tool.get("name") if isinstance(tool, dict) else getattr(tool, "name", None)
++    if not tool_name or not registry_name:
++        return
++    uri = tool_ui_uri(tool)
++    with _lock:
++        _tools[registry_name] = (server_name, tool_name)
++        _registry_names[(server_name, tool_name)] = registry_name
++        if uri:
++            _ui_uris[registry_name] = uri
++        else:
++            _ui_uris.pop(registry_name, None)
++
++
++def ui_tool(registry_name: str) -> Optional[tuple[str, str, str]]:
++    """``(server, tool, uri)`` when the registered tool has a surface."""
++    with _lock:
++        uri = _ui_uris.get(registry_name)
++        pair = _tools.get(registry_name)
++    return (pair[0], pair[1], uri) if uri and pair else None
++
++
++def registry_name_for(server_name: str, tool_name: str) -> Optional[str]:
++    with _lock:
++        return _registry_names.get((server_name, tool_name))
++
++
++def server_of(registry_name: str) -> Optional[str]:
++    with _lock:
++        pair = _tools.get(registry_name)
++    return pair[0] if pair else None
++
++
++def _connected_session(server_name: str):
++    from tools.mcp_tool_discovery import _get_connected_server_for_call
++
++    server = _get_connected_server_for_call(server_name)
++    session = getattr(server, "session", None) if server is not None else None
++    if session is None:
++        raise LookupError(f"MCP server {server_name!r} is not connected")
++    return session
++
++
++def _dump(model: Any) -> Any:
++    if hasattr(model, "model_dump"):
++        return model.model_dump(mode="json", by_alias=True, exclude_none=True)
++    return model
++
++
++def read_resource(server_name: str, uri: str) -> dict:
++    """``resources/read`` on the live session; returns the MCP ``ReadResourceResult`` as JSON."""
++    from tools.mcp_tool_loop import _run_on_mcp_loop
++
++    session = _connected_session(server_name)
++
++    async def _read():
++        try:
++            return await session.read_resource(uri)  # current SDKs take the URI as a string
++        except Exception as exc:  # older SDKs validate it as AnyUrl
++            if "valid url" not in str(exc).lower() and "anyurl" not in str(exc).lower():
++                raise
++            from pydantic import AnyUrl
++
++            return await session.read_resource(AnyUrl(uri))
++
++    return _dump(_run_on_mcp_loop(_read, timeout=_READ_TIMEOUT))
++
++
++def surface_document(server_name: str, uri: str) -> dict:
++    """The renderable part of a ``ui://`` resource: ``{html, csp?, permissions?}``."""
++    contents = read_resource(server_name, uri).get("contents") or []
++    for item in contents:
++        if not isinstance(item, dict) or not isinstance(item.get("text"), str):
++            continue
++        mime = str(item.get("mimeType") or "")
++        if mime.split(";")[0].strip() != "text/html":
++            continue
++        html = item["text"]
++        if len(html.encode("utf-8")) > _MAX_HTML_BYTES:
++            raise ValueError(f"surface {uri} is larger than {_MAX_HTML_BYTES} bytes")
++        doc: dict[str, Any] = {"html": html}
++        ui_meta = (item.get("_meta") or {}).get("ui") if isinstance(item.get("_meta"), dict) else None
++        if isinstance(ui_meta, dict):
++            if isinstance(ui_meta.get("csp"), dict):
++                doc["csp"] = ui_meta["csp"]
++            if isinstance(ui_meta.get("permissions"), dict):
++                doc["permissions"] = ui_meta["permissions"]
++        return doc
++    raise LookupError(f"{uri} on {server_name!r} has no text/html content")
++
++
++def list_surfaces() -> list[dict]:
++    """Every ``ui://`` resource the connected servers list (system surfaces, pinned views)."""
++    from tools import mcp_tool as _core
++    from tools.mcp_tool_loop import _run_on_mcp_loop
++
++    with _core._lock:
++        servers = [(getattr(s, "name", None) or str(k[-1] if isinstance(k, tuple) else k), s)
++                   for k, s in _core._servers.items()]
++    out: list[dict] = []
++    for name, server in servers:
++        session = getattr(server, "session", None)
++        if session is None:
++            continue
++        try:
++            listed = _dump(_run_on_mcp_loop(lambda s=session: s.list_resources(), timeout=_READ_TIMEOUT))
++        except Exception as exc:  # a server without resources/list support, or a dead one
++            logger.debug("surfaces: list_resources on %r failed: %s", name, exc)
++            continue
++        for res in listed.get("resources") or []:
++            uri = str(res.get("uri") or "")
++            if not uri.startswith("ui://"):
++                continue
++            meta = res.get("_meta") if isinstance(res.get("_meta"), dict) else {}
++            out.append({
++                "server": name, "uri": uri, "name": str(res.get("name") or uri),
++                "title": str(res.get("title") or res.get("name") or uri),
++                "pinned": bool((meta.get("foyelle") or {}).get("pinned")) if isinstance(meta.get("foyelle"), dict) else False,
++            })
++    return out
++
++
++def tool_result_for_app(result: Any) -> dict:
++    """Hermes's rendered MCP tool result (JSON string or dict) -> an MCP ``CallToolResult`` shape."""
++    if isinstance(result, str):
++        try:
++            result = json.loads(result)
++        except (TypeError, ValueError):
++            return {"content": [{"type": "text", "text": result}]}
++    if not isinstance(result, dict):
++        return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False, default=str)}]}
++    if "error" in result and "result" not in result:
++        return {"content": [{"type": "text", "text": str(result["error"])}], "isError": True}
++    body = result.get("result")
++    out: dict[str, Any] = {"content": []}
++    if isinstance(body, str):
++        if body:
++            out["content"].append({"type": "text", "text": body})
++    elif body is not None:
++        out["structuredContent"] = body
++        out["content"].append({"type": "text", "text": json.dumps(body, ensure_ascii=False, default=str)})
++    if isinstance(result.get("structuredContent"), (dict, list)):
++        out["structuredContent"] = result["structuredContent"]
++    return out
++
++
++def surface_event_for_tool(session_id: str, tool_call_id: str, registry_name: str, args: Any,
++                           result: Any) -> Optional[dict]:
++    """The ``surface.open`` payload for a finished tool call, or None when the tool has no surface."""
++    found = ui_tool(registry_name)
++    if found is None:
++        return None
++    server, tool, uri = found
++    try:
++        doc = surface_document(server, uri)
++    except Exception as exc:
++        logger.warning("surfaces: cannot read %s from %r: %s", uri, server, exc)
++        return None
++    return {
++        "surface_id": f"s-{uuid.uuid4().hex[:16]}", "session_id": session_id, "server": server, "tool": tool,
++        "tool_call_id": tool_call_id, "uri": uri, **doc,
++        "tool_input": args if isinstance(args, dict) else {}, "tool_result": tool_result_for_app(result),
++    }
++
++
++def resource_payload(server_name: str, uri: str, session_id: str = "") -> dict:
++    """The ``surface.open_resource`` result: a surface opened without a tool call."""
++    if not uri.startswith("ui://"):
++        raise ValueError("surface URIs must use the ui:// scheme")
++    return {"surface_id": f"s-{uuid.uuid4().hex[:16]}", "session_id": session_id, "server": server_name,
++            "uri": uri, **surface_document(server_name, uri)}
++
++
++def call_tool(server_name: str, tool_name: str, arguments: dict, *, session_id: str = "") -> dict:
++    """A surface calling a tool of its own server. Dispatched through ``handle_function_call`` so
++    ``pre_tool_call``/``post_tool_call`` plugins (Foyelle's policy engine and audit log) and the
++    approval gate see it exactly like a model call; returns a ``CallToolResult`` shape."""
++    registry_name = registry_name_for(server_name, tool_name)
++    if registry_name is None:
++        raise LookupError(f"{server_name!r} has no registered tool {tool_name!r}")
++    from model_tools import handle_function_call
++
++    token = _origin.set("surface")
++    try:
++        raw = handle_function_call(registry_name, dict(arguments or {}), task_id=session_id or None,
++                                   tool_call_id=f"surface-{uuid.uuid4().hex[:12]}", session_id=session_id or None)
++    finally:
++        _origin.reset(token)
++    return tool_result_for_app(raw)
+diff --git a/tools/mcp_tool_registration.py b/tools/mcp_tool_registration.py
+index 2e457bad99288934d5312757646ca5165253be8f..d92f8a599c4ee4be534b469fd03e02d45b00184f 100644
+--- a/tools/mcp_tool_registration.py
++++ b/tools/mcp_tool_registration.py
+@@ -15,6 +15,7 @@ from tools import mcp_tool_config as _config
+ from tools import mcp_tool_events as _events
+ from tools import mcp_tool_handlers as _handlers
+ from tools import mcp_tool_schema as _schema
++from tools import mcp_surfaces as _surfaces
+ from tools.mcp_tool_handlers import (
+     _make_check_fn, _make_get_prompt_handler, _make_list_prompts_handler,
+     _make_list_resources_handler, _make_read_resource_handler)
+@@ -296,6 +297,7 @@ def _tool_candidates(name: str, tools: Iterable[Any], should_register: Callable[
+             continue
+         _schema._scan_mcp_description(name, t.name, t.description or "")
+         schema = _schema._convert_mcp_schema(name, t)
++        _surfaces.record_tool(name, t, schema["name"])  # Foyelle: MCP Apps surfaces
+         handler = _handlers._make_tool_handler(name, t.name, tool_timeout, native_images=True)
+         out.append(_Candidate(schema["name"], f"tool {t.name!r}", schema, handler))
+     return out
+diff --git a/tui_gateway/contracts/__init__.py b/tui_gateway/contracts/__init__.py
+index 1d03e80d005326fe04bcba625053563403d7e5ed..1bf4c383354ce484a345671ef08eeae451ba7e60 100644
+--- a/tui_gateway/contracts/__init__.py
++++ b/tui_gateway/contracts/__init__.py
+@@ -18,6 +18,7 @@ from . import (
+     prompt_voice,
+     server_requests,
+     sessions,
++    surfaces,
+     tools_commands,
+     tools_mcp_plugins,
+ )
+diff --git a/tui_gateway/contracts/surfaces.py b/tui_gateway/contracts/surfaces.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..fcfbd58b44765a36980b6cb9fa86227a8d0562ba
+--- /dev/null
++++ b/tui_gateway/contracts/surfaces.py
+@@ -0,0 +1,103 @@
++"""Foyelle: contracts for MCP Apps surfaces (``surface.*`` methods and the ``surface.open`` event)."""
++
++from __future__ import annotations
++
++from .base import JsonValue, Params, Payload, Result
++from .registry import event, method
++
++
++class SurfaceCsp(Payload):
++    """``_meta.ui.csp`` of the resource: extra origins the surface may reach (empty by default)."""
++
++    model_config = Payload.model_config | {"extra": "allow"}
++
++    connectDomains: list[str] | None = None  # noqa: N815 - MCP Apps wire names
++    resourceDomains: list[str] | None = None  # noqa: N815
++
++
++class SurfaceDocument(Result):
++    surface_id: str
++    session_id: str = ""
++    server: str
++    uri: str
++    html: str
++    csp: SurfaceCsp | None = None
++    permissions: JsonValue = None
++
++
++class SurfaceOpenPayload(Payload):
++    """``tools.mcp_surfaces.surface_event_for_tool``: a tool with a ``ui://`` surface finished."""
++
++    surface_id: str
++    session_id: str
++    server: str
++    tool: str
++    tool_call_id: str
++    uri: str
++    html: str
++    csp: SurfaceCsp | None = None
++    permissions: JsonValue = None
++    tool_input: JsonValue = None
++    tool_result: JsonValue = None
++
++
++event("surface.open", SurfaceOpenPayload,
++      doc="A tool with an MCP Apps surface finished: render html in a sandboxed frame and send it the input and result.")
++
++
++class SurfaceListParams(Params):
++    pass
++
++
++class SurfaceEntry(Result):
++    server: str
++    uri: str
++    name: str
++    title: str
++    pinned: bool = False
++
++
++class SurfaceListResult(Result):
++    surfaces: list[SurfaceEntry]
++
++
++method("surface.list", params=SurfaceListParams, result=SurfaceListResult,
++       doc="Every ui:// resource the connected MCP servers expose.")
++
++
++class SurfaceResourceParams(Params):
++    server: str
++    uri: str
++    session_id: str | None = None
++
++
++method("surface.open_resource", params=SurfaceResourceParams, result=SurfaceDocument,
++       doc="Open a surface without a tool call (system surfaces such as status, memory, settings, audit).")
++
++
++class SurfaceReadResult(Result):
++    contents: list[JsonValue]
++
++
++method("surface.read_resource", params=SurfaceResourceParams, result=SurfaceReadResult,
++       doc="resources/read on behalf of a surface.")
++
++
++class SurfaceCallToolParams(Params):
++    server: str
++    name: str
++    arguments: dict[str, JsonValue] | None = None
++    session_id: str | None = None
++    surface_id: str | None = None
++
++
++class SurfaceCallToolResult(Result):
++    model_config = Result.model_config | {"extra": "allow"}
++
++    content: list[JsonValue]
++    structuredContent: JsonValue = None  # noqa: N815 - MCP wire name
++    isError: bool | None = None  # noqa: N815
++
++
++method("surface.call_tool", params=SurfaceCallToolParams, result=SurfaceCallToolResult,
++       doc="A surface calls a tool of its own server; the call goes through the policy and approval path.")
+diff --git a/tui_gateway/methods_surfaces.py b/tui_gateway/methods_surfaces.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..3b8a6c67ce832115cf9e9e9e6285a24ed700b771
+--- /dev/null
++++ b/tui_gateway/methods_surfaces.py
+@@ -0,0 +1,87 @@
++"""Foyelle: MCP Apps surface RPCs (``surface.*``). See ``tools/mcp_surfaces.py``."""
++
++from .method_ctx import HandlerRegistry, bind_module
++
++_registry = HandlerRegistry()
++method = _registry.method
++_SURFACE_LONG_METHODS = frozenset({"surface.call_tool", "surface.read_resource", "surface.open_resource",
++                                   "surface.list"})
++
++
++def _surface_session(params):
++    sid = params.get("session_id") or ""
++    return sid, (_sessions.get(sid) if sid else None)
++
++
++@method("surface.list")
++def _surface_list(rid, params):
++    from tools import mcp_surfaces
++
++    try:
++        return _ok(rid, {"surfaces": mcp_surfaces.list_surfaces()})
++    except Exception as exc:
++        return _err(rid, 5000, f"surface.list failed: {exc}")
++
++
++@method("surface.open_resource")
++def _surface_open_resource(rid, params):
++    from tools import mcp_surfaces
++
++    server, uri = params.get("server") or "", params.get("uri") or ""
++    if not server or not uri:
++        return _err(rid, 4000, "server and uri are required")
++    try:
++        return _ok(rid, mcp_surfaces.resource_payload(server, uri, params.get("session_id") or ""))
++    except (LookupError, ValueError) as exc:
++        return _err(rid, 4004, str(exc))
++    except Exception as exc:
++        return _err(rid, 5000, f"surface.open_resource failed: {exc}")
++
++
++@method("surface.read_resource")
++def _surface_read_resource(rid, params):
++    from tools import mcp_surfaces
++
++    server, uri = params.get("server") or "", params.get("uri") or ""
++    if not server or not uri:
++        return _err(rid, 4000, "server and uri are required")
++    try:
++        result = mcp_surfaces.read_resource(server, uri)
++        return _ok(rid, {"contents": result.get("contents") or []})
++    except LookupError as exc:
++        return _err(rid, 4004, str(exc))
++    except Exception as exc:
++        return _err(rid, 5000, f"surface.read_resource failed: {exc}")
++
++
++@method("surface.call_tool")
++def _surface_call_tool(rid, params):
++    """A surface's own tool call, bound to its session so approvals reach this client."""
++    from tools import mcp_surfaces
++    from tools.approval_context import reset_current_session_key, set_current_session_key
++
++    server, name = params.get("server") or "", params.get("name") or ""
++    arguments = params.get("arguments") or {}
++    if not server or not name or not isinstance(arguments, dict):
++        return _err(rid, 4000, "server, name and an arguments object are required")
++    sid, session = _surface_session(params)
++    if sid and session is None:
++        return _err(rid, 4004, f"unknown session {sid!r}")
++    approval_token = set_current_session_key(session["session_key"]) if session is not None else None
++    session_tokens = _set_session_context(session["session_key"], ui_session_id=sid) if session is not None else []
++    try:
++        _enable_gateway_prompts()
++        return _ok(rid, mcp_surfaces.call_tool(server, name, arguments, session_id=sid))
++    except LookupError as exc:
++        return _err(rid, 4004, str(exc))
++    except Exception as exc:
++        return _err(rid, 5000, f"surface.call_tool failed: {exc}")
++    finally:
++        if approval_token is not None:
++            reset_current_session_key(approval_token)
++        _clear_session_context(session_tokens)
++
++
++def register(server):
++    bind_module(globals(), server, skip=("_",))
++    server._LONG_HANDLERS = server._LONG_HANDLERS | _SURFACE_LONG_METHODS
+diff --git a/tui_gateway/server.py b/tui_gateway/server.py
+index 1bfbe7ad5b13beec645a7a185eb3c09801846273..a7fa59812cc0898d01cd347f88b53a1ccec0fd6d 100644
+--- a/tui_gateway/server.py
++++ b/tui_gateway/server.py
+@@ -2169,7 +2169,8 @@ from . import (
+     methods_connectors as _methods_connectors, methods_connectors_account as _methods_connectors_account,
+     methods_display as _methods_display, methods_display_watch as _methods_display_watch,
+     methods_onboarding as _methods_onboarding, methods_i18n as _methods_i18n, methods_machine as _methods_machine,
+-    methods_shared_metrics as _methods_shared_metrics, methods_plugin_catalog as _methods_plugin_catalog)
++    methods_shared_metrics as _methods_shared_metrics, methods_plugin_catalog as _methods_plugin_catalog,
++    methods_surfaces as _methods_surfaces)
+ 
+ for _m in (
+     _session_registry, _agent_factory,
+@@ -2182,6 +2183,6 @@ for _m in (
+     _methods_bot_relay, _prompt_turn, _billing_view, _methods_projects, _methods_session_foreign,
+     _methods_session_control, _methods_subagents, _methods_vault, _methods_free_tier, _methods_connectors,
+     _methods_connectors_account, _methods_display, _methods_display_watch, _methods_onboarding,
+-    _methods_i18n, _methods_machine, _methods_shared_metrics, _methods_plugin_catalog):
++    _methods_i18n, _methods_machine, _methods_shared_metrics, _methods_plugin_catalog, _methods_surfaces):
+     _m.register(sys.modules[__name__])
+ del _m
+diff --git a/tui_gateway/tool_progress.py b/tui_gateway/tool_progress.py
+index 59abe514b9a8df5b0bda598cf94042e4827a8c56..f7840b2f3df03e85b891dee8aa74b22ca9a86bba 100644
+--- a/tui_gateway/tool_progress.py
++++ b/tui_gateway/tool_progress.py
+@@ -375,6 +375,11 @@ def _on_tool_complete(sid: str, tool_call_id: str, name: str, args: dict, result
+     # the cards now, not at turn end. Revision-gated, so an ordinary tool emits nothing.
+     if session is not None:
+         _publish_session_control_snapshot(sid, session, only_if_changed=True)
++    # Foyelle: a tool with an MCP Apps surface opens it on the canvas.
++    with contextlib.suppress(Exception):
++        from tools.mcp_surfaces import surface_event_for_tool
++        if (surface := surface_event_for_tool(sid, tool_call_id, name, args, result)) is not None:
++            _emit("surface.open", sid, surface)
+ 
+ 
+ # ── _on_tool_progress dispatch: each handler takes (sid, name, preview, kw) ─────────────────────

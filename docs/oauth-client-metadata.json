@@ -1,0 +1,10 @@
+{
+  "client_id": "https://foyelle.org/oauth/client.json",
+  "client_name": "Foyelle",
+  "client_uri": "https://foyelle.org",
+  "redirect_uris": ["http://127.0.0.1/"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none",
+  "application_type": "native"
+}

@@ -1,0 +1,213 @@
+<style>
+  #editor { width: 100%; min-height: 24em; box-sizing: border-box; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  #image { max-width: 100%; max-height: 60vh; display: block; margin: 8px 0; background: repeating-conic-gradient(#8882 0% 25%, transparent 0% 50%) 0 0 / 16px 16px; }
+  #versions li { display: flex; gap: 8px; align-items: center; padding: 2px 0; }
+  #version-note { margin: 4px 0; }
+</style>
+<main>
+  <div class="toolbar">
+    <h1>Files</h1><span class="spacer"></span>
+    <button id="up" type="button" aria-label="Up one folder">Up</button>
+    <button id="refresh" type="button">Refresh</button>
+    <button id="undo" type="button">Undo last change</button>
+  </div>
+  <form id="search" class="toolbar" role="search">
+    <input id="q" type="search" placeholder="Find by name" aria-label="File name">
+    <input id="c" type="search" placeholder="…or containing text" aria-label="Containing text">
+    <button type="submit">Search</button>
+  </form>
+  <nav id="crumbs" class="toolbar" aria-label="Current folder"></nav>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div class="split">
+    <table aria-label="Folder contents">
+      <thead><tr><th scope="col">Name</th><th scope="col">Size</th><th scope="col">Modified</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <section aria-label="Preview">
+      <div class="toolbar"><strong id="pname" class="ellipsis"></strong><span class="spacer"></span>
+        <button id="edit" type="button" hidden>Edit</button>
+        <button id="save" type="button" class="primary" hidden>Save</button>
+        <button id="cancel" type="button" hidden>Cancel</button>
+        <button id="show-versions" type="button" hidden>Versions</button>
+        <button id="trash" type="button" class="danger" hidden>Move to trash</button></div>
+      <p id="version-note" class="muted" hidden></p>
+      <img id="image" alt="" hidden>
+      <pre id="preview" tabindex="0" hidden></pre>
+      <textarea id="editor" spellcheck="false" aria-label="File content" hidden></textarea>
+      <p id="pinfo" class="muted"></p>
+      <div id="versions-box" hidden>
+        <h2>Versions</h2>
+        <p class="muted">Every save keeps the content it replaced. Restoring a version keeps the current one too.</p>
+        <ul id="versions" class="list"></ul>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  var cwd = "", selected = null, readOnly = false, current = null;
+  var IMAGE = /\.(png|jpe?g|gif|webp|svg)$/i;
+
+  function crumbs() {
+    var nav = V.clear(V.$("#crumbs")), parts = cwd ? cwd.split("/") : [];
+    nav.appendChild(h("button", { type: "button", class: "linklike", text: "All folders", onclick: function () { open(""); } }));
+    parts.forEach(function (p, i) {
+      nav.append(" / ", h("button", { type: "button", class: "linklike", text: p, "aria-current": i === parts.length - 1 ? "page" : null,
+        onclick: function () { open(parts.slice(0, i + 1).join("/")); } }));
+    });
+    V.$("#up").disabled = !cwd;
+  }
+
+  function row(e) {
+    var isDir = e.type === "dir" || e.type === "root";
+    var label = e.type === "root" ? e.name + "/" + (e.read_only ? " (read-only)" : "") : e.name + (isDir ? "/" : "");
+    var btn = h("button", { type: "button", class: "linklike", text: label, onclick: function () { isDir ? open(e.path) : preview(e); } });
+    var tr = h("tr", null,
+      h("td", null, btn, e.matches ? h("div", { class: "muted mono pre-line", text: e.matches.map(function (m) { return m.line + ": " + m.text; }).join("\n") }) : null),
+      h("td", { text: e.type === "file" ? V.fmtBytes(e.size) : "" }),
+      h("td", { text: e.modified ? V.fmtDate(e.modified) : "" }));
+    if (selected && selected.path === e.path) tr.className = "selected";
+    return tr;
+  }
+
+  function render(d) {
+    if (!d) return;
+    if (d.path !== undefined) cwd = d.path;
+    readOnly = !!d.read_only;
+    crumbs();
+    var rows = V.clear(V.$("#rows")), list = d.entries || d.results || [];
+    list.forEach(function (e) { rows.appendChild(row(e)); });
+    if (!list.length) rows.appendChild(h("tr", null, h("td", { colspan: 3, class: "muted", text: d.results ? "Nothing found." : "Empty folder." })));
+    if (d.truncated) V.status("Showing the first " + list.length + " entries.");
+  }
+
+  function open(path) {
+    selected = null; clearPreview();
+    return V.run("list", { path: path }, "Opening…").then(render);
+  }
+
+  function hideAll() {
+    ["#preview", "#image", "#editor", "#save", "#cancel", "#edit", "#show-versions", "#trash", "#version-note", "#versions-box"]
+      .forEach(function (sel) { V.$(sel).hidden = true; });
+    V.$("#image").removeAttribute("src");
+  }
+
+  function clearPreview() {
+    hideAll(); current = null;
+    V.$("#pname").textContent = ""; V.$("#pinfo").textContent = "";
+  }
+
+  function showImage(r) {
+    var img = V.$("#image");
+    img.src = "data:" + r.mime + ";base64," + r.data;
+    img.alt = selected ? selected.name : "";
+    img.hidden = false;
+  }
+
+  function showText(text) { var pre = V.$("#preview"); pre.textContent = text; pre.hidden = false; }
+
+  // Show the current content of the selected file: a picture for images, text otherwise.
+  function preview(e) {
+    selected = e; hideAll(); current = null;
+    V.$("#pname").textContent = e.name;
+    var writable = !readOnly && e.path.includes("/");
+    V.$("#trash").hidden = !writable;
+    V.$("#show-versions").hidden = !writable;
+    var image = IMAGE.test(e.name), svg = /\.svg$/i.test(e.name);
+    var shown = image ? V.run("read_image", { path: e.path }, "Loading…").then(function (r) { if (r) { showImage(r); V.$("#pinfo").textContent = V.fmtBytes(r.size); } })
+                      : Promise.resolve();
+    return shown.then(function () {
+      if (image && !svg) return;  // raster images are not editable as text
+      return V.run("read", { path: e.path }, image ? null : "Reading…").then(function (r) {
+        if (!r) return;
+        current = r;
+        if (!image) showText(r.text);
+        V.$("#pinfo").textContent = V.fmtBytes(r.size) + (r.truncated ? " · too large to show in full" : "");
+        V.$("#edit").hidden = !writable || r.truncated;
+      });
+    });
+  }
+
+  function edit() {
+    if (!current) return;
+    hideAll();
+    var ed = V.$("#editor");
+    ed.value = current.text; ed.hidden = false; ed.focus();
+    V.$("#save").hidden = false; V.$("#cancel").hidden = false;
+  }
+
+  function save() {
+    var text = V.$("#editor").value, path = selected.path;
+    V.run("write", { path: path, content: text, overwrite: true }, "Saving…").then(function (r) {
+      if (!r) return;
+      V.status("Saved " + path + ". The previous content is kept under Versions.");
+      preview(selected);
+    });
+  }
+
+  function showVersions() {
+    V.run("versions", { path: selected.path }, "Loading versions…").then(function (d) {
+      if (!d) return;
+      var list = V.clear(V.$("#versions"));
+      if (!d.versions.length) list.appendChild(h("li", { class: "muted", text: "No earlier versions yet: they appear after the first save." }));
+      d.versions.forEach(function (v) {
+        list.appendChild(h("li", null,
+          h("span", { text: V.fmtDate(v.saved) + " · " + V.fmtBytes(v.size) }),
+          h("button", { type: "button", class: "linklike", text: "View", onclick: function () { viewVersion(v); } }),
+          h("button", { type: "button", text: "Restore", onclick: function () { restore(v); } })));
+      });
+      V.$("#versions-box").hidden = false;
+    });
+  }
+
+  function viewVersion(v) {
+    V.run("read_version", { path: selected.path, version_id: v.version_id }, "Loading…").then(function (r) {
+      if (!r) return;
+      V.$("#preview").hidden = true; V.$("#image").hidden = true; V.$("#editor").hidden = true;
+      V.$("#save").hidden = true; V.$("#cancel").hidden = true;
+      if (r.data) showImage(r);
+      else if (/\.svg$/i.test(selected.name)) showImage({ mime: "image/svg+xml", data: btoa(unescape(encodeURIComponent(r.text))) });
+      else showText(r.text);
+      var note = V.$("#version-note");
+      note.textContent = "Version saved " + V.fmtDate(v.saved) + " (not the current content).";
+      note.hidden = false;
+    });
+  }
+
+  function restore(v) {
+    V.run("restore", { path: selected.path, version_id: v.version_id }, "Restoring…").then(function (r) {
+      if (!r) return;
+      V.status("Restored the version from " + V.fmtDate(v.saved) + ". The content it replaced is kept under Versions.");
+      preview(selected).then(showVersions);
+    });
+  }
+
+  V.$("#up").addEventListener("click", function () { open(cwd.split("/").slice(0, -1).join("/")); });
+  V.$("#refresh").addEventListener("click", function () { open(cwd); });
+  V.$("#edit").addEventListener("click", edit);
+  V.$("#save").addEventListener("click", save);
+  V.$("#cancel").addEventListener("click", function () { preview(selected); });
+  V.$("#show-versions").addEventListener("click", showVersions);
+  V.$("#trash").addEventListener("click", function () {
+    if (!selected) return;
+    var name = selected.path;
+    V.run("trash", { path: name }, "Moving to trash…").then(function (r) {
+      if (r) { open(cwd).then(function () { V.status("Moved " + name + " to the trash. Undo restores it."); }); }
+    });
+  });
+  V.$("#undo").addEventListener("click", function () {
+    V.run("undo", {}, "Undoing…").then(function (r) {
+      if (r) open(cwd).then(function () { V.status("Undid " + r.undone.op + " of " + r.undone.path + "."); });
+    });
+  });
+  V.onSubmit(V.$("#search"), function () {
+    var q = V.$("#q").value.trim(), c = V.$("#c").value.trim();
+    if (!q && !c) return;
+    var args = { query: q, path: cwd };
+    if (c) args.content = c;
+    V.run("search", args, "Searching…").then(function (d) { if (d) { render({ path: cwd, results: d.results, truncated: d.truncated }); } });
+  });
+  V.start({ name: "foyelle-files-browser", render: render, load: function () { return open(""); } });
+})();
+</script>

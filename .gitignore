@@ -1,0 +1,13 @@
+.upstream/
+node_modules/
+dist/
+out/
+result
+result-*
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+*.qcow2
+.wrangler/

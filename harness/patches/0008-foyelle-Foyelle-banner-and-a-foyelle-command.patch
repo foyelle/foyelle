@@ -1,0 +1,50 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:28:52 +0000
+Subject: [PATCH 08/15] foyelle: Foyelle banner and a foyelle command
+
+The CLI banner shows the Foyelle wordmark and the package installs a
+foyelle entry point next to hermes. Internal module names, HERMES_*
+variables and the MIT notice are unchanged.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ hermes_cli/banner.py | 12 ++++++------
+ pyproject.toml       |  1 +
+ 2 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/hermes_cli/banner.py b/hermes_cli/banner.py
+index 35cbe7369e534f19c9fe420fdced0a46e2e10e5d..0fd2a466e74370b5427a3513901dddf065ad6b82 100644
+--- a/hermes_cli/banner.py
++++ b/hermes_cli/banner.py
+@@ -70,12 +70,12 @@ def _skin_color(key: str, fallback: str) -> str:
+ from hermes_cli import __release_date__ as RELEASE_DATE
+ from hermes_cli.version_info import get_version_info
+ 
+-HERMES_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
+-[bold #FFD700]██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
+-[#FFBF00]███████║█████╗  ██████╔╝██╔████╔██║█████╗  ███████╗█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
+-[#FFBF00]██╔══██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══╝  ╚════██║╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
+-[#CD7F32]██║  ██║███████╗██║  ██║██║ ╚═╝ ██║███████╗███████║      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
+-[#CD7F32]╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
++HERMES_AGENT_LOGO = """[bold #E8A87C]███████╗ ██████╗ ██╗   ██╗███████╗██╗     ██╗     ███████╗[/]
++[bold #E8A87C]██╔════╝██╔═══██╗╚██╗ ██╔╝██╔════╝██║     ██║     ██╔════╝[/]
++[#D9845A]█████╗  ██║   ██║ ╚████╔╝ █████╗  ██║     ██║     █████╗[/]
++[#D9845A]██╔══╝  ██║   ██║  ╚██╔╝  ██╔══╝  ██║     ██║     ██╔══╝[/]
++[#B5603C]██║     ╚██████╔╝   ██║   ███████╗███████╗███████╗███████╗[/]
++[#B5603C]╚═╝      ╚═════╝    ╚═╝   ╚══════╝╚══════╝╚══════╝╚══════╝[/]"""
+ 
+ HERMES_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
+ [#CD7F32]⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣇⠸⣿⣿⠇⣸⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀[/]
+diff --git a/pyproject.toml b/pyproject.toml
+index 8793ed59e09a5ad7fcd036bf6126f2ef31c484fa..8b7d50f0077465e7d68ff93d3a9383854c99228c 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -567,6 +567,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project.scripts]
+ hermes = "hermes_cli.main:main"
++foyelle = "hermes_cli.main:main"
+ hermes-agent = "agent.legacy_cli:main"
+ hermes-acp = "acp_adapter.entry:main"
+ 

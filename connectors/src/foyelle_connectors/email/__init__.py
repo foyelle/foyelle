@@ -1,0 +1,1 @@
+"""Foyelle email connector."""

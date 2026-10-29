@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foyelle</title>
+<meta name="description" content="Foyelle is an operating system you talk to: one full-screen canvas, no windows and no apps.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3.2"/></filter></svg>
+<main>
+  <header class="hero">
+    <img src="/ember.svg" alt="The Foyelle ember: a small flame with a face" width="112" height="119">
+    <div>
+      <h1>Foyelle</h1>
+      <p class="tagline">a computer you talk to</p>
+    </div>
+  </header>
+
+  <p class="lead">An operating system with one full-screen canvas, no windows and no apps. You chat with Foyelle
+    and its bots, by typing or talking, and what you need appears as cards on the same canvas.</p>
+
+  <p class="note drawn"><strong>At an early stage and still experimental.</strong> Things break, change or
+    disappear without notice. Don't use it with data or accounts you depend on.</p>
+
+  <section class="card drawn">
+    <h2>Yours to control</h2>
+    <p>Use a local model or an online one, and connect the services you choose. Every tool call goes through a
+      policy you can read, anything that sends, deletes or changes the computer asks first, and every system
+      change can be rolled back.</p>
+    <p>Foyelle is built on <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a>,
+      <a href="https://nixos.org">NixOS</a> and <a href="https://modelcontextprotocol.io">MCP</a>.</p>
+  </section>
+
+  <div class="actions">
+    <a class="btn primary" href="https://github.com/foyelle/foyelle">The code on GitHub</a>
+    <a class="btn" href="https://github.com/foyelle/foyelle/blob/main/CONTRIBUTING.md">Contribute</a>
+  </div>
+
+  <footer>MIT licence. Foyelle is not affiliated with or endorsed by Nous Research or the NixOS Foundation.
+    Fonts: Nunito and Gochi Hand, under the <a href="/fonts/OFL-Nunito.txt">SIL Open Font License</a>.</footer>
+</main>
+</body>
+</html>

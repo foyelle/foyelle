@@ -1,0 +1,1 @@
+"""Foyelle web connector."""

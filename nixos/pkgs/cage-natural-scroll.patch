@@ -1,0 +1,49 @@
+diff -ru a/meson.build b/meson.build
+--- a/meson.build	2026-10-19 17:55:28
++++ b/meson.build	2026-10-19 17:55:35
+@@ -40,6 +40,7 @@
+ wlroots        = dependency('wlroots-0.20', fallback: ['wlroots', 'wlroots'])
+ wayland_server = dependency('wayland-server')
+ xkbcommon      = dependency('xkbcommon')
++libinput       = dependency('libinput')
+ math           = cc.find_library('m')
+ 
+ have_xwayland = wlroots.get_variable(pkgconfig: 'have_xwayland', internal: 'have_xwayland') == 'true'
+@@ -113,6 +114,7 @@
+     wayland_server,
+     wlroots,
+     xkbcommon,
++    libinput,
+     math,
+   ],
+   install: true,
+diff -ru a/seat.c b/seat.c
+--- a/seat.c	2026-10-19 17:55:28
++++ b/seat.c	2026-10-19 17:55:28
+@@ -15,7 +15,9 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <wayland-server-core.h>
++#include <libinput.h>
+ #include <wlr/backend.h>
++#include <wlr/backend/libinput.h>
+ #include <wlr/backend/multi.h>
+ #include <wlr/backend/session.h>
+ #include <wlr/types/wlr_cursor.h>
+@@ -214,6 +216,16 @@
+ 
+ 	pointer->seat = seat;
+ 	pointer->pointer = wlr_pointer;
++
++	/* Foyelle: natural (reversed) scrolling, like macOS, when CAGE_NATURAL_SCROLL=1. */
++	const char *natural = getenv("CAGE_NATURAL_SCROLL");
++	if (natural && strcmp(natural, "1") == 0 && wlr_input_device_is_libinput(&wlr_pointer->base)) {
++		struct libinput_device *dev = wlr_libinput_get_device_handle(&wlr_pointer->base);
++		if (libinput_device_config_scroll_has_natural_scroll(dev)) {
++			libinput_device_config_scroll_set_natural_scroll_enabled(dev, 1);
++		}
++	}
++
+ 	wlr_cursor_attach_input_device(seat->cursor, &wlr_pointer->base);
+ 
+ 	wl_list_insert(&seat->pointers, &pointer->link);

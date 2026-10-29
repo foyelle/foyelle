@@ -1,0 +1,242 @@
+<style>
+/* A dev-only page: ten variations of the "Ember glass" direction, each changing one or two things
+   (sky, glass, ember, type, layout) on the same screen. Fonts are the Mac's own as stand-ins. */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #1b1626; color: #efe9f5; font: 15px/1.5 -apple-system, system-ui, sans-serif; }
+.page { max-width: 1240px; margin: 0 auto; padding: 28px 28px 80px; }
+.page > header h1 { font: 650 34px/1.15 -apple-system, "SF Pro Display", sans-serif; letter-spacing: -.02em; margin: 0 0 6px; }
+.page > header p { margin: 0 0 18px; color: #b5abc4; max-width: 62em; }
+.index { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; position: sticky; top: 0; padding: 10px 0; background: #1b1626; z-index: 5; }
+.index button { font: inherit; font-size: 13px; border: 1px solid #3d3450; background: #251f33; color: #e2dbee; border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.index button:hover { border-color: #8a7da3; }
+.dir { margin: 0 0 56px; scroll-margin-top: 64px; }
+.dir-head { display: grid; grid-template-columns: auto 1fr; gap: 4px 18px; align-items: baseline; margin-bottom: 14px; }
+.dir-num { font: 600 13px/1 ui-monospace, Menlo, monospace; color: #8a7da3; }
+.dir-head h2 { font: 650 24px/1.2 -apple-system, "SF Pro Display", sans-serif; letter-spacing: -.01em; margin: 0; }
+.dir-head .idea { grid-column: 2; color: #cfc6dc; max-width: 70em; margin: 0; }
+.dir-head .change { grid-column: 2; font-size: 13px; color: #9d92b3; margin: 2px 0 0; }
+body.only .page { max-width: none; padding: 0; }
+body.only .dir { margin: 0; }
+body.only .dir-head { display: none; }
+body.only .mock { border-radius: 0; box-shadow: none; height: 100vh; aspect-ratio: auto; }
+
+/* ---- The screen and the base glass look (variation 1); the others override parts of it. ---- */
+.mock { container-type: inline-size; width: 100%; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,.2), 0 18px 50px rgba(0,0,0,.45); color: #fff; font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+  --sky: radial-gradient(60% 70% at 20% 25%, rgba(255,150,90,.9), transparent 60%), radial-gradient(70% 80% at 85% 90%, rgba(120,70,190,.9), transparent 60%),
+    linear-gradient(160deg, #3a2a6b 0%, #b6516a 52%, #f29a63 100%);
+  --pane: rgba(255,255,255,.14); --pane-line: rgba(255,255,255,.32); --blur: 1.6em; --row: rgba(255,255,255,.12); --chip: rgba(255,90,70,.75);
+  --orb: radial-gradient(circle at 35% 30%, #fff 0, #ffe0b0 14%, #ff9a52 40%, #e2483a 70%, #8d2a5e 100%); --orb-glow: rgba(255,150,90,.8);
+  --radius: 1.6em; --title: 700; --display: -apple-system, "SF Pro Display", system-ui, sans-serif; background: var(--sky); }
+.sky-extra { position: absolute; inset: 0; pointer-events: none; }
+.screen { position: absolute; inset: 0; font-size: 1.32cqw; display: grid; grid-template-columns: 34% 1fr; }
+.pane { background: var(--pane); border: 1px solid var(--pane-line); border-radius: var(--radius); backdrop-filter: blur(var(--blur)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.4); box-shadow: 0 1.2em 3em rgba(40,10,50,.25), inset 0 1px 0 rgba(255,255,255,.4); }
+.rail { margin: 1.4em 0 1.4em 1.4em; padding: 1.8em; display: flex; flex-direction: column; gap: 1.1em; min-width: 0; }
+.stage { padding: 1.4em 1.4em 1.4em 1.2em; display: flex; flex-direction: column; gap: 1.1em; min-width: 0; }
+.orb { width: 4.6em; height: 4.6em; border-radius: 50%; background: var(--orb); flex: none;
+  box-shadow: 0 0 2.4em var(--orb-glow), inset -.4em -.6em 1em rgba(120,20,60,.45); }
+.greet { font-family: var(--display); font-size: 2.2em; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+.msg { font-size: 1.1em; line-height: 1.45; opacity: .95; }
+.you { align-self: flex-end; background: rgba(255,255,255,.25); padding: .5em .9em; border-radius: 1em; }
+.ask { margin-top: auto; background: rgba(255,255,255,.18); border-radius: 1.2em; padding: .8em 1em; opacity: .9; display: flex; align-items: center; gap: .6em; }
+.ask .mic { margin-left: auto; width: 1.9em; height: 1.9em; border-radius: 50%; background: rgba(255,255,255,.28); display: grid; place-items: center; font-size: .85em; }
+.card { padding: 1.5em 1.8em; }
+.kick { font-size: .72em; letter-spacing: .14em; text-transform: uppercase; opacity: .75; margin-bottom: .2em; }
+h3 { font-family: var(--display); font-size: 2.2em; font-weight: var(--title); letter-spacing: -.02em; margin: 0 0 .4em; }
+.task { display: flex; align-items: center; gap: .9em; padding: .65em .9em; border-radius: 1em; background: var(--row); margin-bottom: .45em; font-size: 1.1em; }
+.ring { width: 1.2em; height: 1.2em; border-radius: 50%; border: .15em solid rgba(255,255,255,.85); flex: none; }
+.task small { margin-left: auto; opacity: .8; font-size: .8em; }
+.chip { background: var(--chip); padding: .1em .6em; border-radius: 1em; font-size: .75em; }
+.row { display: flex; align-items: center; gap: 1.4em; padding: 1.1em 1.6em; }
+.row b { font-family: var(--display); font-size: 2em; letter-spacing: -.02em; }
+.row .end { margin-left: auto; }
+.row .end b { font-size: 1.8em; }
+.dim { opacity: .75; }
+
+/* 2. Dawn: a pale morning sky, milky glass, dark ink. */
+.v-dawn { color: #2b2340; --sky: radial-gradient(60% 70% at 15% 20%, rgba(255,214,186,.95), transparent 60%), radial-gradient(70% 70% at 90% 85%, rgba(196,186,255,.9), transparent 60%),
+  linear-gradient(170deg, #fde7da 0%, #f3d4e6 50%, #d9d6ff 100%);
+  --pane: rgba(255,255,255,.45); --pane-line: rgba(255,255,255,.75); --row: rgba(255,255,255,.55); --chip: #ff8a6b;
+  --orb: radial-gradient(circle at 35% 30%, #fff 0, #fff2d6 18%, #ffbf7a 45%, #ff8a5c 75%, #e86a7a 100%); --orb-glow: rgba(255,170,120,.7); }
+.v-dawn .ring { border-color: #7a6a9a; }
+.v-dawn .you { background: rgba(255,255,255,.7); }
+.v-dawn .ask { background: rgba(255,255,255,.55); }
+.v-dawn .ask .mic { background: #fff; }
+.v-dawn .chip { color: #fff; }
+
+/* 3. Aurora night: deep blue, green and teal ribbons, darker glass, the ember as the warm light. */
+.v-aurora { --sky: radial-gradient(40% 30% at 30% 20%, rgba(80,255,190,.55), transparent 70%), radial-gradient(50% 25% at 70% 12%, rgba(90,200,255,.45), transparent 70%),
+  radial-gradient(35% 40% at 55% 35%, rgba(160,110,255,.35), transparent 70%), linear-gradient(180deg, #071526 0%, #0b1f3a 55%, #060b16 100%);
+  --pane: rgba(10,20,40,.38); --pane-line: rgba(160,220,255,.22); --row: rgba(255,255,255,.07); --chip: rgba(255,140,80,.85);
+  --orb: radial-gradient(circle at 38% 32%, #fffbe6 0, #ffd58a 18%, #ff9a3d 48%, #c4421c 82%); --orb-glow: rgba(255,170,70,.75); }
+.v-aurora .sky-extra { background:
+    radial-gradient(70% 18% at 35% 16%, rgba(70,255,170,.55), transparent 70%),
+    radial-gradient(55% 14% at 72% 26%, rgba(80,220,255,.45), transparent 70%),
+    radial-gradient(40% 12% at 20% 34%, rgba(170,120,255,.35), transparent 70%),
+    repeating-linear-gradient(97deg, transparent 0 2.2em, rgba(140,255,210,.10) 2.2em 2.5em);
+  -webkit-mask: linear-gradient(180deg, #000 10%, transparent 62%); mask: linear-gradient(180deg, #000 10%, transparent 62%); filter: blur(.25em); }
+.v-aurora .ring { border-color: rgba(160,230,255,.8); }
+
+/* 4. Lit from behind: the ember is a big light behind the glass, and the panes catch it. */
+.v-lit { --sky: radial-gradient(45% 55% at 26% 30%, #ffcf8a 0%, #ff8a3d 22%, rgba(214,70,60,.75) 45%, transparent 70%), linear-gradient(165deg, #2a1838, #571d3d 55%, #2a1020);
+  --pane: rgba(255,240,230,.10); --pane-line: rgba(255,210,170,.35); --row: rgba(255,220,190,.10); }
+.v-lit .orb { display: none; }
+.v-lit .pane { box-shadow: -1.2em -0.6em 3em rgba(255,140,60,.18), 0 1.2em 3em rgba(20,0,20,.35), inset 1px 1px 0 rgba(255,220,180,.55); }
+.v-lit .rail { padding-top: 2.4em; }
+
+/* 5. Smoke: graphite and warm grey, milky glass, one small ember as the only colour. */
+.v-smoke { --sky: radial-gradient(70% 60% at 25% 20%, #6d6662, transparent 65%), radial-gradient(60% 60% at 85% 85%, #3f3a40, transparent 60%), linear-gradient(160deg, #4b4648, #2c292c);
+  --pane: rgba(240,236,232,.10); --pane-line: rgba(255,255,255,.18); --row: rgba(255,255,255,.07); --chip: #ff7a45;
+  --orb: radial-gradient(circle at 38% 32%, #fff3d6 0, #ffb067 30%, #ff6a2a 65%, #9c2c10 100%); --orb-glow: rgba(255,120,50,.65); }
+.v-smoke .orb { width: 2.4em; height: 2.4em; }
+.v-smoke .ring { border-color: rgba(255,255,255,.6); }
+.v-smoke .late { color: #ffa47a; }
+
+/* 6. Serif glass: the dusk sky with an elegant serif voice and finer, thinner glass. */
+.v-serif { --display: "New York", "Iowan Old Style", Georgia, serif; --title: 500; --pane: rgba(255,255,255,.10); --pane-line: rgba(255,255,255,.28); --blur: 1.1em; --radius: 1.1em; }
+.v-serif .greet { font-weight: 400; font-size: 2.6em; letter-spacing: -.01em; }
+.v-serif .task { background: transparent; border-radius: 0; border-top: 1px solid rgba(255,255,255,.2); margin: 0; padding: .7em .2em; font-family: "New York", Georgia, serif; }
+.v-serif .ring { width: 1em; height: 1em; border-width: .1em; }
+.v-serif .kick { font-family: -apple-system, sans-serif; }
+
+/* 7. Floating island: no column; the conversation is a pane floating at the bottom, the orb is a halo above. */
+.v-island .screen { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; padding: 2em 3em 1.8em; gap: 1.2em; }
+.v-island .top { display: flex; align-items: center; gap: 1.2em; }
+.v-island .top .greet { font-size: 2.6em; }
+.v-island .top .clock { margin-left: auto; font-size: 1.1em; opacity: .85; text-align: right; }
+.v-island .cards { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.2em; align-items: start; }
+.v-island .side { display: flex; flex-direction: column; gap: 1.2em; }
+.v-island .dock { justify-self: center; width: 62%; padding: 1em 1.2em; display: flex; flex-direction: column; gap: .7em; }
+.v-island .dock .line { display: flex; gap: .8em; align-items: baseline; }
+.v-island .dock .ask { margin-top: .2em; }
+.v-island .row { padding: 1.1em 1.4em; }
+.v-island .row b { font-size: 1.6em; }
+
+/* 8. Thick glass: deep, bevelled panes with bright edges and inner light, like objects you could pick up. */
+.v-thick { --pane: linear-gradient(160deg, rgba(255,255,255,.26), rgba(255,255,255,.08) 45%, rgba(255,255,255,.14)); --pane-line: rgba(255,255,255,.5); --radius: 2em; --blur: 2.2em; }
+.v-thick .pane { position: relative; overflow: hidden; border-width: 2px; border-color: rgba(255,255,255,.55) rgba(255,255,255,.18) rgba(255,255,255,.12) rgba(255,255,255,.45); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.75), inset 0 -1.2em 2em rgba(255,255,255,.06), inset 0 0 0 1px rgba(255,255,255,.08),
+  0 .4em .6em rgba(40,10,50,.15), 0 2.4em 4em rgba(40,10,50,.35); }
+.v-thick .pane::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(118deg, rgba(255,255,255,.32) 0%, rgba(255,255,255,.06) 22%, transparent 40%, transparent 78%, rgba(255,255,255,.10) 100%); }
+.v-thick .pane > * { position: relative; }
+.v-thick .screen { gap: .4em; }
+.v-thick .task { background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06)); border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 .35em .7em rgba(40,10,50,.22); }
+.v-thick .ring { box-shadow: inset 0 .1em .2em rgba(0,0,0,.25), 0 1px 0 rgba(255,255,255,.4); }
+.v-thick .orb { box-shadow: 0 0 2.4em var(--orb-glow), inset -.4em -.6em 1em rgba(120,20,60,.45), inset .25em .3em .4em rgba(255,255,255,.7); }
+
+/* 9. Through the day: the same card in four skies (morning, noon, evening, night). */
+.v-day .screen { grid-template-columns: repeat(4, 1fr); gap: 0; }
+.v-day .sky { position: relative; padding: 2em 1.2em; display: flex; flex-direction: column; gap: 1em; }
+.v-day .sky .when { font-size: 1.05em; opacity: .85; letter-spacing: .02em; }
+.v-day .sky .orb { width: 3.2em; height: 3.2em; }
+.v-day .sky .card { padding: 1.1em 1.1em; }
+.v-day .sky h3 { font-size: 1.6em; }
+.v-day .sky .task { font-size: .95em; padding: .55em .7em; }
+.v-day .s1 { background: linear-gradient(170deg, #fde7da, #f3d4e6 60%, #d9d6ff); color: #2b2340; }
+.v-day .s1 .pane { background: rgba(255,255,255,.5); border-color: rgba(255,255,255,.8); }
+.v-day .s1 .task { background: rgba(255,255,255,.6); } .v-day .s1 .ring { border-color: #7a6a9a; }
+.v-day .s2 { background: linear-gradient(170deg, #8ec9ff, #bfe3ff 55%, #f4f9ff); color: #12324f; }
+.v-day .s2 .pane { background: rgba(255,255,255,.45); border-color: rgba(255,255,255,.8); }
+.v-day .s2 .task { background: rgba(255,255,255,.55); } .v-day .s2 .ring { border-color: #3d6f99; }
+.v-day .s3 { background: linear-gradient(165deg, #3a2a6b, #b6516a 55%, #f29a63); }
+.v-day .s4 { background: linear-gradient(180deg, #071526, #0b1f3a 60%, #060b16); }
+.v-day .s4 .pane { background: rgba(10,20,40,.4); border-color: rgba(160,220,255,.22); }
+.v-day .s2 .orb { --orb: radial-gradient(circle at 38% 32%, #fff 0, #fff6c8 25%, #ffd36b 60%, #ffae3a 100%); }
+
+/* 10. Easy to read: the same glass with stronger panes, bigger type and targets, clear contrast. */
+.v-clear { --pane: rgba(30,18,40,.55); --pane-line: rgba(255,255,255,.4); --row: rgba(255,255,255,.12); --blur: 2em; }
+.v-clear .screen { font-size: 1.5cqw; grid-template-columns: 36% 1fr; }
+.v-clear .task { padding: .8em 1em; font-size: 1.15em; }
+.v-clear .ring { width: 1.5em; height: 1.5em; border-width: .18em; }
+.v-clear .task small { opacity: 1; font-weight: 600; }
+.v-clear .chip { background: #ff6a4d; font-weight: 700; }
+.v-clear .msg { opacity: 1; }
+.v-clear .ask { background: #fff; color: #2a1c35; opacity: 1; font-weight: 600; }
+.v-clear .ask .mic { background: #ff8a52; color: #fff; }
+</style>
+<div class="page">
+  <header>
+    <h1>Ember glass: ten variations</h1>
+    <p>The same screen each time; each variation changes one or two things (the sky, the glass, the ember, the type, the layout) so you can see what they do. Mix freely: a sky from one, the glass from another.</p>
+  </header>
+  <nav class="index" id="index" aria-label="Variations"></nav>
+  <main id="dirs"></main>
+</div>
+<script>
+// Static content only, so the mockups are written as HTML strings.
+const L = { late: "Pay the electricity bill", dentist: "Call the dentist", milk: "Buy milk, bread and coffee" };
+const tasks = (lateClass) => `
+  <div class="task"><span class="ring"></span>${L.late}<small><span class="chip">Late</span></small></div>
+  <div class="task"><span class="ring"></span>${L.dentist}<small>09:00</small></div>
+  <div class="task"><span class="ring"></span>${L.milk}<small>Today</small></div>`;
+const rail = (extra = "", greet = "Good evening,<br>Ann") => `<div class="rail pane">${extra}
+  <div class="orb"></div><div class="greet">${greet}</div>
+  <div class="you">What's on today?</div>
+  <div class="msg">Three things today. The electricity bill was due yesterday.</div>
+  <div class="ask">Ask, or hold Space to talk<span class="mic">●</span></div></div>`;
+const stage = () => `<div class="stage">
+  <div class="pane card"><div class="kick">Tasks · Todoist</div><h3>Today</h3>${tasks()}</div>
+  <div class="pane row"><b>HKG → IST</b><span class="dim">Mon 21 Dec · 09:45–16:45 · nonstop</span><span class="end"><b>€468</b></span></div>
+  <div class="pane row"><b>✉</b><span>Anna · “Dinner on Saturday?”</span><span class="end dim">2 h ago</span></div></div>`;
+const standard = (extra, greet) => `<div class="sky-extra"></div><div class="screen">${rail(extra, greet)}${stage()}</div>`;
+
+const V = [
+  { id: "dusk", name: "Dusk (the original)", idea: "The direction as first drawn: a dusk sky from violet to peach, frosted panes, the ember as a glowing orb.",
+    change: "Reference for the others.", html: standard() },
+  { id: "dawn", name: "Dawn", idea: "A pale morning sky in peach and lilac with milky glass and dark ink. The light, daytime face of the same look.",
+    change: "Changes: sky, glass opacity, text colour.", html: standard("", "Good morning,<br>Ann") },
+  { id: "aurora", name: "Aurora night", idea: "Deep blue night with green and teal light, darker glass, and the ember as the only warm light in the room.",
+    change: "Changes: sky, glass tint, ember colour.", html: standard() },
+  { id: "lit", name: "Lit from behind", idea: "The ember leaves its circle and becomes the light source itself, glowing behind the glass; panes catch it on their edges.",
+    change: "Changes: the ember becomes the backlight; pane edges.", html: standard() },
+  { id: "smoke", name: "Smoke", idea: "Graphite and warm grey, milky glass, almost no colour: the small ember is the only accent. Quiet and grown-up.",
+    change: "Changes: sky, glass, ember size, accents.", html: standard() },
+  { id: "serif", name: "Serif glass", idea: "The dusk sky with an elegant serif voice, finer glass and ruled lists instead of pills. More journal than gadget.",
+    change: "Changes: type, glass thickness, list style.", html: standard() },
+  { id: "island", name: "Floating island", idea: "No side column: the conversation is a pane floating at the bottom like a dock, the greeting and time across the top, cards in between.",
+    change: "Changes: layout.",
+    html: `<div class="sky-extra"></div><div class="screen">
+      <div class="top"><div class="orb"></div><div class="greet">Good evening, Ann</div><div class="clock">18:42<br><span class="dim">Thursday 22 October</span></div></div>
+      <div class="cards"><div class="pane card"><div class="kick">Tasks · Todoist</div><h3>Today</h3>${tasks()}</div>
+        <div class="side"><div class="pane row"><b>HKG → IST</b><span class="end"><b>€468</b></span></div>
+          <div class="pane row"><b>✉</b><span>Anna · “Dinner on Saturday?”</span></div></div></div>
+      <div class="pane dock"><div class="line"><span class="you" style="align-self:auto">What's on today?</span><span class="msg">Three things today. The electricity bill was due yesterday.</span></div>
+        <div class="ask">Ask, or hold Space to talk<span class="mic">●</span></div></div></div>` },
+  { id: "thick", name: "Thick glass", idea: "Deep, bevelled panes with bright edges and inner light, like objects you could pick up: more physical, more premium.",
+    change: "Changes: glass depth, edges and highlights.", html: standard() },
+  { id: "day", name: "Through the day", idea: "The sky follows the hour: morning, noon, evening, night. The same card in each, so the screen is never quite the same twice.",
+    change: "Shows: the living sky across a day.",
+    html: `<div class="screen">${["Morning · 08:10", "Noon · 12:30", "Evening · 18:42", "Night · 23:15"].map((w, i) => `
+      <div class="sky s${i + 1}"><div class="when">${w}</div><div class="orb"></div>
+        <div class="pane card"><h3>Today</h3>${tasks()}</div>
+        <div class="pane row" style="padding:.9em 1.1em;gap:.8em"><b style="font-size:1.4em">HKG → IST</b><span class="end"><b style="font-size:1.4em">€468</b></span></div>
+        <div class="pane row" style="padding:.9em 1.1em;gap:.8em;font-size:.95em"><b style="font-size:1.2em">✉</b><span>Anna · Saturday?</span></div></div>`).join("")}</div>` },
+  { id: "clear", name: "Easy to read", idea: "The same glass, made for eyes that need it: stronger panes behind text, bigger type and targets, a solid ask bar.",
+    change: "Changes: contrast, size, the ask bar.", html: standard() },
+];
+
+const index = document.getElementById("index"), dirs = document.getElementById("dirs");
+V.forEach((d, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = `${i + 1}. ${d.name}`;
+  b.addEventListener("click", () => document.getElementById("dir-" + d.id).scrollIntoView({ behavior: "smooth" }));
+  index.appendChild(b);
+  const sec = document.createElement("section");
+  sec.className = "dir"; sec.id = "dir-" + d.id;
+  sec.innerHTML = `<div class="dir-head"><span class="dir-num">${String(i + 1).padStart(2, "0")}</span><h2>${d.name}</h2>
+    <p class="idea">${d.idea}</p><p class="change">${d.change}</p></div><div class="mock v-${d.id}">${d.html}</div>`;
+  dirs.appendChild(sec);
+});
+// "#only=<id>": one variation, filling the window (for a close look, or a screenshot).
+const only = /only=([a-z]+)/.exec(location.hash);
+if (only && document.getElementById("dir-" + only[1])) {
+  document.body.classList.add("only");
+  document.querySelector(".page > header").remove();
+  index.remove();
+  V.forEach((d) => { if (d.id !== only[1]) document.getElementById("dir-" + d.id).remove(); });
+}
+// Shown as a card: the shared runtime connects to the canvas and reports the page's height.
+if (window.FoyelleView) FoyelleView.start({ name: "foyelle-design-glass", load: function () {} });
+</script>

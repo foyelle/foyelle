@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Foyelle</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<!-- The wobble behind every hand-drawn edge (.drawn in app.css). -->
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3.2"/></filter></svg>
+<div class="shell">
+  <nav class="bots" aria-label="Your bots">
+    <header class="bots-head">
+      <div class="brand"><span class="brand-mark ember ember-sm" aria-hidden="true"></span><span class="brand-word">Foyelle</span></div>
+      <button type="button" class="new-bot" id="new-bot" title="Make a new bot" aria-label="New bot">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+    <div class="bot-list" id="bot-list"></div>
+    <footer class="bots-foot"><div class="clock" id="clock" aria-label="Time"></div></footer>
+  </nav>
+  <aside class="rail" aria-label="Conversation">
+    <header class="rail-head">
+      <button type="button" class="bot-head" id="bot-head" title="Details"></button>
+      <div class="rail-actions">
+        <button type="button" class="new-chat" id="new-chat" title="Start a new chat (/new)">New chat</button>
+      </div>
+    </header>
+    <div class="chats" id="chats"></div>
+    <div class="waiting" id="waiting" role="region" aria-label="Waiting for you" hidden></div>
+    <form class="bar" id="bar" autocomplete="off">
+      <div class="bar-hint" id="bar-hint" hidden></div>
+      <div class="bar-chips" id="bar-chips" role="group" aria-label="Services in this conversation" hidden></div>
+      <div class="bar-field drawn">
+        <span class="bar-prompt" aria-hidden="true">›</span>
+        <textarea id="input" rows="1" spellcheck="false" placeholder="Ask, or type / for commands" aria-label="Command bar"></textarea>
+        <button type="button" class="mic" id="mic" aria-label="Hold to talk" title="Hold to talk (or hold Space)" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></g></svg>
+        </button>
+      </div>
+      <div class="bar-foot"><span><kbd>Enter</kbd> send</span><span class="foot-voice"><kbd>Space</kbd> hold to talk</span><span><kbd>Ctrl K</kbd> here</span></div>
+    </form>
+    <div class="rail-resize" id="rail-resize" role="separator" aria-orientation="vertical" tabindex="0"
+      aria-label="Conversation width" title="Drag to resize (double-click for the usual width)"></div>
+  </aside>
+  <main class="stage" aria-label="Surfaces">
+    <div class="status" role="status">
+      <div class="status-left" id="status-left"></div>
+      <div class="status-right" id="status-right"></div>
+    </div>
+    <div class="area" id="area">
+      <section class="focus" aria-label="Focused surface">
+        <div class="focus-head" id="focus-head"></div>
+        <div class="focus-box" id="focus-box">
+          <div class="empty home" id="empty">
+            <div class="welcome" id="welcome" hidden></div>
+            <div class="home-ember ember ember-xl" aria-hidden="true"></div>
+            <p class="home-greeting" id="home-greeting">Hello</p>
+            <p class="home-ask">What can I do for you?</p>
+            <div class="home-suggestions" id="home-suggestions" role="group" aria-label="Things to ask"></div>
+            <button type="button" class="home-connect" id="home-connect" hidden>Connect your mail and calendar</button>
+            <p class="home-when"><span id="empty-time"></span> · <span id="empty-date"></span></p>
+            <button type="button" class="home-private" id="home-private" title="See what left this computer today"></button>
+          </div>
+        </div>
+      </section>
+      <nav class="tiles" id="tiles" aria-label="Pinned and recent surfaces" hidden></nav>
+      <div class="frames" id="frames"></div>
+      <div class="system-layer" id="system-layer" hidden>
+        <div class="system-card" role="dialog" aria-modal="false" aria-label="System prompt">
+          <div class="system-head" id="system-head"></div>
+          <div class="system-host" id="system-host"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

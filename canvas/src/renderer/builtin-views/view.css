@@ -1,0 +1,152 @@
+/* Foyelle's look inside system prompts: the canvas passes its colours and font (theme.ts); these
+   are the fallbacks. Buttons are ink-edged with a hard shadow, the main one flame orange. */
+:root {
+  color-scheme: light dark;
+  --bg: var(--color-background-primary, #ffffff);
+  --bg-2: var(--color-background-secondary, #f8efe1);
+  --fg: var(--color-text-primary, #2a1e16);
+  --fg-2: var(--color-text-secondary, #6b5a4c);
+  --line: var(--color-border-primary, #eadcc8);
+  --accent: var(--color-text-info, #c2410c);
+  --accent-bg: var(--color-background-info, #ff8a3d);
+  --danger: var(--color-text-danger, #b3261e);
+  --warn-bg: var(--color-background-warning, #fff1c9);
+  --edge: var(--color-border-secondary, var(--fg));
+  --edge-w: var(--border-width-regular, 2px);
+  --lift: var(--shadow-sm, 0 2px 0 var(--edge));
+  --on-primary: var(--foyelle-on-primary, #2a1e16);
+  --sun: var(--foyelle-highlight, #ffd23f);
+  --on-sun: var(--foyelle-on-highlight, #2a1e16);
+  --alert: var(--foyelle-alert, #d6331f);
+  --on-alert: var(--foyelle-on-alert, #ffffff);
+  --pill: var(--border-radius-full, 999px);
+  --tilt: var(--foyelle-tilt, 1deg);
+  --radius: var(--border-radius-md, 14px);
+  --font: var(--font-sans, "Nunito", "Avenir Next", "Noto Sans", "Noto Sans CJK SC", system-ui, sans-serif);
+  --hand: var(--foyelle-display, "Gochi Hand", "Noteworthy", "Bradley Hand", var(--font));
+  --hand-weight: var(--foyelle-display-weight, 400);
+  --hand-scale: var(--foyelle-display-scale, 1);
+  --mono: var(--font-mono, ui-monospace, "SF Mono", "JetBrains Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--color-background-primary, #2c231c);
+    --bg-2: var(--color-background-secondary, #352a21);
+    --fg: var(--color-text-primary, #f6ecdf);
+    --fg-2: var(--color-text-secondary, #cbb9a4);
+    --line: var(--color-border-primary, #44372c);
+    --accent: var(--color-text-info, #ffa25f);
+    --danger: var(--color-text-danger, #ff9c8a);
+    --warn-bg: var(--color-background-warning, #3b3120);
+    --lift: 0 2px 0 rgba(0, 0, 0, .55);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: var(--color-background-primary, #2c231c);
+  --bg-2: var(--color-background-secondary, #352a21);
+  --fg: var(--color-text-primary, #f6ecdf);
+  --fg-2: var(--color-text-secondary, #cbb9a4);
+  --line: var(--color-border-primary, #44372c);
+  --accent: var(--color-text-info, #ffa25f);
+  --danger: var(--color-text-danger, #ff9c8a);
+  --warn-bg: var(--color-background-warning, #3b3120);
+  --lift: 0 2px 0 rgba(0, 0, 0, .55);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+body { font: 500 16px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+main { padding: 24px 28px 22px; display: flex; flex-direction: column; gap: 16px; }
+.kicker { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--fg-2); font-weight: 800; }
+h1 { font-size: 23px; line-height: 1.25; margin: 2px 0 0; font-weight: 800; }
+h2 { font: var(--hand-weight) calc(22px * var(--hand-scale))/1.2 var(--hand); margin: 22px 0 10px; }
+p { margin: 0; }
+.muted { color: var(--fg-2); }
+dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 12px 16px; align-items: baseline; }
+dt { color: var(--fg-2); font-size: 14px; }
+dd { margin: 0; min-width: 0; }
+dt.arg { font-family: var(--mono); font-size: 13px; }
+code, pre, .mono { font-family: var(--mono); font-size: 14px; }
+pre { margin: 0; padding: 12px 12px; background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 12px; white-space: pre-wrap; word-break: break-word; max-height: 240px; overflow: auto; }
+.tool { font-family: var(--mono); font-weight: 600; font-size: 15px; }
+details summary { cursor: pointer; color: var(--fg-2); font-size: 14px; }
+details pre { margin-top: 8px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+button {
+  font: inherit; font-size: 15px; font-weight: 800; padding: 9px 16px; border-radius: 8px; cursor: pointer;
+  border: var(--edge-w) solid var(--edge); background: var(--bg); color: var(--fg); box-shadow: var(--lift);
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+button:hover:not(:disabled) { transform: translateY(-1px); }
+button:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent-bg); outline-offset: 2px; }
+button.primary { background: var(--accent-bg); color: var(--on-primary); }
+button.danger { color: var(--danger); }
+button:disabled { opacity: .5; cursor: default; }
+/* Bevelled themes (Millennium): buttons shaded light to dark over their colour, plain-weight words, a glow
+   inside on hover and sunken when pressed, instead of lifting. Other themes don't set --foyelle-bevel and skip this. */
+@container style(--foyelle-bevel: on) {
+  button:not(:disabled) { background-image: var(--foyelle-shade); box-shadow: none; font-weight: 400; }
+  button:hover:not(:disabled) { transform: none; box-shadow: var(--foyelle-glow); }
+  button:active:not(:disabled) { transform: none; background-image: var(--foyelle-shade-pressed); }
+}
+button .key { font-family: var(--mono); font-size: 12px; opacity: .7; border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
+input[type="text"], input[type="password"] {
+  font: inherit; width: 100%; padding: 9px 14px; border-radius: 14px; border: 2px solid var(--line);
+  background: var(--bg); color: var(--fg);
+}
+.question { display: flex; flex-direction: column; gap: 8px; }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices button[aria-pressed="true"] { background: var(--sun); color: var(--on-sun); }
+.notice { background: var(--warn-bg); border-radius: 14px; padding: 12px 14px; font-size: 14px; font-weight: 600; }
+.url { font-family: var(--mono); font-size: 15px; word-break: break-all; padding: 12px 14px; background: var(--bg-2); border-radius: 14px; border: 1.5px dashed var(--line); user-select: all; }
+.status { font-size: 14px; color: var(--fg-2); }
+.status:empty { display: none; }
+/* The front door: an approval drawn by what it means. */
+.door { display: flex; gap: 16px; align-items: flex-start; }
+.door-icon { flex: none; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; border: var(--edge-w) solid var(--edge); transform: rotate(calc(var(--tilt) * -3)); }
+.door-icon svg { width: 26px; height: 26px; }
+.tone-out .door-icon { background: var(--accent-bg); color: var(--on-primary); }
+.tone-home .door-icon { background: var(--bg-2); color: var(--fg-2); }
+.tone-warn .door-icon { background: var(--alert); color: var(--on-alert); }
+.door h1 { font-size: 22px; font-weight: 800; }
+.door-sub { color: var(--fg-2); }
+.fields { background: var(--bg-2); border: 1.5px dashed var(--line); border-radius: 16px; padding: 14px 16px; }
+.field-long { white-space: pre-wrap; max-height: 160px; overflow: auto; }
+.small { font-size: 14px; }
+button { border-radius: var(--pill); padding: 9px 18px; }
+
+/* ----- Accounts: connect mail and calendar with an app password ----- */
+.acct-rows { display: flex; flex-direction: column; gap: 10px; }
+.acct-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--bg-2); }
+.acct-row .what { flex: 1; min-width: 0; }
+.acct-row .name { font-weight: 800; }
+.acct-row .detail { color: var(--fg-2); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--fg-2); opacity: .5; }
+.dot.on { background: var(--ok, #2f7a3a); opacity: 1; }
+.providers { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.providers button { border-radius: 18px; padding: 16px 14px; text-align: left; font-weight: 800; font-size: 16px; display: block; }
+.providers button span { display: block; font-weight: 400; font-size: 13px; color: var(--fg-2); margin-top: 2px; }
+.steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.howto { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.howto .text { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 12px; }
+.qr { flex: none; background: #fff; padding: 10px; border-radius: 16px; border: var(--edge-w) solid var(--edge); line-height: 0; transform: rotate(calc(var(--tilt) * 1.5)); }
+.qr svg { width: 168px; height: 168px; display: block; }
+.form { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 14px; align-items: center; }
+.form label { color: var(--fg-2); font-size: 14px; }
+.form input { width: 100%; box-sizing: border-box; }
+.form .pair { display: flex; gap: 8px; }
+.form .pair input:last-child { width: 96px; flex: none; }
+.toggles { display: flex; gap: 18px; flex-wrap: wrap; }
+.toggles label { display: inline-flex; gap: 8px; align-items: center; color: var(--fg); font-size: 15px; }
+.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.checks li { display: flex; gap: 10px; align-items: baseline; }
+.checks .mark { width: 1.2em; flex: none; text-align: center; font-weight: 700; }
+.checks .ok .mark { color: var(--ok, #3c7a3a); }
+.checks .bad .mark { color: var(--danger); }
+.checks .hint { display: block; color: var(--fg-2); font-size: 14px; }
+.privacy-note { font-size: 14px; color: var(--fg-2); }
+.acct-rows + .privacy-note { margin-top: 14px; }
+.acct-group { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.acct-rows + .acct-group { margin-top: 18px; }
+.acct-row .name .muted { font-weight: 500; font-size: 14px; }

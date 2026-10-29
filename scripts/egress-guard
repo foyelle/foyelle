@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Egress guard: fail when a Nous Research host reappears in the patched harness.
+
+  scripts/egress-guard [TREE]               check TREE (default .upstream/hermes-agent)
+  scripts/egress-guard [TREE] --write-baseline
+
+Two rules:
+1. Hard denylist. The functional endpoints the patches removed (telemetry, the welcome trial,
+   the managed tool gateways, the asset mirror, the catalogue manifests) must not appear in
+   runtime code at all.
+2. Baseline. Every other Nous host mention (documentation links in help text, the opt-in Nous
+   provider plugin, billing links shown only to Nous users) is listed with its count in
+   harness/egress-baseline.json. A new file, a new host or a higher count fails; the reviewer
+   either removes it or consciously updates the baseline with --write-baseline.
+
+The runtime half of the guard is the NixOS test nixos/tests/egress.nix, which drops and logs
+every outbound connection that is not on an allowlist.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+BASELINE = ROOT / "harness" / "egress-baseline.json"
+
+HOST_RE = re.compile(r"\b((?:[a-z0-9-]+\.)*(?:nousresearch\.com|nousresearch\.github\.io|nous\.dev|noushq\.ai))\b", re.I)
+# URL forms only: inert host-matching sets and comments that name a host are covered by the baseline.
+HARD_DENY = [
+    re.compile(r"https?://telemetry\.(?:staging-)?nousresearch\.com", re.I),
+    re.compile(r"https?://welcome-api\.nousresearch\.com", re.I),
+    re.compile(r"https?://hermes-assets\.nousresearch\.com", re.I),
+    re.compile(r"https?://[a-z0-9-]+-gateway\.nousresearch\.com", re.I),
+    re.compile(r"https?://hermes-agent\.nousresearch\.com/docs/api/", re.I),
+    re.compile(r"_DEFAULT_TOOL_GATEWAY_DOMAIN\s*=\s*[\"']nousresearch\.com", re.I),
+]
+SCANNED_SUFFIXES = {".py", ".ts", ".tsx", ".js", ".mjs", ".cjs", ".json", ".yaml", ".yml", ".toml", ".sh", ".nix", ".cfg", ".ini"}
+SKIPPED_PARTS = {"tests", "tests-js", "website", "docs", "evals", ".github", "node_modules", ".venv", "__pycache__",
+                 "contributors", "optional-skills"}
+# Release and contributor tooling that never ships in the image.
+SKIPPED_PREFIXES = ("scripts/releases/", "scripts/termux/", "scripts/ci/", "scripts/sandbox/", "scripts/e2e_",
+                    "scripts/contributor_audit.py", "scripts/release.py", "scripts/build_model_catalog.py",
+                    "scripts/install.", "scripts/gen-bootstrap-pins.py", "apps/bootstrap-installer/")
+
+
+def scanned_files(tree: Path):
+    for path in tree.rglob("*"):
+        if not path.is_file() or path.suffix not in SCANNED_SUFFIXES:
+            continue
+        rel = path.relative_to(tree).as_posix()
+        if SKIPPED_PARTS.intersection(rel.split("/")[:-1]) or rel.startswith(SKIPPED_PREFIXES):
+            continue
+        if ".test." in path.name or "/__tests__/" in f"/{rel}" or "/tests/" in f"/{rel}":
+            continue
+        yield path, rel
+
+
+def scan(tree: Path) -> tuple[Counter, list[str]]:
+    counts: Counter = Counter()
+    hard: list[str] = []
+    for path, rel in scanned_files(tree):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for lineno, line in enumerate(text.splitlines(), 1):
+            for rule in HARD_DENY:
+                if rule.search(line):
+                    hard.append(f"{rel}:{lineno}: {line.strip()[:160]}")
+            for match in HOST_RE.finditer(line):
+                counts[f"{rel} {match.group(1).lower()}"] += 1
+    return counts, hard
+
+
+def main(argv: list[str]) -> int:
+    args = [a for a in argv if not a.startswith("--")]
+    tree = Path(args[0]) if args else ROOT / ".upstream" / "hermes-agent"
+    if not tree.is_dir():
+        print(f"egress-guard: {tree} is not a directory (run scripts/harness-patches checkout)", file=sys.stderr)
+        return 2
+    counts, hard = scan(tree)
+    if "--write-baseline" in argv:
+        BASELINE.write_text(json.dumps(dict(sorted(counts.items())), indent=1) + "\n")
+        print(f"egress-guard: wrote {len(counts)} reviewed entries to {BASELINE.relative_to(ROOT)}")
+    baseline = Counter(json.loads(BASELINE.read_text())) if BASELINE.exists() else Counter()
+    grown = {k: (baseline.get(k, 0), v) for k, v in counts.items() if v > baseline.get(k, 0)}
+    for line in hard:
+        print(f"egress-guard: removed Nous endpoint reappeared: {line}", file=sys.stderr)
+    for key, (was, now) in sorted(grown.items()):
+        print(f"egress-guard: new Nous host mention {key} ({was} -> {now})", file=sys.stderr)
+    if hard or grown:
+        return 1
+    print(f"egress-guard: ok ({sum(counts.values())} reviewed mentions in {len(counts)} file/host pairs, "
+          "no removed endpoint)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

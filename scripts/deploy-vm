@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Development only: build the system from this checkout and switch a running dev VM to it, without
+# rebuilding the disk image. Needs a VM made from the dev image (SSH for your keys at a fixed
+# address), built once with
+#   scripts/deploy-vm image          → out/foyelle-alpha-dev.qcow2, then scripts/utm-create it
+# and then, after every change,
+#   scripts/deploy-vm                build, copy only the store paths the VM lacks, switch
+#   scripts/deploy-vm boot           same, but activate at the next reboot
+#   scripts/deploy-vm ssh [cmd…]     a root shell (or one command) on the VM
+#
+# This bypasses Foyelle's reviewed system-change loop (proposal, approval, apply helper): it is for
+# developing Foyelle, never for using it. Keys come from $FOYELLE_DEV_SSH_KEYS (newline-separated
+# public keys), defaulting to ~/.ssh/id_ed25519.pub; they are read at build time and never stored
+# in the repository. Nix runs in Docker (foyelle-nix volume) as in scripts/nix-docker.
+#
+# Sign in with Google: FOYELLE_DEV_GOOGLE_CLIENT names the "Desktop app" client's JSON from the Google
+# Cloud console (a path inside this checkout, for example google/client_secret_….json, kept out of
+# git). Nix reads it during the build, so the secret is never printed; without it, Google sign-in
+# is off. It is a development shortcut: a change applied on the VM itself rebuilds without it.
+# FOYELLE_DEV_BRIDGES turns on services from nixos/modules/bridges.nix, space-separated ("kiwi").
+set -euo pipefail
+root="$(cd "$(dirname "$0")/.." && pwd)"
+vm="${FOYELLE_VM:-192.168.64.250}"
+system="${FOYELLE_SYSTEM:-aarch64-linux}"
+config="alpha-vm-dev-$system"
+image="${FOYELLE_NIX_IMAGE:-nixos/nix:2.28.3}"
+keys="${FOYELLE_DEV_SSH_KEYS:-$(cat ~/.ssh/id_ed25519.pub 2>/dev/null || true)}"
+[ -n "$keys" ] || { echo "no SSH key: set FOYELLE_DEV_SSH_KEYS or create ~/.ssh/id_ed25519.pub" >&2; exit 1; }
+mkdir -p "$root/out"
+# The VM's host key changes with every image; keep it out of ~/.ssh/known_hosts.
+# Keepalives end a copy within a minute when the VM goes away, instead of hanging on the stream.
+ssh_opts=(-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$root/out/dev-known_hosts" -o ConnectTimeout=5 -o BatchMode=yes
+  -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+vmssh() { ssh "${ssh_opts[@]}" "root@$vm" "$@"; }
+
+nix_docker() {
+  # Image builds run a helper VM; Docker on a Mac has no KVM, so it runs under emulation (slow but
+  # works) and needs an ext4 scratch volume for /tmp. No container log: Docker would otherwise keep
+  # a JSON copy of everything streamed out (a whole system's nix-store --export, several GB) on its
+  # disk, and that filled the Mac's disk mid-deploy.
+  docker run --rm -i --log-driver none \
+    -v foyelle-nix:/nix -v foyelle-tmp:/tmp -v "$root":/src -w /src \
+    -e FOYELLE_DEV_SSH_KEYS="$keys" \
+    -e NIX_CONFIG=$'experimental-features = nix-command flakes\nsandbox = false\nmax-jobs = auto\nsystem-features = benchmark big-parallel nixos-test uid-range kvm' \
+    "$image" sh -c 'chmod 1777 /tmp && "$@"' sh "$@"
+}
+
+case "${1:-switch}" in
+  image)
+    out="$(nix_docker nix build -L --impure --print-out-paths --no-link ".#packages.$system.vm-image-dev" | tail -1)"
+    nix_docker sh -c "cat $out/*.qcow2" > "$root/out/foyelle-alpha-dev.qcow2"
+    rm -f "$root/out/dev-known_hosts"
+    ls -lh "$root/out/foyelle-alpha-dev.qcow2"
+    echo "next: scripts/utm-create out/foyelle-alpha-dev.qcow2 'Foyelle dev'"
+    ;;
+  ssh)
+    shift
+    exec ssh "${ssh_opts[@]}" "root@$vm" "$@"
+    ;;
+  switch | boot)
+    action="${1:-switch}"
+    vmssh true || { echo "cannot reach root@$vm over SSH (is the dev VM running?)" >&2; exit 1; }
+    # The machine's own settings live in its config repo (configuration.nix and any connectors the
+    # agent wrote): build this checkout's Foyelle with them, as a proposal on the VM would, so a
+    # deploy never drops what was applied there.
+    vmcfg="$root/out/vm-config"
+    rm -rf "$vmcfg" && mkdir -p "$vmcfg"
+    vmssh 'git=$(ls -d /nix/store/*-git-[0-9]*/bin | grep -v doc | head -1)/git
+      $git -c safe.directory="*" -C /var/lib/foyelle/connectors/system/config archive --format=tar main' \
+      | tar -xf - -C "$vmcfg"
+    extra_modules=""
+    if [ -n "${FOYELLE_DEV_GOOGLE_CLIENT:-}" ]; then
+      case "$FOYELLE_DEV_GOOGLE_CLIENT" in /*) gpath="$FOYELLE_DEV_GOOGLE_CLIENT" ;; *) gpath="$root/$FOYELLE_DEV_GOOGLE_CLIENT" ;; esac
+      gpath="$(cd "$(dirname "$gpath")" && pwd)/$(basename "$gpath")"
+      [ -r "$gpath" ] && [ "${gpath#"$root"/}" != "$gpath" ] || { echo "FOYELLE_DEV_GOOGLE_CLIENT must be a readable file in this checkout" >&2; exit 1; }
+      extra_modules="(let c = (builtins.fromJSON (builtins.readFile /src/${gpath#"$root"/})).installed; in { foyelle.google = { clientId = c.client_id; clientSecret = c.client_secret; }; })"
+      echo "with Sign in with Google (client from ${gpath#"$root"/})"
+    fi
+    for bridge in ${FOYELLE_DEV_BRIDGES:-}; do
+      case "$bridge" in *[!a-z0-9_-]*) echo "bad bridge name: $bridge" >&2; exit 1 ;; esac
+      extra_modules="$extra_modules { foyelle.bridges.$bridge.enable = true; }"
+      echo "with the $bridge service"
+    done
+    echo "building $config with the VM's configuration.nix…"
+    top="$(nix_docker nix build --impure --print-out-paths --no-link --expr "
+      ((builtins.getFlake \"git+file:///src\").nixosConfigurations.$config.extendModules {
+        modules = [ /src/out/vm-config/configuration.nix $extra_modules ];
+      }).config.system.build.toplevel" | tail -1)"
+    [ -n "$top" ] && [ "${top#/nix/store/}" != "$top" ] || { echo "build failed" >&2; exit 1; }
+    echo "system: $top"
+    have="$root/out/dev-vm-paths"
+    vmssh 'ls -d /nix/store/*' > "$have"
+    # Export only what the VM lacks; nix-store --export orders the paths so references import first.
+    count="$(nix_docker sh -c 'nix-store -qR "$1" | grep -Fxv -f "$2" | wc -l' sh "$top" "/src/out/dev-vm-paths")"
+    echo "copying $count missing store paths…"
+    if [ "$count" -gt 0 ]; then
+      nix_docker sh -c 'nix-store --export $(nix-store -qR "$1" | grep -Fxv -f "$2")' sh "$top" "/src/out/dev-vm-paths" \
+        | vmssh 'nix-store --import > /dev/null'
+    fi
+    vmssh "nix-env -p /nix/var/nix/profiles/system --set $top && $top/bin/switch-to-configuration $action"
+    echo "done: $action $top"
+    ;;
+  *)
+    sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
+    exit 2
+    ;;
+esac

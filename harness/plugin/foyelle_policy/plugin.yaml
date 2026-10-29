@@ -1,0 +1,9 @@
+name: foyelle-policy
+version: "0.1.0"
+description: "Foyelle policy engine and audit log: per-connector, per-tool allow/ask/deny from /etc/foyelle/policy.json, the untrusted-content rule, private-content routing, system-change approval tokens, and an append-only audit log of every tool call."
+author: "The Foyelle contributors"
+provides_hooks:
+  - pre_tool_call
+  - post_tool_call
+provides_middleware:
+  - llm_request

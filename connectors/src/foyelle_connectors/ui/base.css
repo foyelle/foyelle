@@ -1,0 +1,128 @@
+/* Foyelle's look for cards: warm paper, ink-edged buttons with a hard shadow, Nunito for words and
+   Gochi Hand for titles (both installed with the canvas). The canvas passes its colours and font;
+   these are the fallbacks. */
+:root {
+  color-scheme: light dark;
+  --bg: var(--color-background-primary, #ffffff);
+  --bg2: var(--color-background-secondary, #f8efe1);
+  --fg: var(--color-text-primary, #2a1e16);
+  --fg2: var(--color-text-secondary, #6b5a4c);
+  --border: var(--color-border-primary, #eadcc8);
+  --accent: var(--color-text-info, #c2410c);
+  --danger: var(--color-text-danger, #b3261e);
+  --ok: var(--color-text-success, #2f7a3a);
+  --warn: var(--color-text-warning, #8a5a00);
+  --ring: var(--color-ring-primary, #ff8a3d);
+  --flame: var(--color-background-info, #ff8a3d);
+  --on-flame: var(--foyelle-on-primary, #2a1e16);
+  --edge: var(--color-border-secondary, var(--fg));
+  --edge-w: var(--border-width-regular, 2px);
+  --lift: var(--shadow-sm, 0 2px 0 var(--edge));
+  --sun: var(--foyelle-highlight, #ffd23f);
+  --on-sun: var(--foyelle-on-highlight, #2a1e16);
+  --hot: var(--foyelle-alert, #d6331f);
+  --on-hot: var(--foyelle-on-alert, #ffffff);
+  --pill: var(--border-radius-full, 999px);
+  --tilt: var(--foyelle-tilt, 1deg);
+  --radius: var(--border-radius-md, 14px);
+  --font: var(--font-sans, "Nunito", "Avenir Next", "Noto Sans", "Noto Sans CJK SC", system-ui, sans-serif);
+  --hand: var(--foyelle-display, "Gochi Hand", "Noteworthy", "Bradley Hand", var(--font));
+  --hand-weight: var(--foyelle-display-weight, 400);
+  --hand-scale: var(--foyelle-display-scale, 1);
+  --mono: var(--font-mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--color-background-primary, #2c231c);
+    --bg2: var(--color-background-secondary, #352a21);
+    --fg: var(--color-text-primary, #f6ecdf);
+    --fg2: var(--color-text-secondary, #cbb9a4);
+    --border: var(--color-border-primary, #44372c);
+    --accent: var(--color-text-info, #ffa25f);
+    --danger: var(--color-text-danger, #ff9c8a);
+    --ok: var(--color-text-success, #9fd18e);
+    --warn: var(--color-text-warning, #f0c96b);
+    --ring: var(--color-ring-primary, #ff8a3d);
+    --lift: 0 2px 0 rgba(0, 0, 0, .55);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--color-background-primary, #2c231c);
+  --bg2: var(--color-background-secondary, #352a21);
+  --fg: var(--color-text-primary, #f6ecdf);
+  --fg2: var(--color-text-secondary, #cbb9a4);
+  --border: var(--color-border-primary, #44372c);
+  --accent: var(--color-text-info, #ffa25f);
+  --danger: var(--color-text-danger, #ff9c8a);
+  --ok: var(--color-text-success, #9fd18e);
+  --warn: var(--color-text-warning, #f0c96b);
+  --ring: var(--color-ring-primary, #ff8a3d);
+  --lift: 0 2px 0 rgba(0, 0, 0, .55);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); font: 500 14.5px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+body { padding: 12px 16px 16px; }
+h1 { font: var(--hand-weight) calc(26px * var(--hand-scale))/1.1 var(--hand); margin: 0 0 10px; }
+h2 { font-size: 14.5px; margin: 16px 0 6px; font-weight: 800; }
+p { margin: 6px 0; }
+a, .link { color: var(--accent); }
+.muted { color: var(--fg2); }
+.mono, pre, code, textarea.mono { font-family: var(--mono); font-size: 12.5px; }
+pre { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; overflow: auto; white-space: pre-wrap; word-break: break-word; max-height: 60vh; margin: 6px 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+.spacer { flex: 1; }
+button, input, select, textarea {
+  font: inherit; color: var(--fg); background: var(--bg); border: 2px solid var(--border);
+  border-radius: var(--radius); padding: 5px 11px;
+}
+button {
+  cursor: pointer; font-weight: 800; border: var(--edge-w) solid var(--edge); border-radius: var(--pill); padding: 5px 14px;
+  box-shadow: var(--lift); transition: transform .12s ease, box-shadow .12s ease;
+}
+button:hover:not([disabled]) { transform: translateY(-1px); }
+button:active:not([disabled]) { transform: translateY(2px); box-shadow: none; }
+button[aria-pressed="true"], button.on { background: var(--sun); color: var(--on-sun); }
+button.primary { background: var(--flame); color: var(--on-flame); }
+input:focus, select:focus, textarea:focus { border-color: var(--edge); outline: none; }
+button.danger { color: var(--danger); }
+button[disabled] { opacity: .5; cursor: default; }
+button.linklike { background: none; border: none; padding: 0; color: var(--accent); text-align: left; box-shadow: none; border-radius: 0; font-weight: 700; }
+button.linklike:hover, button.linklike:active { transform: none; box-shadow: none; text-decoration: underline wavy var(--flame); text-underline-offset: 3px; }
+/* Bevelled themes (Millennium): buttons shaded light to dark over their colour, plain-weight words, a glow
+   inside on hover and sunken when pressed, instead of lifting. Other themes don't set --foyelle-bevel and skip this. */
+@container style(--foyelle-bevel: on) {
+  button:not(.linklike) { background-image: var(--foyelle-shade); box-shadow: none; font-weight: 400; }
+  button:not(.linklike):hover:not([disabled]) { transform: none; box-shadow: var(--foyelle-glow); }
+  button:not(.linklike):active:not([disabled]) { transform: none; background-image: var(--foyelle-shade-pressed); }
+}
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+textarea { width: 100%; min-height: 8em; resize: vertical; }
+label { display: block; margin: 12px 0 3px; color: var(--fg2); font-size: 12.5px; font-weight: 700; }
+input[type=text], input[type=search], input:not([type]) { width: 100%; }
+.toolbar input[type=search], .toolbar input[type=text] { width: auto; flex: 1; min-width: 10em; }
+.toolbar label { display: inline-flex; gap: 6px; align-items: center; margin: 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 7px 12px; border-bottom: 1.5px dashed var(--border); vertical-align: top; }
+th { color: var(--fg2); font-weight: 800; font-size: 12.5px; }
+tr.selected td { background: var(--bg2); }
+.list { list-style: none; margin: 0; padding: 0; }
+.list > li { padding: 12px 0; border-bottom: 1.5px dashed var(--border); }
+.card { border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 14px; margin: 12px 0; background: var(--bg); }
+.badge { display: inline-block; padding: 1px 8px; border-radius: var(--pill); font-size: 12px; font-weight: 800; background: var(--bg2); color: var(--fg2); }
+.badge.ok { color: var(--ok); }
+.badge.warn { background: var(--sun); color: var(--on-sun); }
+.badge.bad { background: var(--hot); color: var(--on-hot); transform: rotate(calc(var(--tilt) * -3)); }
+.status { min-height: 1.4em; font-size: 12.5px; color: var(--fg2); margin: 6px 0; }
+.status.error { color: var(--danger); }
+.status.busy::before { content: "… "; }
+.grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; }
+.grid dt { color: var(--fg2); }
+.grid dd { margin: 0; overflow-wrap: anywhere; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+@media (max-width: 640px) { .split { grid-template-columns: 1fr; } }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pre-line { white-space: pre-line; }
+.toolbar h1 { margin: 0; }

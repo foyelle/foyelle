@@ -1,0 +1,87 @@
+<style>
+  .th-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin: 6px 0 4px; }
+  .th { display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 10px 10px 12px; border-radius: 18px; font-weight: 500; }
+  .th[aria-pressed="true"] { background: var(--sun); color: var(--on-sun); }
+  .th[aria-pressed="true"] .th-desc { color: var(--on-sun); opacity: .8; }
+  .th-art { position: relative; height: 86px; border-radius: 12px; overflow: hidden; border: 1.5px solid rgba(0, 0, 0, .14); }
+  .th-art .card { position: absolute; left: 12px; top: 12px; right: 34px; bottom: 12px; margin: 0; padding: 6px 10px; border: 0; border-radius: 9px;
+    font-size: 24px; line-height: 1; display: flex; align-items: flex-start; }
+  .th-art .pill { position: absolute; right: 12px; bottom: 12px; width: 40px; height: 16px; border-radius: 999px; }
+  .th-art .dot { position: absolute; right: 12px; top: 12px; width: 14px; height: 14px; border-radius: 50%; }
+  .th-art .half { position: absolute; top: 0; bottom: 0; right: 0; width: 22%; }
+  .th-name { font-weight: 800; font-size: 15px; padding: 0 4px; display: flex; gap: 6px; align-items: center; }
+  .th-desc { font-size: 12.5px; color: var(--fg2); padding: 0 4px; line-height: 1.35; }
+  .th-tags { display: flex; gap: 6px; padding: 0 4px; flex-wrap: wrap; }
+  .th-cell { display: flex; flex-direction: column; gap: 8px; }
+  .th-cell > .th { flex: 1; }
+  .th-row { display: flex; gap: 8px; align-items: center; padding: 0 8px; font-size: 13px; }
+  .schemes { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+  
+  .ask { border: 1.5px dashed var(--border); border-radius: 16px; padding: 12px 14px; margin-top: 14px; }
+  .ask b { font-weight: 800; }
+</style>
+<main>
+  <div class="toolbar"><h1>Themes</h1><span class="spacer"></span><span class="schemes" id="schemes" role="group" aria-label="Light or dark"></span></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div class="th-grid" id="grid" role="group" aria-label="Themes"></div>
+  <h2 id="mine-title" hidden>Your themes</h2>
+  <div class="th-grid" id="mine" role="group" aria-label="Your themes"></div>
+  <div class="ask"><b>Make your own:</b> ask Foyelle, for example “make me a theme like a forest at night”, “the Ocean theme but with pink buttons” or “bigger outlines and no shadows”.</div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  var FONTS = {
+    rounded: '"Nunito", "Avenir Next", sans-serif', sans: '"Inter", "Helvetica Neue", sans-serif',
+    serif: '"Noto Serif", "Iowan Old Style", Georgia, serif', mono: '"Noto Sans Mono", "SF Mono", Menlo, monospace',
+    hand: '"Gochi Hand", "Noteworthy", cursive', code: '"JetBrains Mono", "SF Mono", Menlo, monospace',
+    condensed: '"DejaVu Sans Condensed", Tahoma, Verdana, sans-serif'
+  };
+  var SCHEMES = [["system", "Like the computer"], ["light", "Light"], ["dark", "Dark"], ["time", "By the time"]];
+  var shown = null;
+
+  function art(t) {
+    var s = t.swatch, a = h("div", { class: "th-art" });
+    a.style.background = s[0];
+    var card = h("div", { class: "card", text: "Aa" });
+    card.style.background = s[1]; card.style.color = s[4]; card.style.fontFamily = FONTS[t.fonts.display] || "inherit";
+    var pill = h("span", { class: "pill" }); pill.style.background = s[2];
+    var dot = h("span", { class: "dot" }); dot.style.background = s[3];
+    a.append(card, pill, dot);
+    return a;
+  }
+  function tile(t, current) {
+    var tags = h("div", { class: "th-tags" });
+    if (t.schemes.length === 1) tags.append(h("span", { class: "badge", text: t.schemes[0] === "dark" ? "Always dark" : "Always light" }));
+    if (t.id === current) tags.append(h("span", { class: "badge ok", text: "In use" }));
+    var b = h("button", { type: "button", class: "th", "aria-pressed": String(t.id === current), title: "Use " + t.name,
+      onclick: function () { use(t); } },
+      art(t), h("div", { class: "th-name", text: t.name }), h("div", { class: "th-desc", text: t.description }), tags);
+    if (!t.custom) return b;
+    return h("div", { class: "th-cell" }, b, h("div", { class: "th-row" },
+      h("button", { type: "button", class: "linklike", text: "Delete " + t.name, onclick: function () {
+        V.run("theme_delete", { theme_id: t.id }, "Deleting " + t.name + "…").then(function (r) { if (r) load(); });
+      } })));
+  }
+  function use(t) {
+    V.run("theme_use", { theme_id: t.id }, "Switching to " + t.name + "…").then(function (r) {
+      if (r) { V.status(t.name + " is on."); load(); }
+    });
+  }
+  function render(d) {
+    if (!d || !d.themes) return;
+    shown = d;
+    var grid = V.clear(V.$("#grid")), mine = V.clear(V.$("#mine"));
+    d.themes.forEach(function (t) { (t.custom ? mine : grid).append(tile(t, d.current)); });
+    V.$("#mine-title").hidden = !mine.children.length;
+    var sw = V.clear(V.$("#schemes"));
+    SCHEMES.forEach(function (s) {
+      sw.append(h("button", { type: "button", text: s[1], "aria-pressed": String((d.scheme || "system") === s[0]), onclick: function () {
+        V.run("settings_set", { key: "ui.theme", value: s[0] }, "Saving…").then(function (r) { if (r) load(); });
+      } }));
+    });
+  }
+  function load() { return V.run("theme_list", {}, shown ? null : "Loading…").then(render); }
+  V.start({ name: "foyelle-shell-themes", render: render, load: load, refresh: function () { V.status(""); return load(); } });
+})();
+</script>

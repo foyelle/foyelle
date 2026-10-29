@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Manage the Hermes patch series (harness/patches) against the pinned upstream commit.
+#
+#   scripts/harness-patches checkout    upstream at the pin + every patch, as commits, in .upstream/hermes-agent
+#   scripts/harness-patches export      rewrite harness/patches/ from the commits on top of the pin
+#   scripts/harness-patches status      list the patch commits
+#   scripts/harness-patches bump <rev>  rebase the series onto a new upstream commit (weekly merge)
+set -euo pipefail
+root="$(cd "$(dirname "$0")/.." && pwd)"
+work="$root/.upstream/hermes-agent"
+patches="$root/harness/patches"
+pin="$root/harness/upstream.json"
+json() { python3 -I -c "import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])" "$pin" "$1"; }
+repo="$(json repo)"
+rev="$(json rev)"
+gitc() { git -C "$work" -c commit.gpgsign=false "$@"; }
+# `git am` records a committer; CI runners have no identity configured.
+export GIT_COMMITTER_NAME="${GIT_COMMITTER_NAME:-$(git config user.name || echo Foyelle CI)}"
+export GIT_COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-$(git config user.email || echo ci@foyelle.invalid)}"
+
+case "${1:-}" in
+  checkout)
+    if [ ! -d "$work/.git" ]; then
+      mkdir -p "$work"
+      git -C "$work" init -q
+      gitc remote add origin "$repo"
+    fi
+    gitc fetch -q --depth 1 origin "$rev"
+    gitc checkout -q -B foyelle "$rev"
+    shopt -s nullglob
+    series=("$patches"/*.patch)
+    if [ ${#series[@]} -gt 0 ]; then
+      gitc am -q --3way --committer-date-is-author-date "${series[@]}"
+    fi
+    echo "upstream ${rev:0:12} + ${#series[@]} patches in $work"
+    ;;
+  export)
+    mkdir -p "$patches"
+    rm -f "$patches"/*.patch
+    gitc format-patch -q --zero-commit --no-signature --full-index -o "$patches" "$rev..HEAD"
+    (cd "$patches" && ls ./*.patch | sed 's|^\./||') > "$patches/series"
+    echo "exported $(wc -l < "$patches/series" | tr -d ' ') patches to harness/patches"
+    ;;
+  status)
+    gitc log --oneline "$rev..HEAD"
+    ;;
+  bump)
+    new="${2:?usage: scripts/harness-patches bump <upstream-rev>}"
+    gitc fetch -q --depth 1 origin "$new"
+    new="$(gitc rev-parse FETCH_HEAD)"
+    gitc rebase --onto "$new" "$rev" foyelle
+    python3 -I - "$pin" "$new" <<'PY'
+import json, sys, datetime
+path, new = sys.argv[1], sys.argv[2]
+data = json.load(open(path))
+data.update(rev=new, date=datetime.date.today().isoformat())
+open(path, "w").write(json.dumps(data, indent=2) + "\n")
+PY
+    "$0" export
+    echo "rebased onto ${new:0:12}; update the hermes-upstream input in flake.nix to the same rev"
+    ;;
+  *)
+    sed -n '2,8p' "$0"
+    exit 2
+    ;;
+esac

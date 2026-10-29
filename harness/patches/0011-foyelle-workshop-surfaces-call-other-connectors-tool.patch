@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Mon, 19 Oct 2026 09:29:37 +0000
+Subject: [PATCH 11/15] foyelle: workshop surfaces call other connectors' tools
+
+Surfaces the agent made in Foyelle's workshop connector name another
+connector's tool as '<server>.<tool>'. Those calls carry the origin
+'workshop', so Foyelle's policy treats them like the model's: approvals
+apply and surface-only tools are refused. Every other surface still
+reaches only its own server's tools.
+---
+ tests/tools/test_mcp_surfaces.py | 18 ++++++++++++++++++
+ tools/mcp_surfaces.py            | 12 +++++++++++-
+ 2 files changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/tests/tools/test_mcp_surfaces.py b/tests/tools/test_mcp_surfaces.py
+index bed2fbbf070e42d06247efbe7f6d7ac079b4aa3d..d59ed6003e5bfd2c48c196f3706f7e4e9efe62ea 100644
+--- a/tests/tools/test_mcp_surfaces.py
++++ b/tests/tools/test_mcp_surfaces.py
+@@ -117,6 +117,24 @@ def test_call_tool_dispatches_through_handle_function_call_as_a_surface(monkeypa
+     assert mcp_surfaces.current_origin() == "model"
+ 
+ 
++def test_workshop_surfaces_call_other_servers_as_workshop(monkeypatch):
++    import model_tools
++
++    seen = {}
++
++    def _fake(name, args, **kw):
++        seen.update(name=name, origin=mcp_surfaces.current_origin())
++        return json.dumps({"result": "ok"})
++
++    monkeypatch.setattr(model_tools, "handle_function_call", _fake)
++    mcp_surfaces.record_tool("files", _tool("read"), "mcp_files_read")
++    mcp_surfaces.call_tool("workshop", "files.read", {"path": "documents/a.txt"})
++    assert seen == {"name": "mcp_files_read", "origin": "workshop"}
++    # Only the workshop server may reach other servers; others stay on their own tools.
++    with pytest.raises(LookupError):
++        mcp_surfaces.call_tool("files", "shell.settings_get", {})
++
++
+ def test_call_tool_rejects_tools_the_server_did_not_register():
+     with pytest.raises(LookupError):
+         mcp_surfaces.call_tool("files", "rm_rf", {})
+diff --git a/tools/mcp_surfaces.py b/tools/mcp_surfaces.py
+index 54a9607a7d21ffd7458af307079c5a42eec9e387..3cbfefe438ebe19be4ff06f9816401b2ee9b11d1 100644
+--- a/tools/mcp_surfaces.py
++++ b/tools/mcp_surfaces.py
+@@ -233,16 +233,26 @@ def resource_payload(server_name: str, uri: str, session_id: str = "") -> dict:
+             "uri": uri, **surface_document(server_name, uri)}
+ 
+ 
++# Surfaces the agent made (Foyelle's workshop connector) may call other connectors' tools, named
++# "<server>.<tool>". Those calls carry the origin "workshop": the policy treats them like the
++# model's (approvals apply, surface-only tools are refused), not like a connector's own surface.
++WORKSHOP_SERVER = "workshop"
++
++
+ def call_tool(server_name: str, tool_name: str, arguments: dict, *, session_id: str = "") -> dict:
+     """A surface calling a tool of its own server. Dispatched through ``handle_function_call`` so
+     ``pre_tool_call``/``post_tool_call`` plugins (Foyelle's policy engine and audit log) and the
+     approval gate see it exactly like a model call; returns a ``CallToolResult`` shape."""
++    origin = "surface"
++    if server_name == WORKSHOP_SERVER and "." in tool_name:
++        server_name, tool_name = tool_name.split(".", 1)
++        origin = "workshop"
+     registry_name = registry_name_for(server_name, tool_name)
+     if registry_name is None:
+         raise LookupError(f"{server_name!r} has no registered tool {tool_name!r}")
+     from model_tools import handle_function_call
+ 
+-    token = _origin.set("surface")
++    token = _origin.set(origin)
+     try:
+         raw = handle_function_call(registry_name, dict(arguments or {}), task_id=session_id or None,
+                                    tool_call_id=f"surface-{uuid.uuid4().hex[:12]}", session_id=session_id or None)

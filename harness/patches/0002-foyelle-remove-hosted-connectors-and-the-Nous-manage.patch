@@ -1,0 +1,71 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:27:18 +0000
+Subject: [PATCH 02/15] foyelle: remove hosted connectors and the Nous managed
+ tool gateway
+
+connectors_available() and managed_nous_tools_enabled() always return
+False and _vendor_gateway() returns None, so no tool call is routed to a
+*-gateway.nousresearch.com host (including the free Perplexity search).
+The default gateway domain is now a non-resolving .invalid name.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ tools/connectors/gateway/config.py | 5 ++++-
+ tools/managed_tool_gateway.py      | 3 ++-
+ tools/tool_backend_helpers.py      | 5 ++++-
+ 3 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/tools/connectors/gateway/config.py b/tools/connectors/gateway/config.py
+index 08520c502752af7884e8da4741cdd57519513796..1c26a1a07ade9462cd4ae913b4a669323c362479 100644
+--- a/tools/connectors/gateway/config.py
++++ b/tools/connectors/gateway/config.py
+@@ -90,7 +90,10 @@ def connectors_available(
+     The one gate for the connectors surface, and the tool's ``check_fn``: outside it the tool is
+     not in the schema at all, so the model never narrates a gateway 404 to a user the portal has
+     not enabled. Free-tier identities are always in, and so is a user with no identity who may get
+-    one; accounts are in only when the portal says so via the token claim."""
++    one; accounts are in only when the portal says so via the token claim.
++
++    Foyelle: hosted connectors are never available; connectors are local MCP services."""
++    return False
+     try:
+         resolved_loader = config_loader or load_config
+         if not resolved_loader().enabled:
+diff --git a/tools/managed_tool_gateway.py b/tools/managed_tool_gateway.py
+index 877fcd9a828f326cb3b7e98284d6026e12de56d5..ef1f8a6af2eb485395da9754d6b9bbb22e67ec05 100644
+--- a/tools/managed_tool_gateway.py
++++ b/tools/managed_tool_gateway.py
+@@ -13,7 +13,7 @@ from tools.tool_backend_helpers import managed_nous_tools_enabled
+ 
+ logger = logging.getLogger(__name__)
+ 
+-_DEFAULT_TOOL_GATEWAY_DOMAIN = "nousresearch.com"
++_DEFAULT_TOOL_GATEWAY_DOMAIN = "gateway.invalid"  # Foyelle: no managed tool gateway
+ _DEFAULT_TOOL_GATEWAY_SCHEME = "https"
+ _NOUS_ACCESS_TOKEN_REFRESH_SKEW_SECONDS = 120
+ 
+@@ -150,6 +150,7 @@ def build_vendor_gateway_url(vendor: str) -> str:
+ 
+ 
+ def _vendor_gateway(vendor: str, gateway_builder, token_reader) -> Optional[ManagedToolGatewayConfig]:
++    return None  # Foyelle: vendor gateways and free search are never used
+     gateway_origin = (gateway_builder or build_vendor_gateway_url)(vendor)
+     nous_user_token = (token_reader or read_nous_access_token)()
+     if not gateway_origin or not nous_user_token:
+diff --git a/tools/tool_backend_helpers.py b/tools/tool_backend_helpers.py
+index 3da341453aadd9da97352ee3fd0f94247901f12a..c3091f6e78858ef1c32881306c00a17a951e7a7c 100644
+--- a/tools/tool_backend_helpers.py
++++ b/tools/tool_backend_helpers.py
+@@ -18,7 +18,10 @@ _VALID_MODAL_MODES = {"auto", "direct", "managed"}
+ def managed_nous_tools_enabled(*, force_fresh: bool = False) -> bool:
+     """Coarse gate: entitled to the Nous Tool Gateway (paid Portal access OR a live free
+     pool). Fails closed on unknown/error — never blocks startup. Callers narrow per category
+-    via ``tool_gateway_entitled_for``; ``force_fresh`` is for flows needing a just-bought grant."""
++    via ``tool_gateway_entitled_for``; ``force_fresh`` is for flows needing a just-bought grant.
++
++    Foyelle: always False, so no tool is routed through the Nous Tool Gateway."""
++    return False
+     try:
+         from hermes_cli.nous_account import get_nous_portal_account_info
+         # Branched call, not ``force_fresh=force_fresh``: tests stub the reader with zero-arg lambdas.

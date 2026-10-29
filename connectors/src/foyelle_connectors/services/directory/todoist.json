@@ -1,0 +1,37 @@
+{
+  "id": "todoist",
+  "slot": 1,
+  "title": "Todoist",
+  "category": "tasks",
+  "summary": "Your tasks and reminders, in step with the Todoist apps.",
+  "url": "https://ai.todoist.net/mcp",
+  "hosts": ["ai.todoist.net", "todoist.com"],
+  "auth": {
+    "kind": "oauth",
+    "signin_page": "https://todoist.com/oauth/authorize",
+    "signin_hosts": ["todoist.com", "app.todoist.com", "todoist.b-cdn.net"]
+  },
+  "sensitivity": "private",
+  "tools": {
+    "find-tasks": { "tier": "read" },
+    "find-tasks-by-date": { "tier": "read" },
+    "find-completed-tasks": { "tier": "read" },
+    "find-projects": { "tier": "read" },
+    "find-sections": { "tier": "read" },
+    "find-reminders": { "tier": "read" },
+    "get-overview": { "tier": "read" },
+    "add-tasks": { "tier": "reversible" },
+    "update-tasks": { "tier": "reversible" },
+    "complete-tasks": { "tier": "reversible" },
+    "uncomplete-tasks": { "tier": "reversible" },
+    "reschedule-tasks": { "tier": "reversible" },
+    "add-projects": { "tier": "reversible" },
+    "add-reminders": { "tier": "reversible" },
+    "update-reminders": { "tier": "reversible" },
+    "delete-object": { "tier": "outbound" }
+  },
+  "views": { "find-tasks": "tasks", "find-tasks-by-date": "tasks" },
+  "new_tools": "review",
+  "reviewed": "2026-10-18",
+  "notes": "An everyday subset: finding, adding and finishing tasks and reminders. Deleting asks every time. todoist.com is also where the sign-in registers and refreshes tokens."
+}

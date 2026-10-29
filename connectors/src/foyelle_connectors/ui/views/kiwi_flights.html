@@ -1,0 +1,264 @@
+<style>
+  .fl-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; margin-bottom: 14px; }
+  .fl-kicker { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg2); font-weight: 600; }
+  .fl-head h1 { font-size: calc(34px * var(--hand-scale)); line-height: 1.1; margin: 2px 0 2px; }
+  .seg { display: inline-flex; border: var(--edge-w) solid var(--edge); border-radius: var(--pill); padding: 3px; background: var(--bg); box-shadow: var(--lift); }
+  .seg button { border: 0; background: none; border-radius: 999px; padding: 6px 14px; color: var(--fg2); box-shadow: none; transform: none; }
+  .seg button[aria-pressed="true"] { background: var(--sun); color: var(--on-sun); }
+  .fl-search { display: grid; grid-template-columns: minmax(7em, 1fr) auto minmax(7em, 1fr) auto auto auto; gap: 8px; align-items: end;
+    padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); margin-bottom: 6px; }
+  .fl-search label { margin: 0 0 3px; }
+  .fl-search input { width: 100%; }
+  .fl-search .swap { padding: 5px 8px; margin-bottom: 0; }
+  @media (max-width: 720px) { .fl-search { grid-template-columns: 1fr auto 1fr; } .fl-search .when, .fl-search .go { grid-column: span 3; } }
+  .fl-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .fl-item { border: 1px solid var(--border); border-radius: 14px; background: var(--bg); padding: 14px 16px; }
+  .fl-item.best { border-color: var(--accent); }
+  .fl-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 22px; align-items: center; }
+  @media (max-width: 640px) { .fl-main { grid-template-columns: 1fr; } }
+  .legs { display: flex; flex-direction: column; gap: 12px; }
+  .leg { display: grid; grid-template-columns: 4.6em minmax(6em, 1fr) 5.4em; gap: 2px 14px; align-items: center; }
+  .leg .time { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .leg .time sup { font-size: 11px; color: var(--warn); font-weight: 600; margin-left: 2px; }
+  .leg .ap { color: var(--fg2); font-size: 12.5px; letter-spacing: .03em; }
+  .leg .mid { text-align: center; font-size: 12.5px; color: var(--fg2); }
+  .leg .track { position: relative; height: 2px; background: var(--border); margin: 6px 0; }
+  .leg .track i { position: absolute; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--bg); border: 2px solid var(--fg2); transform: translateX(-50%); }
+  .leg .stops.direct { color: var(--ok); font-weight: 600; }
+  .leg .who { grid-column: 1 / -1; font-size: 12.5px; color: var(--fg2); }
+  .leg-label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg2); font-weight: 600; margin-bottom: -6px; }
+  .price { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  @media (max-width: 640px) { .price { align-items: stretch; text-align: left; } }
+  .price .amount { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .tag { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; background: var(--bg2); color: var(--fg2); border: 1px solid var(--border); }
+  .tag.accent { color: var(--accent); border-color: currentColor; background: none; font-weight: 600; }
+  .bags { font-size: 12.5px; color: var(--fg2); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .detail { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .seg-row { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 2px 12px; font-size: 13px; }
+  .seg-row .when { color: var(--fg2); font-variant-numeric: tabular-nums; }
+  .layover { font-size: 12.5px; color: var(--warn); padding-left: 12em; margin-left: 12px; }
+  .layover.long { font-weight: 600; }
+  .fl-foot { font-size: 12.5px; margin-top: 14px; }
+  .empty { padding: 28px 0; text-align: center; color: var(--fg2); }
+</style>
+<main>
+  <header class="fl-head">
+    <div>
+      <div class="fl-kicker">Flights · Kiwi.com</div>
+      <h1 id="route">Find a flight</h1>
+      <div id="sub" class="muted"></div>
+    </div>
+    <div class="seg" role="group" aria-label="Sort by">
+      <button type="button" data-sort="price" aria-pressed="true">Cheapest</button>
+      <button type="button" data-sort="duration" aria-pressed="false">Fastest</button>
+      <button type="button" data-sort="stops" aria-pressed="false">Fewest stops</button>
+    </div>
+  </header>
+  <form id="search" class="fl-search" aria-label="Search flights">
+    <div><label for="from">From</label><input id="from" type="text" placeholder="City or airport" autocomplete="off"></div>
+    <button type="button" class="swap" id="swap" aria-label="Swap from and to" title="Swap">⇄</button>
+    <div><label for="to">To</label><input id="to" type="text" placeholder="City or airport" autocomplete="off"></div>
+    <div class="when"><label for="date">Leaving</label><input id="date" type="date"></div>
+    <div class="when"><label for="ret">Coming back</label><input id="ret" type="date"></div>
+    <div class="go"><button type="submit" class="primary">Search</button></div>
+  </form>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <ol id="list" class="fl-list" aria-label="Flights"></ol>
+  <p class="muted fl-foot">Prices and seats come from Kiwi.com and can change. To book, open the booking link on Kiwi.com (on your phone, for now); Foyelle never books or pays.</p>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  var data = null, sortBy = "price", lastArgs = {};
+  var locale = function () { return (V.hostContext && V.hostContext.locale) || undefined; };
+
+  // Kiwi gives each airport's local time without a zone: read it as written, never convert it.
+  function parts(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(s || "");
+    return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null;
+  }
+  function time(s) {
+    var d = parts(s);
+    return d ? d.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) : "";
+  }
+  function day(s, opts) {
+    var d = parts(s);
+    return d ? d.toLocaleDateString(locale(), opts || { weekday: "short", day: "numeric", month: "short" }) : "";
+  }
+  function dayDiff(a, b) {
+    var x = parts(a), y = parts(b);
+    if (!x || !y) return 0;
+    return Math.round((new Date(y.getFullYear(), y.getMonth(), y.getDate()) - new Date(x.getFullYear(), x.getMonth(), x.getDate())) / 864e5);
+  }
+  function dur(sec) {
+    if (!sec && sec !== 0) return "";
+    var hrs = Math.floor(sec / 3600), min = Math.round((sec % 3600) / 60);
+    return hrs ? hrs + "h " + String(min).padStart(2, "0") + "m" : min + "m";
+  }
+  function money(n, cur) {
+    try { return new Intl.NumberFormat(locale(), { style: "currency", currency: cur || "EUR", maximumFractionDigits: 0 }).format(n); }
+    catch (e) { return Math.round(n) + " " + (cur || ""); }
+  }
+  function stopsOf(it) { return (it.outbound ? it.outbound.stops || 0 : 0) + (it.inbound ? it.inbound.stops || 0 : 0); }
+  function airlines(leg) {
+    var seen = [];
+    (leg.segments || []).forEach(function (s) { var n = s.carrierName || s.carrier; if (n && seen.indexOf(n) < 0) seen.push(n); });
+    return seen.join(" + ");
+  }
+  function layovers(leg) {
+    var out = [], segs = leg.segments || [];
+    for (var i = 1; i < segs.length; i++) {
+      var a = parts(segs[i - 1].arrivalTime), b = parts(segs[i].departureTime);
+      out.push({ at: segs[i].from, city: segs[i].fromCity, sec: a && b ? (b - a) / 1000 : null,
+                 overnight: a && b ? a.getDate() !== b.getDate() : false, change: segs[i - 1].to !== segs[i].from });
+    }
+    return out;
+  }
+
+  function legView(leg, label) {
+    var lays = layovers(leg), plus = dayDiff(leg.departureTime, leg.arrivalTime);
+    var stopText = !leg.stops ? "Nonstop" : leg.stops + (leg.stops === 1 ? " stop" : " stops") + " · " +
+      lays.map(function (l) { return l.at + (l.sec !== null ? " " + dur(l.sec) : ""); }).join(", ");
+    var track = h("div", { class: "track", "aria-hidden": "true" });
+    lays.forEach(function (_, i) { track.appendChild(h("i", { style: "left:" + (100 * (i + 1) / (lays.length + 1)) + "%" })); });
+    var flights = (leg.segments || []).map(function (s) { return s.flightNumber; }).filter(Boolean).join(", ");
+    return [
+      label ? h("div", { class: "leg-label", text: label + " · " + day(leg.departureTime) }) : null,
+      h("div", { class: "leg" },
+        h("div", null, h("div", { class: "time", text: time(leg.departureTime) }), h("div", { class: "ap", text: leg.from })),
+        h("div", { class: "mid" }, h("div", { text: dur(leg.durationSeconds) }), track,
+          h("div", { class: "stops" + (leg.stops ? "" : " direct"), text: stopText })),
+        h("div", { class: "end" },
+          h("div", { class: "time" }, time(leg.arrivalTime), plus ? h("sup", { text: "+" + plus, title: day(leg.arrivalTime) }) : null),
+          h("div", { class: "ap", text: leg.to })),
+        h("div", { class: "who", text: airlines(leg) + (flights ? " · " + flights : "") }))
+    ];
+  }
+
+  function detailView(leg, label) {
+    var rows = [h("div", { class: "leg-label", text: label })];
+    var lays = layovers(leg);
+    (leg.segments || []).forEach(function (s, i) {
+      if (i > 0) {
+        var l = lays[i - 1];
+        var text = "Change in " + (l.city || l.at) + (l.sec !== null ? ": " + dur(l.sec) : "") +
+          (l.overnight ? ", overnight" : "") + (l.change ? ", from another airport" : "");
+        rows.push(h("div", { class: "layover" + (l.sec > 6 * 3600 || l.change ? " long" : ""), text: text }));
+      }
+      rows.push(h("div", { class: "seg-row" },
+        h("div", { class: "when", text: day(s.departureTime) + " " + time(s.departureTime) + "–" + time(s.arrivalTime) }),
+        h("div", null, h("strong", { text: (s.fromCity || s.from) + " → " + (s.toCity || s.to) }),
+          h("div", { class: "muted", text: (s.carrierName || s.carrier || "") + (s.flightNumber ? " " + s.flightNumber : "") +
+            " · " + dur(s.durationSeconds) + (s.cabinClass ? " · " + s.cabinClass : "") }),
+          h("div", { class: "muted", text: (s.fromName || s.from) + " → " + (s.toName || s.to) }))));
+    });
+    return rows;
+  }
+
+  function bagsText(b) {
+    if (!b) return "";
+    var out = [];
+    if (b.personalItem) out.push("personal item");
+    if (b.cabinBag) out.push(b.cabinBag > 1 ? b.cabinBag + " cabin bags" : "cabin bag");
+    out.push(b.checkedBag ? (b.checkedBag > 1 ? b.checkedBag + " checked bags" : "checked bag") : "no checked bag");
+    var s = out.join(" · ");
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function summary(it) {
+    var o = it.outbound;
+    return o.from + " → " + o.to + ", " + day(o.departureTime, { weekday: "long", day: "numeric", month: "long" }) + " " +
+      time(o.departureTime) + ", " + airlines(o) + " " + (o.segments || []).map(function (s) { return s.flightNumber; }).join("/") +
+      (it.inbound ? "; back " + day(it.inbound.departureTime) + " " + time(it.inbound.departureTime) : "") +
+      ", " + money(it.price, data.currency);
+  }
+
+  function render(d, args) {
+    if (d) { data = d; lastArgs = args || lastArgs; }
+    var list = V.clear(V.$("#list"));
+    if (!data) { list.appendChild(h("li", { class: "empty", text: "Say where and when, and the flights show up here." })); return; }
+    var its = (data.itineraries || []).filter(function (it) { return it && it.outbound; });
+    var first = its[0] && its[0].outbound;
+    if (first) {
+      V.$("#route").textContent = (first.segments && first.segments[0] && first.segments[0].fromCity || first.from) + " → " +
+        (first.segments && first.segments.length ? first.segments[first.segments.length - 1].toCity || first.to : first.to);
+      var pax = data.passengers || {}, people = (pax.adults || 1) + (pax.children || 0) + (pax.infants || 0);
+      V.$("#sub").textContent = day(first.departureTime, { weekday: "long", day: "numeric", month: "long" }) +
+        (its[0].inbound ? " – " + day(its[0].inbound.departureTime, { weekday: "long", day: "numeric", month: "long" }) : " · one way") +
+        " · " + people + (people === 1 ? " traveller" : " travellers") + " · " + its.length + " options";
+      fillForm(first, its[0].inbound);
+    } else if (data.error) {
+      V.status(String(data.error), "error");
+    }
+    if (!its.length) { list.appendChild(h("li", { class: "empty", text: "No flights for this search. Try other dates or a nearby airport." })); return; }
+
+    var cheapest = its.reduce(function (a, b) { return b.price < a.price ? b : a; });
+    var fastest = its.reduce(function (a, b) { return b.totalDurationSeconds < a.totalDurationSeconds ? b : a; });
+    var key = { price: function (it) { return [it.price, it.totalDurationSeconds]; },
+                duration: function (it) { return [it.totalDurationSeconds, it.price]; },
+                stops: function (it) { return [stopsOf(it), it.price]; } }[sortBy];
+    its.slice().sort(function (a, b) { var x = key(a), y = key(b); return x[0] - y[0] || x[1] - y[1]; }).forEach(function (it) {
+      var detail = h("div", { class: "detail", hidden: true },
+        detailView(it.outbound, it.inbound ? "Going" : "Flight"), it.inbound ? detailView(it.inbound, "Coming back") : null);
+      var more = h("button", { type: "button", class: "linklike", text: "Details", "aria-expanded": "false" });
+      more.addEventListener("click", function () {
+        detail.hidden = !detail.hidden;
+        more.textContent = detail.hidden ? "Details" : "Hide details";
+        more.setAttribute("aria-expanded", String(!detail.hidden));
+      });
+      var tags = h("div", { class: "tags" },
+        it === cheapest ? h("span", { class: "tag accent", text: "Cheapest" }) : null,
+        it === fastest ? h("span", { class: "tag accent", text: "Fastest" }) : null,
+        !stopsOf(it) ? h("span", { class: "tag", text: "Nonstop" }) : null);
+      list.appendChild(h("li", { class: "fl-item" + (it === cheapest && sortBy === "price" ? " best" : "") },
+        h("div", { class: "fl-main" },
+          h("div", { class: "legs" }, legView(it.outbound, it.inbound ? "Going" : null), it.inbound ? legView(it.inbound, "Coming back") : null),
+          h("div", { class: "price" },
+            tags,
+            h("div", { class: "amount", text: money(it.price, data.currency) }),
+            h("div", { class: "bags", text: bagsText(it.baggage) }),
+            h("div", { class: "actions" },
+              more,
+              h("button", { type: "button", text: "Add to calendar", onclick: function () {
+                V.sendMessage("Add this flight to my calendar: " + summary(it) + ". Don't book anything.");
+              } }),
+              it.bookingUrl ? h("button", { type: "button", class: "primary", text: "Booking link", title: "Book this flight on Kiwi.com", onclick: function () {
+                V.openLink(it.bookingUrl).catch(function () { V.status("This screen can't open links.", "error"); });
+              } }) : null))),
+        detail));
+    });
+  }
+
+  function iso(s) { return (s || "").slice(0, 10); }
+  function fillForm(out, back) {
+    if (!V.$("#from").value) V.$("#from").value = out.from;
+    if (!V.$("#to").value) V.$("#to").value = out.to;
+    if (!V.$("#date").value) V.$("#date").value = iso(out.departureTime);
+    if (!V.$("#ret").value && back) V.$("#ret").value = iso(back.departureTime);
+  }
+  function kiwiDate(v) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v); return m ? m[3] + "/" + m[2] + "/" + m[1] : null; }
+
+  V.onSubmit(V.$("#search"), function () {
+    var from = V.$("#from").value.trim(), to = V.$("#to").value.trim(), date = kiwiDate(V.$("#date").value);
+    if (!from || !to || !date) { V.status("Fill in from, to and the day you leave.", "error"); return; }
+    var args = { flyFrom: from, flyTo: to, departureDate: date };
+    var ret = kiwiDate(V.$("#ret").value);
+    if (ret) args.returnDate = ret;
+    ["adults", "children", "infants", "cabinClass", "currency"].forEach(function (k) { if (lastArgs[k] !== undefined) args[k] = lastArgs[k]; });
+    V.run("search_flight", args, "Looking for flights…").then(function (d) { if (d) render(d, args); });
+  });
+  V.$("#swap").addEventListener("click", function () {
+    var a = V.$("#from").value; V.$("#from").value = V.$("#to").value; V.$("#to").value = a;
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+    b.addEventListener("click", function () {
+      sortBy = b.getAttribute("data-sort");
+      Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      render();
+    });
+  });
+  V.start({ name: "foyelle-flights", render: render, load: function () { render(null); } });
+})();
+</script>

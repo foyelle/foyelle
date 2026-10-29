@@ -1,0 +1,264 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Tue, 27 Oct 2026 03:39:34 +0000
+Subject: [PATCH 14/15] foyelle: required plugins in every profile, and cron in
+ hermes serve
+
+HERMES_REQUIRED_PLUGINS_DIR holds plugins that load in every profile
+whatever its config says, in-process, and win over a same-named copy in
+a profile. No tool runs in a profile where one of them did not load with
+a pre_tool_call hook. HERMES_SERVE_CRON=1 starts the cron ticker in
+hermes serve, which otherwise only the Desktop app's backend runs.
+---
+ hermes_cli/plugins.py                         | 38 +++++++
+ hermes_cli/plugins_discovery.py               | 16 +++
+ hermes_cli/plugins_loader.py                  |  7 +-
+ hermes_cli/web_server_app.py                  |  3 +
+ .../test_foyelle_required_plugins.py          | 98 +++++++++++++++++++
+ 5 files changed, 159 insertions(+), 3 deletions(-)
+ create mode 100644 tests/hermes_cli/test_foyelle_required_plugins.py
+
+diff --git a/hermes_cli/plugins.py b/hermes_cli/plugins.py
+index eda71a0ee43c89d18e9b9b076deb39a606d6c9f4..0b7d286a97a208bd03265cf1623ed0a821cce4ae 100644
+--- a/hermes_cli/plugins.py
++++ b/hermes_cli/plugins.py
+@@ -1904,6 +1904,40 @@ def clear_thread_tool_whitelist() -> None:
+     _thread_tool_whitelist.allowed = None
+ 
+ 
++_required_plugin_names: Optional[frozenset[str]] = None
++
++
++def missing_required_plugins() -> list[str]:
++    """Foyelle: the required plugins (``HERMES_REQUIRED_PLUGINS_DIR``) that are not loaded, enabled and
++    hooked into ``pre_tool_call`` in the current profile's manager. Fails closed: an unreadable required
++    directory or a manager that can't load counts every required plugin as missing."""
++    global _required_plugin_names
++    from hermes_cli.plugins_discovery import required_plugins_dir, scan_directory
++    directory = required_plugins_dir()
++    if directory is None:
++        return []
++    if _required_plugin_names is None:
++        try:
++            _required_plugin_names = frozenset(m.name for m in scan_directory(directory, "required"))
++        except Exception:
++            logger.exception("Required plugins directory %s is unreadable", directory)
++            return [str(directory)]
++        if not _required_plugin_names:
++            logger.error("Required plugins directory %s holds no plugin", directory)
++    if not _required_plugin_names:
++        return [str(directory)]
++    try:
++        manager = get_plugin_manager()
++        manager.discover_and_load()
++        loaded = {p.manifest.name for p in list(manager._plugins.values())
++                  if p.enabled and not p.error and p.manifest.source == "required"
++                  and "pre_tool_call" in p.hooks_registered}
++    except Exception:
++        logger.exception("Checking the required plugins failed")
++        return sorted(_required_plugin_names)
++    return sorted(_required_plugin_names - loaded)
++
++
+ def _get_pre_tool_call_directive_details(
+     tool_name: str, args: Optional[dict[str, Any]], task_id: str = "", session_id: str = "",
+     tool_call_id: str = "", turn_id: str = "", api_request_id: str = "",
+@@ -1919,6 +1953,10 @@ def _get_pre_tool_call_directive_details(
+     if allowed is not None and tool_name not in allowed:
+         fmt = getattr(_thread_tool_whitelist, "fmt", "Tool '{tool_name}' denied")
+         return _PreToolCallDirective(action="block", message=fmt.format(tool_name=tool_name))
++    missing = missing_required_plugins()
++    if missing:
++        return _PreToolCallDirective(action="block", message=(
++            f"Tool '{tool_name}' blocked: the required plugin {', '.join(missing)} is not loaded in this profile."))
+     from hermes_cli.lifecycle import invoke_hook as invoke_lifecycle_hook
+     hook_results = invoke_lifecycle_hook(
+         "pre_tool_call", tool_name=tool_name, args=args if isinstance(args, dict) else {},
+diff --git a/hermes_cli/plugins_discovery.py b/hermes_cli/plugins_discovery.py
+index ffa552531b613328c3579c5170787a138f8a6264..d55264e19fd7f5a02f856dd3df5b0f4aaaf8e605 100644
+--- a/hermes_cli/plugins_discovery.py
++++ b/hermes_cli/plugins_discovery.py
+@@ -10,6 +10,7 @@ import contextlib
+ import contextvars
+ import importlib.metadata
+ import logging
++import os
+ from dataclasses import dataclass
+ from pathlib import Path
+ from typing import Any, Dict, List, Optional, Set
+@@ -215,9 +216,20 @@ def collect_directory_manifests() -> list[PluginManifest]:
+         _scan("project", project_dir, "project")
+     else:
+         logger.debug("Project plugins disabled (set HERMES_ENABLE_PROJECT_PLUGINS=1 to enable)")
++    # Foyelle: required plugins are scanned last, so a same-named copy in a profile can't shadow them.
++    required_dir = required_plugins_dir()
++    if required_dir is not None:
++        _scan("required", required_dir, "required")
+     return manifests
+ 
+ 
++def required_plugins_dir() -> Optional[Path]:
++    """Foyelle: ``HERMES_REQUIRED_PLUGINS_DIR`` holds plugins that load in every profile whatever its config
++    says (the operator's policy). No tool runs in a profile where one of them is not loaded."""
++    raw = os.environ.get("HERMES_REQUIRED_PLUGINS_DIR", "").strip()
++    return Path(raw) if raw else None
++
++
+ def resolve_manifest_winners(manifests: list[PluginManifest]) -> dict[str, PluginManifest]:
+     """Later sources win on key collision (project > user > bundled): a same-named copy under
+     ``~/.hermes/plugins/<name>`` is the documented way to override a bundled plugin, and is logged. A flat
+@@ -279,6 +291,10 @@ def gate_manifest(
+     def _placeholder(error: Optional[str], level: int, message: str, *args, enabled: bool = False) -> ManifestGate:
+         return ManifestGate("placeholder", enabled=enabled, error=error, log=(level, message, lookup_key, *args))
+ 
++    # Foyelle: a required plugin loads whatever plugins.enabled/disabled say.
++    if manifest.source == "required":
++        return ManifestGate("load")
++
+     # Relay lifecycle is core-owned; an old plugin copy would compete for its registries.
+     if names & LEGACY_RELAY_PLUGIN_KEYS:
+         error = (
+diff --git a/hermes_cli/plugins_loader.py b/hermes_cli/plugins_loader.py
+index 16056a0930305324ae0b1449a1765844eb529b0d..64a1debb9304777cafa486cad689f22453571c26 100644
+--- a/hermes_cli/plugins_loader.py
++++ b/hermes_cli/plugins_loader.py
+@@ -581,7 +581,7 @@ class PluginLoaderMixin:
+             # Reuse a deferred platform's already-imported package so its body doesn't run twice.
+             # See #78050.
+             module = self._predeclared_modules.pop(plugin_key, None)
+-            if module is None and manifest.source in {"user", "project", "bundled"}:
++            if module is None and manifest.source in {"user", "project", "bundled", "required"}:
+                 if self._is_manifest_only_language_pack(manifest):
+                     return True  # pure pack: locales/ is the whole plugin, no register() to run
+                 module = self._load_directory_module(manifest, module_name=module_name)
+@@ -653,9 +653,10 @@ class PluginLoaderMixin:
+                                manifest.name, lang_id, locales_dir, lang_id)
+ 
+     def _runs_in_plugin_host(self, manifest: PluginManifest) -> bool:
+-        """``plugins.isolation: host`` sends every non-bundled Python plugin to the profile's host."""
++        """``plugins.isolation: host`` sends every non-bundled Python plugin to the profile's host. Foyelle: a
++        required plugin stays in-process, where it sees the session's context (cron run, origin, profile)."""
+         from hermes_cli.plugin_isolation import ISOLATION_HOST, isolation_mode
+-        return manifest.source != "bundled" and isolation_mode() == ISOLATION_HOST
++        return manifest.source not in {"bundled", "required"} and isolation_mode() == ISOLATION_HOST
+ 
+     def _plugin_host(self) -> Any:
+         """This manager's plugin host (one process per profile home), created on first use. Creation
+diff --git a/hermes_cli/web_server_app.py b/hermes_cli/web_server_app.py
+index 09230ae377f5eb5df6534dc146536ade4684da0c..154a524ab73daecb887e40c05af906ebac38c305 100644
+--- a/hermes_cli/web_server_app.py
++++ b/hermes_cli/web_server_app.py
+@@ -121,6 +121,9 @@ async def standalone_lifespan(app: "FastAPI"):
+         except Exception:
+             logger.exception("Desktop startup: orphan gateway reap failed")
+ 
++    # Foyelle: an appliance's `hermes serve` has no gateway either; HERMES_SERVE_CRON=1 fires cron jobs here,
++    # inside the process that loads the operator's required plugins.
++    if desktop_owned or os.environ.get("HERMES_SERVE_CRON") == "1":
+         cron_stop = threading.Event()
+         cron_thread = threading.Thread(
+             target=_start_desktop_cron_ticker,
+diff --git a/tests/hermes_cli/test_foyelle_required_plugins.py b/tests/hermes_cli/test_foyelle_required_plugins.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..42fcd4bb1e1236fb21da13b842309176da862d37
+--- /dev/null
++++ b/tests/hermes_cli/test_foyelle_required_plugins.py
+@@ -0,0 +1,98 @@
++"""Foyelle: required plugins (HERMES_REQUIRED_PLUGINS_DIR) load in every profile and fail closed."""
++
++from pathlib import Path
++
++import hermes_yaml as yaml
++import pytest
++
++import hermes_cli.plugins as plugins_mod
++from hermes_cli.plugins import get_pre_tool_call_block_message, missing_required_plugins
++
++GATE = """
++def _gate(tool_name, args, **kwargs):
++    if tool_name == "forbidden":
++        return {"action": "block", "message": "blocked by the policy"}
++    return None
++
++
++def register(ctx):
++    ctx.register_hook("pre_tool_call", _gate)
++"""
++
++
++def _plugin(base: Path, name: str, body: str) -> Path:
++    directory = base / name
++    directory.mkdir(parents=True, exist_ok=True)
++    (directory / "plugin.yaml").write_text(
++        yaml.safe_dump({"name": name, "version": "0.1.0", "description": name}), encoding="utf-8")
++    (directory / "__init__.py").write_text(body, encoding="utf-8")
++    return directory
++
++
++@pytest.fixture
++def required(tmp_path, monkeypatch):
++    home = tmp_path / "home"
++    home.mkdir()
++    monkeypatch.setenv("HERMES_HOME", str(home))
++    required_dir = tmp_path / "required"
++    required_dir.mkdir()
++    monkeypatch.setenv("HERMES_REQUIRED_PLUGINS_DIR", str(required_dir))
++    monkeypatch.setattr(plugins_mod, "_required_plugin_names", None)
++    return home, required_dir
++
++
++def test_a_required_plugin_loads_without_being_enabled(required):
++    home, required_dir = required
++    _plugin(required_dir, "policy", GATE)
++
++    assert missing_required_plugins() == []
++    assert get_pre_tool_call_block_message("forbidden", {}) == "blocked by the policy"
++    assert get_pre_tool_call_block_message("todo", {}) is None
++
++
++def test_config_cannot_disable_a_required_plugin(required):
++    home, required_dir = required
++    _plugin(required_dir, "policy", GATE)
++    (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"disabled": ["policy"]}}), encoding="utf-8")
++
++    assert missing_required_plugins() == []
++    assert get_pre_tool_call_block_message("forbidden", {}) == "blocked by the policy"
++
++
++def test_a_profile_copy_does_not_shadow_the_required_plugin(required):
++    home, required_dir = required
++    _plugin(required_dir, "policy", GATE)
++    _plugin(home / "plugins", "policy", "def register(ctx):\n    pass\n")
++    (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"enabled": ["policy"]}}), encoding="utf-8")
++
++    assert get_pre_tool_call_block_message("forbidden", {}) == "blocked by the policy"
++
++
++def test_every_tool_is_blocked_when_a_required_plugin_fails_to_load(required):
++    home, required_dir = required
++    _plugin(required_dir, "policy", "def register(ctx):\n    raise RuntimeError('broken')\n")
++
++    assert missing_required_plugins() == ["policy"]
++    message = get_pre_tool_call_block_message("todo", {})
++    assert message and "required plugin policy is not loaded" in message
++
++
++def test_a_required_plugin_without_a_tool_hook_counts_as_missing(required):
++    home, required_dir = required
++    _plugin(required_dir, "policy", "def register(ctx):\n    pass\n")
++
++    assert missing_required_plugins() == ["policy"]
++    assert get_pre_tool_call_block_message("todo", {})
++
++
++def test_an_empty_required_directory_blocks_everything(required):
++    assert missing_required_plugins()
++    assert get_pre_tool_call_block_message("todo", {})
++
++
++def test_no_required_directory_changes_nothing(tmp_path, monkeypatch):
++    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
++    monkeypatch.delenv("HERMES_REQUIRED_PLUGINS_DIR", raising=False)
++
++    assert missing_required_plugins() == []
++    assert get_pre_tool_call_block_message("todo", {}) is None

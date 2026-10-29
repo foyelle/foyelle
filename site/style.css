@@ -1,0 +1,115 @@
+/* foyelle.org in Foyelle's default look (Ember): the tokens, fonts, drawn edges and hard shadows
+   of canvas/src/renderer/app.css. The fonts are the canvas's own, copied in by scripts/deploy-site. */
+@font-face { font-family: "Nunito"; src: url("/fonts/Nunito.ttf") format("truetype"); font-weight: 200 1000; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gochi Hand"; src: url("/fonts/GochiHand-Regular.ttf") format("truetype"); font-display: swap; }
+
+:root {
+  color-scheme: light dark;
+  /* Day: cream paper, brown-black ink, a warm orange, and sticker yellow. */
+  --bg: #fbf6ec;
+  --panel: #ffffff;
+  --panel-2: #f8efe1;
+  --fg: #2a1e16;
+  --fg-2: #6b5a4c;
+  --fg-3: #998776;
+  --dash: #e3d3bd;
+  --edge: #2a1e16;
+  --lift: 0 3px 0 var(--edge);
+  --lift-sm: 0 2px 0 var(--edge);
+  --accent: #b23a0a;
+  --flame: #ff8a3d;
+  --flame-2: #ffa25f;
+  --sun: #ffd23f;
+  --warn-soft: #fff1c9;
+  --on-flame: #2a1e16;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .2  0 0 0 0 .1  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --font: "Nunito", "Avenir Next", "Noto Sans", system-ui, sans-serif;
+  --hand: "Gochi Hand", "Noteworthy", "Bradley Hand", var(--font);
+  --radius: 22px;
+  --edge-w: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Evening: the same paper by firelight. */
+    --bg: #1d1712;
+    --panel: #2c231c;
+    --panel-2: #352a21;
+    --fg: #f6ecdf;
+    --fg-2: #cbb9a4;
+    --fg-3: #95826f;
+    --dash: #4a3c30;
+    --edge: #e8d6c0;
+    --lift: 0 3px 0 rgba(0, 0, 0, .55);
+    --lift-sm: 0 2px 0 rgba(0, 0, 0, .55);
+    --accent: #ffa25f;
+    --warn-soft: #3b3120;
+    --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 .9  0 0 0 0 .8  0 0 0 .04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg) var(--grain);
+  color: var(--fg);
+  font: 500 18px/1.6 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 3px solid var(--flame); outline-offset: 2px; }
+a { color: var(--accent); font-weight: 700; text-underline-offset: 3px; }
+
+/* Holds the #rough filter for the drawn edges. */
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+/* A hand-drawn edge: an ink line wobbled by the #rough filter. */
+.drawn { position: relative; }
+.drawn::after {
+  content: ""; position: absolute; inset: 0; border: var(--edge-w) solid var(--edge); border-radius: inherit;
+  pointer-events: none; filter: url(#rough);
+}
+
+main { max-width: 44rem; margin: 0 auto; padding: 4.5rem 1rem 3rem; }
+
+.hero { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.5rem; }
+.hero img { width: 112px; height: auto; flex: none; transform: rotate(-4deg); }
+h1 { font: 400 4rem/1 var(--hand); margin: 0; letter-spacing: .01em; }
+.tagline { font: 400 1.6rem/1.2 var(--hand); color: var(--fg-2); margin: .35rem 0 0; transform: rotate(-1deg); }
+
+.lead { font-size: 1.2rem; margin: 0 0 1.75rem; }
+
+/* The note: a sticker-yellow card with a drawn edge, slightly tilted. */
+.note {
+  margin: 0 0 2rem; padding: 1rem 1.25rem; border-radius: var(--radius);
+  background: var(--warn-soft); color: var(--fg); box-shadow: var(--lift); transform: rotate(-.6deg);
+}
+.note strong { font-weight: 800; }
+
+.card {
+  padding: 1.25rem 1.5rem; border-radius: var(--radius); margin: 0 0 2rem;
+  background: var(--panel) var(--grain); box-shadow: var(--lift);
+}
+.card h2 { font: 400 1.7rem/1.1 var(--hand); margin: 0 0 .5rem; }
+.card p { margin: 0 0 .75rem; }
+.card p:last-child { margin-bottom: 0; }
+
+/* Buttons: an ink edge and a hard shadow; the main one is flame orange. */
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 0 0 2.5rem; }
+.btn {
+  display: inline-block; padding: .6rem 1.2rem; border-radius: 999px; text-decoration: none;
+  font-weight: 800; color: var(--fg); background: var(--panel);
+  border: var(--edge-w) solid var(--edge); box-shadow: var(--lift-sm);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn.primary { background: var(--flame); color: var(--on-flame); }
+.btn:hover { transform: translateY(-1px); box-shadow: var(--lift); }
+.btn:active { transform: translateY(2px); box-shadow: none; }
+
+footer { border-top: 2px dashed var(--dash); padding-top: 1rem; color: var(--fg-3); font-size: .9rem; }
+
+@media (max-width: 520px) {
+  main { padding-top: 2.5rem; }
+  .hero img { width: 84px; }
+  h1 { font-size: 3.2rem; }
+  .tagline { font-size: 1.25rem; }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "kiwi",
+  "slot": 0,
+  "title": "Kiwi.com flights",
+  "category": "travel",
+  "summary": "Search flights and compare prices. No account: booking happens on kiwi.com.",
+  "url": "https://mcp.kiwi.com",
+  "hosts": ["mcp.kiwi.com"],
+  "auth": { "kind": "none" },
+  "sensitivity": "public",
+  "tools": {
+    "search-flight": { "tier": "read", "egress": true },
+    "feedback-to-devs": { "hidden": true }
+  },
+  "views": { "search-flight": "flights" },
+  "new_tools": "review",
+  "reviewed": "2026-10-18",
+  "notes": "Search only. feedback-to-devs would send text to Kiwi's developers, so it is hidden. The trip searched for goes to Kiwi."
+}

@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 08:27:55 +0000
+Subject: [PATCH 04/15] foyelle: shared metrics are never transmitted
+
+resolve_send_config() always returns send=False and the default
+endpoint is empty, so nothing reaches telemetry.nousresearch.com even if
+a config sets send: true. The consent offer no longer mentions sending.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ hermes_cli/observability/shared_metrics_consent.py     | 2 +-
+ hermes_cli/observability/shared_metrics_send_config.py | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/hermes_cli/observability/shared_metrics_consent.py b/hermes_cli/observability/shared_metrics_consent.py
+index 9ab33d8b0d44afbeab02ac9337b7ca3e3901eee0..89ae2727a642424be451155c547c118377efa76a 100644
+--- a/hermes_cli/observability/shared_metrics_consent.py
++++ b/hermes_cli/observability/shared_metrics_consent.py
+@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
+ 
+ # (label, enabled, send): the offer's two answers, in the order every surface shows them.
+ OFFER_CHOICES = (
+-    ("Share with Nous", True, True),
++    ("Collect locally (never sent)", True, False),
+     ("No thanks", False, False),
+ )
+ _NO_THANKS = len(OFFER_CHOICES) - 1
+diff --git a/hermes_cli/observability/shared_metrics_send_config.py b/hermes_cli/observability/shared_metrics_send_config.py
+index 02ceae3ea85977aeb28713f175c6d4fcf14a1f1a..9d09be3f071271a04df4e4e4cbc006fd0099f896 100644
+--- a/hermes_cli/observability/shared_metrics_send_config.py
++++ b/hermes_cli/observability/shared_metrics_send_config.py
+@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
+ #: environment variable: AGENTS.md reserves HERMES_* for secrets, and an inherited variable
+ #: could silently redirect consented metrics to any host with nothing visible in config.
+ #: Tests and the staging E2E write this key into a throwaway profile instead.
+-DEFAULT_ENDPOINT = "https://telemetry.nousresearch.com/v1/telemetry"
++DEFAULT_ENDPOINT = ""  # Foyelle: no telemetry endpoint
+ 
+ _LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1", "[::1]"})
+ 
+@@ -86,4 +86,5 @@ def resolve_send_config(config: dict | None) -> SendConfig:
+         )
+         return SendConfig(enabled=enabled, send=False, endpoint=endpoint)
+ 
+-    return SendConfig(enabled=enabled, send=send_requested, endpoint=endpoint)
++    # Foyelle: metrics may be collected locally but are never transmitted.
++    return SendConfig(enabled=enabled, send=False, endpoint=endpoint)
