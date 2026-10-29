@@ -309,8 +309,15 @@ let
                                          machine.succeed("journalctl -u systemd-resolved --no-pager"))))
         print("DNS lookups:", lookups)
         # Everything in this test is reached by address, so any lookup at all is unexpected traffic
-        # (a Nous host, or background calls such as Chromium's component updater).
-        assert lookups == [], f"unexpected DNS lookups: {lookups}"
+        # (a Nous host, or background calls such as Chromium's component updater). Loopback names
+        # are the exception: resolved answers localhost and the reverse zones of 127.0.0.0/8 and
+        # ::1 itself and never forwards them (a reverse lookup of 127.0.0.1 is not traffic).
+        loopback_v6 = "1." + "0." * 31 + "ip6.arpa"
+        def local_only(name):
+            return (name in ("localhost", loopback_v6) or name.endswith(".localhost")
+                    or name.endswith(".127.in-addr.arpa"))
+        outside = [name for name in lookups if not local_only(name)]
+        assert outside == [], f"unexpected DNS lookups: {outside}"
 
         # Nothing but the model endpoint was contacted by any other process.
         counters = machine.succeed("nft list table inet egress-watch")
