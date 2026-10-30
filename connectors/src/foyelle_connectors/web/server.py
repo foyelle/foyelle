@@ -20,7 +20,7 @@ RESULTS = "ui://web/results"
 def build_server(service: WebService, *, port: int | None = None) -> FastMCP:
     server = sdk.create_server("web", INSTRUCTIONS, port=port)
     sdk.register_page(server, "results", RESULTS, "web_results.html", title="Web results",
-                      description="Search results with page previews.")
+                      description="What a web search found, with a preview of each page.")
     read = sdk.annotations(read_only=True, open_world=True)
 
     @server.tool(title="Web search", annotations=read, meta=sdk.ui_meta(RESULTS))

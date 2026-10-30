@@ -13,7 +13,7 @@ export interface MockConnection {
 
 /** The real connectors on sample data (dev/tools_host.py), when it is running. */
 export interface ToolsHost {
-  surfaces(): Promise<Array<{ server: string; uri: string; name?: string; title?: string }>>;
+  surfaces(): Promise<Array<{ server: string; uri: string; name?: string; title?: string; description?: string; service?: string | null }>>;
   resource(server: string, uri: string): Promise<{ html: string; csp: unknown }>;
   call(server: string, name: string, args: Record<string, unknown>): Promise<any>;
 }
@@ -238,8 +238,10 @@ class MockSession {
         if (this.opts.tools) return this.reply(id, { surfaces: await this.opts.tools.surfaces() });
         return this.reply(id, {
           surfaces: [
-            { server: "shell", uri: "ui://shell/status", name: "status", title: "System status", pinned: true },
-            { server: "files", uri: "ui://files/browser", name: "browser", title: "Files", pinned: false },
+            { server: "shell", uri: "ui://shell/status", name: "status", title: "System status", pinned: true,
+              description: "How the computer is doing: the model in use, the helpers and the network." },
+            { server: "files", uri: "ui://files/browser", name: "browser", title: "Files", pinned: false,
+              description: "Your documents and pictures: look inside, move things to the trash, bring back earlier versions." },
           ],
         });
       case "surface.open_resource": {
@@ -395,7 +397,12 @@ class MockSession {
         await say(outro);
       };
 
-      if (real && /file|browse|document|folder|photo|picture/.test(t) && !/share|private|online|privacy|left/.test(t)) {
+      if (/\b(cards|surfaces)\b/.test(t) && /\b(what|which|all|every|show|list|browse|see|have)\b/.test(t)) {
+        // The agent opens the card gallery (shell.open_cards); the canvas draws it from surface.list.
+        await say("Here are all the cards I can show you.");
+        await tool("mcp__shell__open_cards", {}, 300, '{"opened": true}');
+        await say("\n\nSearch for one, or open it from there.");
+      } else if (real && /file|browse|document|folder|photo|picture/.test(t) && !/share|private|online|privacy|left/.test(t)) {
         await openReal("files", "ui://files/browser", "browse", { path: "documents" }, "Here are your documents.", "\n\nPick one to look inside, edit it, or go back to an earlier version.");
       } else if (real && /(check|read|new|show|what).*\b(e-?mail|mail|inbox)\b|\bmy (e-?mail|mail|inbox)\b/.test(t) && !/send/.test(t)) {
         await openReal("email", "ui://email/inbox", "search", {}, "Let me look at your mail.", "");
@@ -632,15 +639,16 @@ const HELP = (text: string) => `You said: “${text.replace(/[\r\n]+/g, " ").sli
 
 This is the **mock harness**, so I only know a few tricks:
 
-- *show my files* opens the Files surface (try selecting and deleting a file)
-- *system status* opens a live status surface
+- *show my files* opens the Files card (try selecting and deleting a file)
+- *system status* opens a live status card
+- *what cards are there* opens the card gallery
 - *send the report to Sam* asks for an approval
 - *schedule a meeting* asks clarifying questions
 - *I need a secret* asks for a secret
 - *cancel test* asks, then withdraws the request
 - *error* reports an error, *long* prints more markdown
 
-Commands such as \`/surfaces\`, \`/pin\`, \`/dismiss\` and \`/help\` run in the canvas itself.`;
+Commands such as \`/cards\`, \`/pin\`, \`/dismiss\` and \`/help\` run in the canvas itself.`;
 
 const LONG = `## A longer answer
 

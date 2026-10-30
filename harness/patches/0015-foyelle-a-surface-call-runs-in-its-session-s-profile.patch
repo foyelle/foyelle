@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Tue, 27 Oct 2026 04:39:48 +0000
-Subject: [PATCH 15/15] foyelle: a surface call runs in its session's profile
+Subject: [PATCH 15/16] foyelle: a surface call runs in its session's profile
 
 surface.call_tool bound the session but not its
 profile, so a call the canvas made in a bot's conversation was decided

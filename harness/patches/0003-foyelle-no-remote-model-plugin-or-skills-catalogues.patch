@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:27:41 +0000
-Subject: [PATCH 03/15] foyelle: no remote model, plugin or skills catalogues
+Subject: [PATCH 03/16] foyelle: no remote model, plugin or skills catalogues
 
 The model catalogue manifest, the live plugin catalogue and the skills
 index were fetched from hermes-agent.nousresearch.com on timers. Their

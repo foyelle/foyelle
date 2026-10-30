@@ -25,7 +25,7 @@ export const COMMAND_HELP: ReadonlyArray<[string, string]> = [
   ["/pin [n|name]", "Keep a card on the side"],
   ["/unpin [n|name]", "Stop keeping it"],
   ["/dismiss [n|name]", "Close a card"],
-  ["/cards [n|name]", "Your cards, or open one (also /surfaces)"],
+  ["/cards [name]", "Every card, to search and open, or open one by name (also /surfaces)"],
   ["/new", "Start a new chat (also /clear, or the New chat button)"],
   ["/stop", "Stop what I'm doing"],
   ["/welcome", "Meet Foyelle again: your name, the look, the key"],

@@ -4,7 +4,7 @@ const root = document.getElementById("root")!;
 
 function render(view: ViewConnection, input: Record<string, unknown>): void {
   const url = typeof input.url === "string" ? input.url : "";
-  const from = typeof input.from === "string" ? input.from : "A surface";
+  const from = typeof input.from === "string" ? input.from : "A card";
   const close = el("button", { type: "button", class: "primary" }, "Close");
   close.addEventListener("click", () => {
     close.disabled = true;

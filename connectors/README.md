@@ -1,15 +1,18 @@
-# Foyelle connectors
+# Foyelle connectors (the helpers)
 
-First-party MCP servers for Foyelle. Each one is a separate process (one
-systemd unit each) speaking MCP over streamable HTTP at
-`http://127.0.0.1:<port>/mcp`, and each ships its own MCP Apps (SEP-1865)
-views as `ui://<connector>/<view>` resources (`text/html;profile=mcp-app`,
-one self-contained HTML file, no network). The contract is
+Foyelle's helpers: first-party MCP servers that run on the machine (the code
+calls them connectors; see the [glossary](../docs/architecture.md#glossary)).
+Each one is a separate process (one systemd unit each) speaking MCP over
+streamable HTTP at `http://127.0.0.1:<port>/mcp`, and each ships its own cards:
+MCP Apps (SEP-1865) views as `ui://<connector>/<view>` resources
+(`text/html;profile=mcp-app`, one self-contained HTML file, no network), each
+with a title and a one-line description that the canvas's card gallery shows.
+The bridge (`bridge/`) is the helper that reaches one online service. The contract is
 [`docs/architecture.md`](../docs/architecture.md), sections 2, 3 and 5.
 
-| Connector | Port | Tools (surface in brackets) | Views |
+| Helper | Port | Tools (card in brackets) | Cards |
 |---|---|---|---|
-| `shell` | 7300 | `status` [status], `memory_read` [memory], `memory_write`, `memory_export`, `open_accounts`, `user_name_set`, `settings_get` [settings], `settings_set`, `theme_list` [themes], `theme_get`, `theme_use`, `theme_create`, `theme_delete`, `audit_query` [audit], `privacy_today` [privacy] | `ui://shell/status`, `ui://shell/memory`, `ui://shell/settings`, `ui://shell/themes`, `ui://shell/audit`, `ui://shell/privacy` |
+| `shell` | 7300 | `status` [status], `memory_read` [memory], `memory_write`, `memory_export`, `open_accounts`, `open_cards`, `user_name_set`, `settings_get` [settings], `settings_set`, `theme_list` [themes], `theme_get`, `theme_use`, `theme_create`, `theme_delete`, `audit_query` [audit], `privacy_today` [privacy] | `ui://shell/status`, `ui://shell/memory`, `ui://shell/settings`, `ui://shell/themes`, `ui://shell/audit`, `ui://shell/privacy` |
 | `files` | 7301 | `browse` [browser], `list`, `search`, `read`, `write`, `move`, `trash`, `undo` | `ui://files/browser` |
 | `email` | 7302 | `search` [inbox], `read`, `draft` [compose], `send`, `delete_draft`, `account_status`, `account_providers`, `account_connect`, `account_disconnect` | `ui://email/inbox`, `ui://email/compose` |
 | `calendar` | 7303 | `list_events` [agenda], `get_event`, `create_event`, `update_event`, `respond_invite`, `delete_event`, `account_status`, `account_providers`, `account_connect`, `account_disconnect` | `ui://calendar/agenda` |

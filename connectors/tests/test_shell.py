@@ -175,6 +175,9 @@ async def test_end_to_end(config: ShellConfig) -> None:
             assert result.isError
             result = await session.call_tool("audit_query", {"decision": "ask", "limit": 1})
             assert result.structuredContent["entries"][0]["tool"] == "mcp_files_t5"
+            # The canvas opens the card gallery (or Accounts) when these finish; they only look.
+            assert hints(tools["open_cards"]) == (True, False, False) and hints(tools["open_accounts"]) == (True, False, False)
+            assert (await session.call_tool("open_cards", {})).structuredContent == {"opened": True}
 
 
 def test_model_key_is_saved_privately_and_never_returned(tmp_path):

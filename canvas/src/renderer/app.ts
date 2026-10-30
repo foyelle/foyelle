@@ -5,12 +5,14 @@
 import "./zod-config";
 import type { CallToolResult, ReadResourceResult } from "@modelcontextprotocol/client";
 import accountsHtml from "builtin-view:accounts";
+import cardsHtml from "builtin-view:cards";
 import type { FoyelleBridge, ShortcutName } from "../shared/bridge";
 import {
   attention, botSoul, FOYELLE, foyelleBot, parseRoster, parseRoutines, parseRuns, parseWaiting, sessionKey, whenShort,
   type Bot, type Roster, type RoutineRun, type WaitingItem,
 } from "./bot-model";
 import { avatar, BotSidebar, openBotDialog, type BotDraft } from "./bots";
+import { buildCatalog, type CardEntry, type ListedCard } from "./card-catalog";
 import { ChatLog } from "./chat";
 import { COMMAND_HELP, completions, parseCommand, type Command } from "./commands";
 import { byId, h, prefersDark } from "./dom";
@@ -73,13 +75,8 @@ interface HistoryMessage {
   display_kind?: string;
 }
 
-interface SurfaceListItem {
-  server: string;
-  uri: string;
-  name?: string;
-  title?: string;
-  pinned?: boolean;
-}
+/** A card to open by its helper and address: an entry of surface.list, or one the canvas knows. */
+type SurfaceListItem = ListedCard;
 
 interface SurfacePayload {
   surface_id?: string;
@@ -150,7 +147,7 @@ function titleFor(p: SurfacePayload): string {
     const m = /^ui:\/\/([^/]+)\/(.+)$/.exec(p.uri);
     if (m) return `${cap(m[1]!)} ${m[2]!.replace(/[-_/]+/g, " ")}`;
   }
-  return p.server ? cap(p.server) : "Surface";
+  return p.server ? cap(p.server) : "Card";
 }
 
 /** Tools whose result changes the look or the name the canvas shows. */
@@ -189,8 +186,6 @@ class Canvas {
   private busy = false;
   private tokenWarning: string | null = null;
   private lastSurfaceList: SurfaceListItem[] = [];
-  /** After /surfaces lists items: open item n when n is typed into an empty command bar. */
-  private pick: ((n: number) => void) | null = null;
   private history: string[] = [];
   private historyIndex = -1;
   private readonly ensuring = new Map<string, Promise<void>>();
@@ -494,7 +489,6 @@ class Canvas {
       this.busy = to.busy;
       this.streaming = false;
       this.activity = "";
-      this.pick = null;
       this.renderChips([], { on: [], off: [] });
       void this.loadChips();
     }
@@ -779,8 +773,9 @@ class Canvas {
           const t = splitTool(String(p.name ?? ""));
           if (t && !onlyLooks(t.tool)) this.stage.notifyServer(t.server, t.tool);
         }
-        // The agent asked to show the Accounts card (shell.open_accounts).
+        // The agent asked to show the Accounts card or the card gallery (shell.open_accounts, shell.open_cards).
         if (!(p.is_error ?? p.isError) && mcpTool(String(p.name ?? ""), ["shell"])?.tool === "open_accounts") void this.openAccounts();
+        if (!(p.is_error ?? p.isError) && mcpTool(String(p.name ?? ""), ["shell"])?.tool === "open_cards") void this.openCards();
         break;
       case "status.update":
         this.activity = typeof p.text === "string" ? p.text : "";
@@ -857,7 +852,7 @@ class Canvas {
 
   private async openSurface(p: SurfacePayload, fromTool: boolean): Promise<void> {
     if (typeof p.html !== "string" || !p.html) {
-      this.chat.notice(`A surface arrived without HTML (${p.uri ?? "unknown"}).`, "error");
+      this.chat.notice(`A card arrived empty (${p.uri ?? "unknown"}).`, "error");
       return;
     }
     const title = titleFor(p);
@@ -896,7 +891,7 @@ class Canvas {
 
   private async surfaceCallTool(key: string, params: { name: string; arguments?: Record<string, unknown> }): Promise<CallToolResult> {
     const m = this.stage.meta(key);
-    if (!m?.server) throw new Error("this surface has no server");
+    if (!m?.server) throw new Error("this card has no helper");
     if (changesPrefs(`${m.server}.${params.name}`)) setTimeout(() => void this.loadPrefs(), 500);
     return this.gw.request<CallToolResult>(
       "surface.call_tool",
@@ -913,7 +908,7 @@ class Canvas {
 
   private surfaceReadResource(key: string, params: { uri: string }): Promise<ReadResourceResult> {
     const m = this.stage.meta(key);
-    if (!m?.server) return Promise.reject(new Error("this surface has no server"));
+    if (!m?.server) return Promise.reject(new Error("this card has no helper"));
     return this.gw.request<ReadResourceResult>("surface.read_resource", { server: m.server, uri: params.uri });
   }
 
@@ -1003,6 +998,57 @@ class Canvas {
     }
   }
 
+  /** The card gallery: every card there is, to search and open (card-catalog.ts, builtin-views/cards.ts). */
+  private async openCards(): Promise<void> {
+    let cards: CardEntry[];
+    try {
+      cards = buildCatalog(await this.listSurfaces(), { helperTitles: surfaceTitles, services: this.services });
+    } catch (err) {
+      this.chat.notice(`Couldn't list the cards (${(err as Error).message}).`, "error");
+      return;
+    }
+    // Opened again, it lists the cards afresh (a service connected, a card made since).
+    const existing = this.stage.state.resolve("Cards");
+    if (existing && this.stage.meta(existing)?.uri === "foyelle://cards") await this.stage.dismiss(existing);
+    const open = async (key: string) => {
+      const card = cards.find((c) => c.key === key);
+      if (!card) throw new Error("no such card");
+      if (card.uri === "foyelle://accounts") await this.openAccounts();
+      else if (card.server) await this.openResource({ server: card.server, uri: card.uri, title: card.title });
+    };
+    try {
+      await this.stage.open({
+        title: "Cards",
+        html: cardsHtml,
+        csp: null,
+        meta: { surfaceId: null, server: null, uri: "foyelle://cards", sessionId: this.view(FOYELLE).sessionId, tool: null },
+        toolInput: { cards },
+        handlers: (key) => ({
+          callTool: async (params) => {
+            if (params.name === "close") {
+              void this.stage.dismiss(key);
+              return { content: [] };
+            }
+            if (params.name !== "card_open") throw new Error(`the card gallery cannot call ${params.name}`);
+            try {
+              await open(String(params.arguments?.key ?? ""));
+              return { content: [] };
+            } catch (err) {
+              return { content: [{ type: "text", text: `Couldn't open it (${(err as Error).message}).` }], isError: true };
+            }
+          },
+          readResource: () => Promise.reject(new Error("no resources")),
+          message: (text) => this.submitPrompt(text, "Cards"),
+          openLink: async (url) => this.prompts.showLink(url, "Cards"),
+          requestFocus: () => this.stage.focus(key),
+          requestClose: () => void this.stage.dismiss(key),
+        }),
+      });
+    } catch (err) {
+      this.chat.notice(`Couldn't open the cards (${(err as Error).message}).`, "error");
+    }
+  }
+
   /** The privacy panel: what left this computer today. */
   private openPrivacy(): void {
     void this.openResource({ server: "shell", uri: PRIVACY_URI, title: "What left your home" }).catch((e) =>
@@ -1083,33 +1129,17 @@ class Canvas {
         return;
       }
       case "surfaces": {
-        const list = cmd.ref && this.lastSurfaceList.length ? this.lastSurfaceList : await this.listSurfaces();
         if (!cmd.ref) {
-          if (!list.length) {
-            this.chat.notice("There are no cards yet.");
-            return;
-          }
-          const open = (s: SurfaceListItem) => void this.openResource(s).catch((e) => this.chat.notice((e as Error).message, "error"));
-          this.pick = (n) => {
-            const item = list[n - 1];
-            if (item) open(item);
-          };
-          this.chat.list(
-            list.length > 1 ? `Your cards · press 1–${Math.min(list.length, 9)} to open` : "Your cards · press 1 to open",
-            list.map((s) => ({
-              label: titleFor({ title: s.title, name: s.name, uri: s.uri, server: s.server } as SurfacePayload),
-              detail: s.server,
-              action: () => open(s),
-            })),
-          );
+          await this.openCards();
           return;
         }
+        const list = this.lastSurfaceList.length ? this.lastSurfaceList : await this.listSurfaces();
         const ref = cmd.ref.toLowerCase();
         const item = /^\d+$/.test(ref)
           ? list[Number(ref) - 1]
           : list.find((s) => [s.title, s.name, s.uri, s.server].some((v) => v?.toLowerCase() === ref)) ??
             list.find((s) => [s.title, s.name, s.uri].some((v) => v?.toLowerCase().includes(ref)));
-        if (!item) throw new Error(`No card called “${cmd.ref}”. Type /cards for the list.`);
+        if (!item) throw new Error(`No card called “${cmd.ref}”. Type /cards to see them all.`);
         await this.openResource(item);
         return;
       }
@@ -1149,7 +1179,6 @@ class Canvas {
       const value = this.input.value;
       const cmd = parseCommand(value);
       if (cmd.kind === "empty") return;
-      this.pick = null; // a new command ends the pick from the last list
       this.history.push(value);
       this.historyIndex = -1;
       this.input.value = "";
@@ -1174,11 +1203,6 @@ class Canvas {
     this.input.addEventListener("focus", () => this.updateEmber());
     this.input.addEventListener("blur", () => this.updateEmber());
     this.input.addEventListener("keydown", (e) => {
-      if (this.pick && this.input.value === "" && /^[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        this.pick(Number(e.key));
-        return;
-      }
       if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
         e.preventDefault();
         void submit();
@@ -1398,7 +1422,6 @@ class Canvas {
         this.chat.notice("I didn't catch that. Hold the microphone and try again?");
         return;
       }
-      this.pick = null;
       await this.submitPrompt(text);
     } catch (err) {
       this.activity = "";
@@ -1481,7 +1504,6 @@ class Canvas {
 
   private startClock(): void {
     byId("new-chat").addEventListener("click", () => {
-      this.pick = null;
       void this.newSession(true).catch((e) => this.chat.notice((e as Error).message, "error"));
       this.input.focus();
     });
@@ -1505,7 +1527,6 @@ class Canvas {
     for (const text of SUGGESTIONS) {
       const chip = h("button", { type: "button", class: "home-chip" }, text);
       chip.addEventListener("click", () => {
-        this.pick = null;
         void this.submitPrompt(text).catch((e) => this.chat.notice((e as Error).message, "error"));
       });
       chips.append(chip);

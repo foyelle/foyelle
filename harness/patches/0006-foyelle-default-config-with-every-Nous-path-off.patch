@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:28:09 +0000
-Subject: [PATCH 06/15] foyelle: default config with every Nous path off
+Subject: [PATCH 06/16] foyelle: default config with every Nous path off
 
 Hosted connectors, the remote model catalogue, the telemetry endpoint,
 passive update checks, borrowed logins and the Nous guest identity are

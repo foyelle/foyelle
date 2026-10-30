@@ -31,7 +31,7 @@ def build_server(account: CalendarAccount | CalendarService, *, port: int | None
     cal = account
     server = sdk.create_server("calendar", INSTRUCTIONS, port=port)
     sdk.register_page(server, "agenda", AGENDA, "calendar_agenda.html", title="Agenda",
-                      description="Upcoming events and invitations.")
+                      description="Your calendar: what's coming up, and the invitations waiting for an answer.")
 
     async def run(fn: Any, /, **kwargs: Any) -> Any:
         return await anyio.to_thread.run_sync(partial(fn, **kwargs))

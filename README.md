@@ -23,12 +23,15 @@ It is built on two open-source projects and an open standard:
   before it is used and can roll back if anything goes wrong. The same configuration always builds
   the same image.
 - **[MCP](https://modelcontextprotocol.io)** (Model Context Protocol) is how the agent reaches
-  everything else. Each of Foyelle's helpers (files, mail, calendar, the web, the system) is an MCP
-  server, and so is any service you connect, so Foyelle works with the services that already speak
-  MCP instead of needing its own integrations. With [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps),
-  a server also brings its own interface: the cards on the canvas are those views, shown in a
-  sandbox, and every action on a card goes through the same policy as the agent's. They take the
-  place of apps.
+  everything else. Each of Foyelle's **helpers** (files, mail, calendar, the web, the system) is an
+  MCP server that runs on the machine. A **service** you connect (Todoist, Kiwi.com) is an online
+  MCP server, which Foyelle reaches only through a small bridge helper of its own, so Foyelle works
+  with the services that already speak MCP instead of needing its own integrations. With
+  [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps), a helper or service also brings
+  its own interface: its **cards**, shown on the canvas in a sandbox, where every action goes
+  through the same policy as the agent's. Cards take the place of apps; type `/cards`, or ask
+  "what cards are there?", to see them all. The [glossary](docs/architecture.md#glossary) has
+  these words in one place.
 
 ## Why
 

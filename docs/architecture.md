@@ -1,9 +1,10 @@
 # Foyelle architecture and contracts
 
 This file is the contract between the parts of the repository. The canvas,
-the harness patches, the connectors and the NixOS modules are built
-separately and meet only at the interfaces below. Change an interface here
-first, then in code.
+the harness patches, the helpers (`connectors/`) and the NixOS modules are
+built separately and meet only at the interfaces below. Change an interface
+here first, then in code. The words are the ones of the [glossary](#glossary)
+at the end.
 
 The whole system:
 
@@ -15,14 +16,14 @@ cage (kiosk) ── canvas (Electron, MCP Apps host) ──ws──▶ harness (
                                        config repo ──▶ apply helper (root) ──▶ switch, health check, rollback
 ```
 
-The canvas, the harness and the connectors:
+The canvas, the harness and the helpers:
 
 ```
 canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──▶  harness (hermes serve, user foyelle-harness)
                                                                               │
                                      MCP streamable HTTP, http://127.0.0.1:73xx/mcp (nftables: harness uid only)
                                                                               ▼
-                                   connectors (one systemd unit each, DynamicUser, egress proxy)
+                                   helpers (connectors: one systemd unit each, DynamicUser, egress proxy)
 ```
 
 ## 1. Canvas ↔ harness
@@ -51,7 +52,9 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
   `tool.start {tool_id, name, args}`, `tool.complete {tool_id, name, summary,
   result_text}`, `status.update {kind, text}`, `error {message}`.
 
-### Surface methods and events (added by the fork, patch `surfaces`)
+### Card methods and events (added by the fork, patch `surfaces`)
+
+The code calls a card a *surface*: the methods, events and fields below keep that name.
 
 - **Event `surface.open`.** Emitted after any MCP tool call whose tool
   declares `_meta.ui.resourceUri` (or the legacy `_meta["ui/resourceUri"]`).
@@ -62,10 +65,14 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
    "tool_input": {…}, "tool_result": {"content": […], "structuredContent": {…}, "isError": false}}
   ```
 - **RPC `surface.list {}`** returns
-  `{"surfaces": [{"server", "uri", "name", "title", "pinned": bool}]}`. It
-  lists every `ui://` resource the connected MCP servers expose, so the
-  canvas can open system surfaces (status, memory, settings, audit) without a
-  tool call.
+  `{"surfaces": [{"server", "uri", "name", "title", "description", "service", "pinned": bool}]}`.
+  It lists every `ui://` resource the connected MCP servers expose, so the
+  canvas can open cards (status, memory, settings, audit) without a tool
+  call. `title` and `description` are the resource's own: the card's name
+  and, in one line, what it shows (the card gallery shows both).
+  `service` is the online service the card belongs to, from the resource's
+  `_meta.foyelle.service`, which a bridge sets (null otherwise); `pinned`
+  comes from `_meta.foyelle.pinned`.
 - **RPC `surface.open_resource {server, uri, session_id?}`** returns the same
   payload as the `surface.open` event, without `tool_*` fields.
 - **RPC `surface.call_tool {session_id?, surface_id, server, name, arguments}`**
@@ -74,12 +81,12 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
   from the model. The audit log records it with `origin: "surface"`.
 - **RPC `surface.read_resource {server, uri}`** returns `{contents: [...]}`.
 
-### Canvas rules for surfaces
+### Canvas rules for cards
 
-- A surface renders in an `<iframe sandbox="allow-scripts">` with no
+- A card renders in an `<iframe sandbox="allow-scripts">` with no
   `allow-same-origin`, so it has an opaque origin. Its `src` is
   `foyelle-surface://<surface_id>/`, a custom protocol the canvas serves
-  with a per-surface Content-Security-Policy built from `csp`. The default
+  with a per-card Content-Security-Policy built from `csp`. The default
   is `default-src 'none'; script-src 'unsafe-inline'; style-src
   'unsafe-inline'; img-src data:`.
 - The canvas speaks MCP Apps (SEP-1865) to the iframe with
@@ -87,15 +94,26 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
   `oncalltool` → `surface.call_tool`, `onreadresource` →
   `surface.read_resource`, `onmessage` → `prompt.submit`, `onopenlink` → an
   approval card (no browser in the alpha, so links are shown, not opened).
+- **Foyelle's own cards** (approvals, questions, secrets, links, Accounts
+  and the card gallery) are built-in views of the canvas
+  (`canvas/src/renderer/builtin-views/`), shown through the same sandboxed
+  frame and MCP Apps bridge. The card gallery (`/cards`, or the agent's
+  `shell.open_cards`) lists `surface.list` plus the canvas's own cards, with
+  a search over the title, the description and where the card comes from.
+  Its previews are drawings per kind of card, not screenshots: a screenshot
+  would show sample data as the person's own, or need every card opened (and
+  its tool run) just to browse, and cards change after the build and with the
+  theme.
 
-## 2. Harness ↔ connectors
+## 2. Harness ↔ helpers
 
-- Each connector is an MCP server speaking streamable HTTP at
+- Each helper (a *connector* in the code: `connectors/`, `foyelle-connector-<name>`,
+  the policy's `connectors`) is an MCP server speaking streamable HTTP at
   `http://127.0.0.1:<port>/mcp`.
 
-  | Connector | Port | Sensitivity | Egress hosts |
+  | Helper | Port | Sensitivity | Egress hosts |
   |---|---|---|---|
-  | `shell` (status, memory, settings, audit surfaces) | 7300 | private | none |
+  | `shell` (status, memory, settings, audit cards) | 7300 | private | none |
   | `files` | 7301 | private | none |
   | `email` | 7302 | private | the configured IMAP and SMTP hosts |
   | `calendar` | 7303 | private | the configured CalDAV host |
@@ -104,34 +122,36 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
 
 - The harness registers them as `mcp_servers.<name>.url`, so the tools reach
   the model as `mcp__<name>__<tool>` (Hermes's MCP registry names).
-- A tool that has a surface sets `_meta.ui.resourceUri = "ui://<connector>/<view>"`.
+- A tool that has a card sets `_meta.ui.resourceUri = "ui://<helper>/<view>"`.
   The resource has MIME type `text/html;profile=mcp-app` and is a single
-  self-contained HTML file. Surface HTML uses the MCP Apps `App` API from an
+  self-contained HTML file, with a `title` and a one-line `description` of
+  what the card shows. Card HTML uses the MCP Apps `App` API from an
   inlined script (no network).
 - Tools set the standard annotations (`readOnlyHint`, `destructiveHint`,
-  `openWorldHint`). The connectors' tiers are **not** trusted from the
-  connector itself: the policy lives in `/etc/foyelle/policy.json`, generated
+  `openWorldHint`). The helpers' tiers are **not** trusted from the
+  helper itself: the policy lives in `/etc/foyelle/policy.json`, generated
   by the NixOS module (§3).
-- Configuration reaches a connector through environment variables and
+- Configuration reaches a helper through environment variables and
   credentials through `$CREDENTIALS_DIRECTORY/<name>` (systemd
   `LoadCredential=`). Outbound HTTP goes through `$HTTPS_PROXY`/`$HTTP_PROXY`.
-  IMAP and SMTP connect directly to the hosts the connector unit's
+  IMAP and SMTP connect directly to the hosts the helper unit's
   `IPAddressAllow=` permits (resolved at unit start).
 - **Bridges** (`nixos/modules/bridges.nix`, `connectors/…/bridge`): a service's
   own MCP server (an entry of Hermes's `optional-mcps/` catalogue) is reached
-  only through a local bridge connector on ports 7320–7329, egress proxy
+  only through a local bridge helper on ports 7320–7329, egress proxy
   `127.0.1.20`–`29`. The bridge passes through only the tools the module names
   (renamed `search-flight` → `search_flight`), every one marked untrusted, and
   hides the rest. A service with an account signs in from the Accounts card
   (MCP OAuth: discovery, dynamic registration, PKCE, the resource parameter)
   in the sign-in browser, on the sign-in page pinned in the module; the bridge
   keeps the tokens in its own state directory and tells the harness to re-read
-  its tools (`tools/list_changed`). Account tools are surface-only, and the
+  its tools (`tools/list_changed`). Account tools are card-only, and the
   one-time code is a secret argument. The bridge keeps one MCP session per
   service open (closed after fifteen idle minutes), and keeps the service's tool
   list in its state directory so the harness's listing at start is answered
   at once; a service's exact JSON copy of its structured result is dropped so
-  cards get the data.
+  cards get the data. The bridge's cards (Foyelle's, for the service's results)
+  carry the service's name in `_meta.foyelle.service`.
 
 ## 3. Policy file (`/etc/foyelle/policy.json`)
 
@@ -155,18 +175,18 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
 
 - **Tiers.** `read` → allow, logged. `reversible` → allow, logged.
   `outbound` (irreversible or outbound) → ask every time. `system` → ask,
-  and the System surface shows the review.
+  and the System changes card shows the review.
 - **Untrusted content.** After a tool marked `untrusted` returns in a
   session, every tool marked `egress` or tier `outbound` in that session is
   asked about, whatever its tier. A card's own call (origin `surface`, the
   person clicking in Foyelle's card) is not asked about taint; a card the
   agent made (origin `workshop`) is, like the model.
-- **Private routing.** A call to a tool of a `private` connector is allowed
+- **Private routing.** A call to a tool of a `private` helper is allowed
   without asking only while the session's model endpoint is one of
   `local_model_base_urls`. Otherwise it is asked about once per session (the
   approval's `session` choice).
 - **Unknown tools** (not in the file) get `default_tier`.
-- **Built-in Hermes tools** are not connectors. The harness disables every
+- **Built-in Hermes tools** are not helpers. The harness disables every
   built-in toolset that reaches files, network or processes (terminal, file,
   web, browser, code execution, delegation); memory, skills, todo and
   clarify stay.
@@ -178,17 +198,17 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
   `{"ts", "session_id", "tool", "connector", "args_digest", "decision":
   "allow"|"ask"|"deny", "approval": "once"|"session"|"always"|"deny"|null,
   "status", "duration_ms", "origin": "model"|"surface", "tainted": bool}`.
-- The `shell` connector serves it read-only as the Audit surface.
+- The `shell` helper serves it read-only as the Audit log card.
 
 ## 5. System changes (M4)
 
 - **Config repo:** `/var/lib/foyelle/config` (a git flake). The `system`
-  connector owns it.
+  helper owns it.
 - **Propose:** commit to branch `proposal/<id>`.
 - **Build:** `nix build <repo>#nixosConfigurations.<host>.config.system.build.toplevel`
   without switching.
 - **Review:** `nvd diff /run/current-system <result>`.
-- **Apply:** the connector writes the approved commit hash to the apply
+- **Apply:** the `system` helper writes the approved commit hash to the apply
   helper's socket `/run/foyelle/apply.sock`. The helper (root, separate unit)
   accepts only `{"commit": "<40 hex>", "approval_token": "…"}` for a commit
   that `system` built and the user approved. The approval token is created
@@ -222,13 +242,13 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
     because it expects to pull from its online registry.
   - A host `nixos/hosts/metal.nix` enables the module and points `baseUrl`
     and `host` at that loopback address; nftables lets only the harness's uid
-    connect to it, as for connectors (§2). `alpha-vm.nix` keeps the Mac.
+    connect to it, as for helpers (§2). `alpha-vm.nix` keeps the Mac.
   - The GPU backend depends on the hardware: Vulkan on x86 (AMD, Intel, NVIDIA
     with open drivers) is the portable default; CUDA is faster on NVIDIA but
     needs the unfree driver and a larger image; CPU only is the fallback, for
     small models. Linux on Apple Silicon (Asahi) has a Vulkan driver, not
     Metal, and does not run on M3 or M4 machines yet.
-  - The model shares memory with the OS, the canvas and the connectors: about
+  - The model shares memory with the OS, the canvas and the helpers: about
     a 4B model on 16 GB, `qwen3.5:9b` on 32 GB.
 
 ## 7. Nous Research services
@@ -269,3 +289,23 @@ canvas (Electron, kiosk user)  ──ws://127.0.0.1:9119/api/ws?token=…──�
 - **CI.** The egress guard allows Nous URLs only inside code gated by
   `FOYELLE_NOUS`, and the egress VM test runs twice: with the option off (no
   packet to a Nous host) and on (only the allowlisted Nous hosts).
+
+## Glossary
+
+The canvas, the docs and the site use these words. Some code is older than them, so its names
+differ: the last column says what to look for.
+
+| Word | What it is | In the code |
+|---|---|---|
+| **Canvas** | The one full-screen program on screen: the bots, the chat and the cards. | `canvas/` |
+| **Harness** | The agent: Hermes with Foyelle's patches and policy plugin. It talks to the model and calls the helpers' tools. | `harness/`, `hermes serve` |
+| **Helper** | An MCP server that runs on this computer, each in its own sandboxed unit: files, mail, calendar, web, system, shell, workshop, and any a machine adds. | connector: `connectors/`, `foyelle-connector-<name>`, the policy's `connectors` |
+| **Service** | An online MCP server that someone else runs (Todoist, Kiwi.com), picked from the services directory. Foyelle never reaches it directly, only through its bridge. | `services/directory/`, `FOYELLE_SERVICES` |
+| **Bridge** | The helper that reaches one service: it keeps the sign-in on this computer, passes through only the reviewed tools, and shows Foyelle's cards for their results. | `connectors/…/bridge`, `bridges.nix` |
+| **Tool** | One thing a helper or service can do, for the agent or for one of its cards, with a tier in the policy. | MCP tool |
+| **Card** | What a helper or service shows on the canvas: an MCP App view in a sandboxed frame. The canvas has its own too (approvals, Accounts, the card gallery). | surface: `ui://` resources, `surface.*`, `foyelle-surface://`, `canvas/src/renderer/surfaces.ts` |
+| **Bot** | Another assistant with its own name, profile and helpers ([bots](bots.md)). | a Hermes profile |
+
+So a helper shows a card, and a service shows one through its bridge; the agent calls tools. The
+*apply helper* (`system/apply-helper/`) is not a helper in this sense: it is the one privileged
+program, which switches the system to an approved change (§5).

@@ -33,9 +33,9 @@ def build_server(account: MailAccount | EmailService, *, port: int | None = None
     mail = account
     server = sdk.create_server("email", INSTRUCTIONS, port=port)
     sdk.register_page(server, "inbox", INBOX, "email_inbox.html", title="Mail",
-                      description="Search and read mail.")
+                      description="Your mail: search it and read it.")
     sdk.register_page(server, "compose", COMPOSE, "email_compose.html", title="Compose",
-                      description="Review and edit a draft, then send it.")
+                      description="A letter Foyelle drafted for you: read it, change it, then send it.")
 
     async def run(fn: Any, /, **kwargs: Any) -> Any:
         return await anyio.to_thread.run_sync(partial(fn, **kwargs))

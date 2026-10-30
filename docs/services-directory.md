@@ -1,5 +1,9 @@
 # Services directory
 
+Words as in the [glossary](architecture.md#glossary): a **service** is an online MCP server, a
+**helper** an MCP server on this computer, a **bridge** the helper that reaches one service, and a
+**card** what a helper shows on the canvas.
+
 Status: built and checked on the dev VM (October 2026): connecting and disconnecting a service
 at runtime, a real conversation loading a service with `use_service`, and the sign-in filter. Where the build differs from the plan, the section says so under
 "As built".
@@ -7,8 +11,9 @@ at runtime, a real conversation loading a service with `use_service`, and the si
 Claude, ChatGPT/Codex and Grok let people add a service in two taps: pick it from a directory,
 sign in, done. They reach the same kind of remote MCP servers Foyelle bridges (Todoist, Notion,
 Kiwi…), but from their own cloud, where the tokens live and where the model sees everything the
-service returns. Foyelle keeps the connection on the machine: each service runs behind a local
-bridge helper with its own sandbox and egress proxy, the token stays on the machine, and every tool
+service returns. Foyelle keeps the connection on the machine: each service (an online MCP server)
+runs behind a local bridge helper (an MCP server on the machine) with its own sandbox and egress
+proxy, the token stays on the machine, and every tool
 has a Foyelle tier. That model stays. What changes is how a service gets there.
 
 Today a service is a hand-written Nix entry in `nixos/modules/bridges.nix` (URL, hosts, sign-in
@@ -21,7 +26,7 @@ The plan, in five parts:
 2. **A runtime bridge host** starts and stops a service's helper when the person connects or
    disconnects it, without a rebuild, and keeps today's per-service sandbox and proxy.
 3. **Tiers from tool hints** cover tools the review didn't list.
-4. **Connectors per conversation**: only the services a conversation needs are offered to the
+4. **Services per conversation**: only the services a conversation needs are offered to the
    model.
 5. **Add by URL is a system change**: a service outside the directory goes through Foyelle's
    reviewed proposal loop, because it opens a new outside host.
@@ -83,7 +88,7 @@ it's created: at connect time, not at build time.
   tinyproxy with a default-deny filter generated from the entry's `hosts`. Addresses come from the
   entry's index (`127.0.1.<index>`), ports from a reserved range.
 - **Enabling is a setting, not a rebuild**: the Services card writes the person's choice to
-  `/var/lib/foyelle/services/enabled.json` (through the shell helper, a surface-only tool). A
+  `/var/lib/foyelle/services/enabled.json` (through the shell helper, a card-only tool). A
   root `systemd.path` unit watches that file and runs a small sync oneshot. That's the pattern
   `foyelle-canvas-settings` already uses. The sync starts and stops template instances only for
   ids that exist in the shipped directory; anything else in the file is ignored.
@@ -100,8 +105,8 @@ it's created: at connect time, not at build time.
 
 As built, simpler than planned:
 
-- Instead of template units, every directory service is an ordinary Foyelle connector, built at
-  build time but not started at boot (`autoStart = false` in connectors.nix). Same hardening,
+- Instead of template units, every directory service's bridge is an ordinary Foyelle helper (a
+  connector unit), built at build time but not started at boot (`autoStart = false` in connectors.nix). Same hardening,
   same proxy, nothing new to audit.
 - `foyelle-services-sync` (bridges.nix) watches the shell helper's `services.json` and starts or
   stops `foyelle-connector-<id>` and `foyelle-egress-<id>` for directory ids only. It also runs at
@@ -115,7 +120,7 @@ As built, simpler than planned:
   directory service's sign-in page, because its policies are fixed when it is built; the proxy is
   what keeps a service that isn't connected closed.
 - Tools whose results hold nothing about the person (`use_service`, the theme tools) are marked
-  `public` in the policy, so a private connector doesn't ask to share "settings and memories"
+  `public` in the policy, so a private helper doesn't ask to share "settings and memories"
   for them.
 
 Alternatives considered:
@@ -150,11 +155,12 @@ As built: harness patch 0013 keeps each MCP tool's boolean hints; the policy plu
 (`decide(..., hints=)`) applies the table above to services marked `by_hint`, and the approval
 card has words for the "unreviewed" kind.
 
-## 4. Connectors per conversation
+## 4. Services per conversation
 
 Every tool's description goes to the model on every turn. With mail, calendar, files, web, shell
 and five services, that's a lot of text, and it's part of why the model feels slow. Claude lets a
-person switch connectors per conversation; Foyelle should, and should do most of it for them.
+person switch connectors (Claude's word for services) per conversation; Foyelle should, and should
+do most of it for them.
 
 - **A short default**: Foyelle's own helpers plus the services the person used recently or
   mentioned. The others are listed by name only, in one line of the system prompt ("also
@@ -194,7 +200,7 @@ card:
 As built: `system.propose_service` writes the entry into the config repo's `services.json`, which
 belongs to the person like `configuration.nix`; the release-owned flake imports it when present.
 These services use their own slots (port 7340 + slot, proxy 127.0.1.<110 + slot>), clear of the
-directory's and of connectors written for the machine (7400+, .40+). The proposal can't probe the
+directory's and of helpers written for the machine (7400+, .40+). The proposal can't probe the
 service (the system helper has no network), so the agent finds the hosts and sign-in page in the
 service's documentation, and the person sees them in the proposal.
 
@@ -205,7 +211,7 @@ service's documentation, and the person sees them in the proposal.
 2. Template units, the sync oneshot and the Services card: connecting without a rebuild.
 3. The services gateway and the policy plugin's per-service mapping.
 4. Tiers from hints, with the once-per-conversation question.
-5. Connectors per conversation: chips, the short default, `use_service`.
+5. Services per conversation: chips, the short default, `use_service`.
 6. Add by URL through the system loop.
 7. A published Foyelle OAuth client document (Client ID Metadata Document), so services that
    support it need no per-machine registration. Dynamic registration stays the fallback. Built:
@@ -228,6 +234,7 @@ service's documentation, and the person sees them in the proposal.
   tools.
 - **The first directory**: from Hermes's catalogue, the everyday ones (Todoist, Notion, Dropbox,
   Kiwi, trivago, Strava, AllTrails, Wolfram). Which of them have tool annotations already?
-- **Cards**: services return data; Foyelle draws the cards. Should a service's own MCP App be
+- **Cards**: services return data; their bridge shows Foyelle's cards for it, which the card
+  gallery lists under "Online services" with the service's name. Should a service's own MCP App be
   shown when Foyelle has no card for it (sandboxed as now, with its CSP), or only Foyelle's?
 - **Tokens on disconnect**: delete them, or keep them so reconnecting skips sign-in?

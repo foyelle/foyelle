@@ -23,10 +23,16 @@ def register_view(
     *,
     title: str | None = None,
     description: str | None = None,
+    service: str | None = None,
 ) -> None:
-    """Expose ``html`` as a ``ui://`` resource with the MCP App MIME type."""
+    """Expose ``html`` as a ``ui://`` resource with the MCP App MIME type.
+
+    ``title`` and ``description`` are what the canvas's card gallery shows: the card's name and,
+    in one line, what it shows. ``service`` names the online service the card belongs to, for a
+    bridge helper's cards (``_meta.foyelle.service``)."""
     if not uri.startswith("ui://"):
         raise ValueError(f"view URI must use the ui:// scheme: {uri}")
+    meta = {**_RESOURCE_META, "foyelle": {"service": service}} if service else _RESOURCE_META
     server.add_resource(
         TextResource(
             uri=uri,
@@ -35,7 +41,7 @@ def register_view(
             description=description,
             mime_type=RESOURCE_MIME_TYPE,
             text=html,
-            meta=_RESOURCE_META,
+            meta=meta,
         )
     )
 
@@ -48,9 +54,11 @@ def register_page(
     *,
     title: str,
     description: str | None = None,
+    service: str | None = None,
 ) -> None:
     """Render ``ui/views/<view_file>`` with the shared runtime and register it."""
-    register_view(server, name, uri, render_page(title, view_file), title=title, description=description)
+    register_view(server, name, uri, render_page(title, view_file), title=title, description=description,
+                  service=service)
 
 
 def register_html_page(
