@@ -10,9 +10,11 @@ const recording = JSON.parse(readFileSync(path.join(demo, "recording.json"), "ut
 const tools = () => new RecordedTools(recording, async (file) => readFileSync(path.join(demo, "cards", file), "utf8"));
 const json = (r: any) => JSON.parse(r.content[0].text);
 
+const headersFile = path.join(__dirname, "..", "..", "site", "_headers");
+
 /** The headers site/_headers gives one exact rule. */
 function siteHeaders(rule: string): Record<string, string> {
-  const lines = readFileSync(path.join(__dirname, "..", "..", "site", "_headers"), "utf8").split("\n");
+  const lines = readFileSync(headersFile, "utf8").split("\n");
   const out: Record<string, string> = {};
   for (let i = lines.indexOf(rule) + 1; i > 0 && i < lines.length && /^\s+\S/.test(lines[i]!); i++) {
     const line = lines[i]!.trim();
@@ -21,7 +23,8 @@ function siteHeaders(rule: string): Record<string, string> {
   return out;
 }
 
-describe("the web demo's policies (site/_headers)", () => {
+// The canvas package (nixos/pkgs/canvas.nix) builds from canvas/ alone; CI checks out the whole repository.
+describe.skipIf(!existsSync(headersFile))("the web demo's policies (site/_headers)", () => {
   it("gives the canvas page the canvas's policy, and no framing", () => {
     expect(siteHeaders("/demo/")["Content-Security-Policy"]).toBe(
       `${buildCanvasCsp({ connect: ["'self'"], frame: ["'self'"] })}; frame-ancestors 'none'`,
