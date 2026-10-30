@@ -111,6 +111,12 @@ async function run(browserType, size) {
     await pause(800);
     await shot("home");
 
+    // What the morning routine left waiting: approved, it runs, and the box goes.
+    await view("chat");
+    await page.locator("#waiting").getByRole("button", { name: "Approve" }).click();
+    await shown("Done: Add candles to the shopping list");
+    await page.locator("#waiting").waitFor({ state: "hidden" });
+
     // A card from the Files helper, opened down to a folder.
     await say("What's in my documents?");
     await shown("Here are your documents.");
