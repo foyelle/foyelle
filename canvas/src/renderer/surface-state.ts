@@ -99,14 +99,14 @@ export class SurfaceState {
       return this.focus(key);
     }
     const t = ++this.clock;
-    this.entries.set(key, { key, title: title || "Surface", pinned: false, pinnedAt: 0, lastFocusedAt: t, openedAt: t });
+    this.entries.set(key, { key, title: title || "Card", pinned: false, pinnedAt: 0, lastFocusedAt: t, openedAt: t });
     this._focused = key;
     return { ok: true, evicted: this.evict() };
   }
 
   focus(key: string): Change {
     const e = this.entries.get(key);
-    if (!e) return { ok: false, error: "no such surface", evicted: [] };
+    if (!e) return { ok: false, error: "no such card", evicted: [] };
     e.lastFocusedAt = ++this.clock;
     this._focused = key;
     return { ok: true, evicted: this.evict() };
@@ -117,7 +117,7 @@ export class SurfaceState {
     if (!e) return { ok: false, error: "nothing to pin", evicted: [] };
     if (e.pinned) return { ok: true, evicted: [] };
     if (this.pinned().length >= this.maxPinned) {
-      return { ok: false, error: `at most ${this.maxPinned} pinned surfaces; unpin one first`, evicted: [] };
+      return { ok: false, error: `at most ${this.maxPinned} cards can be kept; let one go first`, evicted: [] };
     }
     e.pinned = true;
     e.pinnedAt = ++this.clock;

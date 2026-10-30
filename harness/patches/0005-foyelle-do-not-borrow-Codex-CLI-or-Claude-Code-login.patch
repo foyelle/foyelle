@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:27:55 +0000
-Subject: [PATCH 05/15] foyelle: do not borrow Codex CLI or Claude Code logins
+Subject: [PATCH 05/16] foyelle: do not borrow Codex CLI or Claude Code logins
  by default
 
 adopt_external_logins_enabled() now defaults to False, including when

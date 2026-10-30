@@ -95,6 +95,7 @@ in
           memory_read = read;
           memory_export = read;
           open_accounts = read;
+          open_cards = read;
           memory_write = reversible;
           user_name_set = reversible;
           settings_get = read;

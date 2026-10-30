@@ -29,6 +29,7 @@ export function describeTool(name: string, args: unknown): Said {
     "shell.memory_write": { label: "Updating what I remember" },
     "shell.memory_export": { label: "Exporting what I remember" },
     "shell.open_accounts": { label: "Opening Accounts" },
+    "shell.open_cards": { label: "Opening your cards" },
     // Services through their bridges.
     "kiwi.search_flight": { label: "Looking for flights" },
     "todoist.account_status": { label: "Checking Todoist" },

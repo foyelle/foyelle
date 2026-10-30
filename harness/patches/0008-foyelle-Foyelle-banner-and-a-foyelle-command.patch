@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:28:52 +0000
-Subject: [PATCH 08/15] foyelle: Foyelle banner and a foyelle command
+Subject: [PATCH 08/16] foyelle: Foyelle banner and a foyelle command
 
 The CLI banner shows the Foyelle wordmark and the package installs a
 foyelle entry point next to hermes. Internal module names, HERMES_*

@@ -1,0 +1,129 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+Date: Fri, 30 Oct 2026 09:17:46 +0800
+Subject: [PATCH 16/16] foyelle: surface.list gives each card its description
+ and service
+
+The canvas's card gallery explains every card in a line and says which
+online service it belongs to. Both come from what the helper already
+declares: the resource's description, and _meta.foyelle.service, which
+Foyelle's bridge helpers set on the cards of the service they reach.
+surface.list now passes them through (description defaults to "", service
+to null), and the generated contract is regenerated.
+
+Signed-off-by: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
+---
+ apps/shared/src/gateway-contract.generated.ts |  2 ++
+ apps/shared/src/gateway-contract.openrpc.json | 17 ++++++++++++++++
+ tests/tools/test_mcp_surfaces.py              | 20 +++++++++++++++++++
+ tools/mcp_surfaces.py                         |  8 +++++++-
+ tui_gateway/contracts/surfaces.py             |  2 ++
+ 5 files changed, 48 insertions(+), 1 deletion(-)
+
+diff --git a/apps/shared/src/gateway-contract.generated.ts b/apps/shared/src/gateway-contract.generated.ts
+index a3b4289d23616af277fa0e4ded5b95ee5f85a017..230bc355e97c02ab1a059ff31222c52aab9299cc 100644
+--- a/apps/shared/src/gateway-contract.generated.ts
++++ b/apps/shared/src/gateway-contract.generated.ts
+@@ -3693,6 +3693,8 @@ export interface SurfaceEntry {
+   uri: string
+   name: string
+   title: string
++  description?: string
++  service?: string | null
+   pinned?: boolean
+ }
+ export interface SurfaceResourceParams {
+diff --git a/apps/shared/src/gateway-contract.openrpc.json b/apps/shared/src/gateway-contract.openrpc.json
+index c65c2d002986f5168eb23609a13854d94c801667..bcdfa7ced0ea68730c13d1a495f198892960d432 100644
+--- a/apps/shared/src/gateway-contract.openrpc.json
++++ b/apps/shared/src/gateway-contract.openrpc.json
+@@ -43561,6 +43561,23 @@
+             "title": "Title",
+             "type": "string"
+           },
++          "description": {
++            "default": "",
++            "title": "Description",
++            "type": "string"
++          },
++          "service": {
++            "anyOf": [
++              {
++                "type": "string"
++              },
++              {
++                "type": "null"
++              }
++            ],
++            "default": null,
++            "title": "Service"
++          },
+           "pinned": {
+             "default": false,
+             "title": "Pinned",
+diff --git a/tests/tools/test_mcp_surfaces.py b/tests/tools/test_mcp_surfaces.py
+index c71090fdbd8aa3f56600440620a1867285a52304..92205b53426955fcdb4703576af35dd88216c0da 100644
+--- a/tests/tools/test_mcp_surfaces.py
++++ b/tests/tools/test_mcp_surfaces.py
+@@ -111,6 +111,26 @@ def test_resource_payload_runs_the_surface_tool_that_needs_no_arguments(monkeypa
+     assert "tool_result" not in mcp_surfaces.resource_payload("mon", "ui://mon/detail.html", "s1")
+ 
+ 
++def test_list_surfaces_gives_each_card_its_description_and_service(monkeypatch):
++    from tools import mcp_tool, mcp_tool_loop
++
++    listed = {"resources": [
++        {"uri": "ui://files/browser", "name": "browser", "title": "Files", "description": "Browse your files."},
++        {"uri": "ui://kiwi/flights", "name": "flights", "title": "Flights", "description": "Flights found.",
++         "_meta": {"foyelle": {"service": "Kiwi.com", "pinned": True}}},
++        {"uri": "file:///notes.txt", "name": "notes"},
++    ]}
++    session = SimpleNamespace(list_resources=lambda: listed)
++    monkeypatch.setattr(mcp_tool, "_servers", {"files": SimpleNamespace(name="files", session=session)})
++    monkeypatch.setattr(mcp_tool_loop, "_run_on_mcp_loop", lambda fn, timeout=None: fn())
++    assert mcp_surfaces.list_surfaces() == [
++        {"server": "files", "uri": "ui://files/browser", "name": "browser", "title": "Files",
++         "description": "Browse your files.", "service": None, "pinned": False},
++        {"server": "files", "uri": "ui://kiwi/flights", "name": "flights", "title": "Flights",
++         "description": "Flights found.", "service": "Kiwi.com", "pinned": True},
++    ]
++
++
+ def test_resource_payload_refuses_non_ui_uris():
+     with pytest.raises(ValueError):
+         mcp_surfaces.resource_payload("files", "file:///etc/passwd")
+diff --git a/tools/mcp_surfaces.py b/tools/mcp_surfaces.py
+index b1fe19525b63437c9999d70d101aadaf5daff411..dc52b1d54a0b383109cdfaf485d29d7426170391 100644
+--- a/tools/mcp_surfaces.py
++++ b/tools/mcp_surfaces.py
+@@ -202,10 +202,16 @@ def list_surfaces() -> list[dict]:
+             if not uri.startswith("ui://"):
+                 continue
+             meta = res.get("_meta") if isinstance(res.get("_meta"), dict) else {}
++            foyelle = meta.get("foyelle") if isinstance(meta.get("foyelle"), dict) else {}
++            service = foyelle.get("service")
+             out.append({
+                 "server": name, "uri": uri, "name": str(res.get("name") or uri),
+                 "title": str(res.get("title") or res.get("name") or uri),
+-                "pinned": bool((meta.get("foyelle") or {}).get("pinned")) if isinstance(meta.get("foyelle"), dict) else False,
++                # What the card shows, in the helper's words (the resource's description), and the
++                # online service it belongs to when the helper is a bridge to one.
++                "description": str(res.get("description") or ""),
++                "service": str(service) if isinstance(service, str) and service else None,
++                "pinned": bool(foyelle.get("pinned")),
+             })
+     return out
+ 
+diff --git a/tui_gateway/contracts/surfaces.py b/tui_gateway/contracts/surfaces.py
+index fcfbd58b44765a36980b6cb9fa86227a8d0562ba..ddc55fcd359a3de2754f9dcfcb6f32b8a16e67ff 100644
+--- a/tui_gateway/contracts/surfaces.py
++++ b/tui_gateway/contracts/surfaces.py
+@@ -54,6 +54,8 @@ class SurfaceEntry(Result):
+     uri: str
+     name: str
+     title: str
++    description: str = ""
++    service: str | None = None
+     pinned: bool = False
+ 
+ 

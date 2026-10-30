@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:28:34 +0000
-Subject: [PATCH 07/15] foyelle: point update and artifact origins away from
+Subject: [PATCH 07/16] foyelle: point update and artifact origins away from
  Nous
 
 Pinned binary inputs no longer fall back to hermes-assets.nousresearch.com,

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Tue, 27 Oct 2026 03:39:34 +0000
-Subject: [PATCH 14/15] foyelle: required plugins in every profile, and cron in
+Subject: [PATCH 14/16] foyelle: required plugins in every profile, and cron in
  hermes serve
 
 HERMES_REQUIRED_PLUGINS_DIR holds plugins that load in every profile

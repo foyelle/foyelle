@@ -1,16 +1,22 @@
-# Making an instant surface
+# Making an instant card
 
-An instant surface is a view on the canvas that you write and the user sees right away: a
+Words: what the user sees on the canvas is a *card* (the code calls it a surface); an MCP server
+on this computer is a *helper* (a connector in the code); an online one is a *service*. Use these
+words with the user.
+
+An instant card is a view on the canvas that you write and the user sees right away: a
 dashboard, a list, a form. It uses tools that already exist (Files, Shell, Web, Email, Calendar,
 System); it cannot add new tools or reach the network itself. For new capabilities, write a
-connector instead (`howto("connector")`).
+helper instead (`howto("connector")`).
 
 ## Save and show it
 
 - `workshop.save(name, title, body, description)`: `name` is 1-40 lowercase letters, digits or
-  `-`; `body` is the HTML body: markup plus one `<script>`. Saving again replaces it and keeps the
+  `-`; `body` is the HTML body: markup plus one `<script>`; `description` says in one line what
+the card shows (the card gallery shows it under the title). Saving again replaces it and keeps the
   previous version (`workshop.versions`, `workshop.restore`).
-- `workshop.show(name)` opens it on the canvas. It also appears in the user's surface list.
+- `workshop.show(name)` opens it on the canvas. It also appears in the card gallery, under
+  "Made for you".
 - `workshop.read(name)` returns the body, to change it; `workshop.remove(name)` moves it to the
   workshop's trash.
 
@@ -18,13 +24,13 @@ connector instead (`howto("connector")`).
 
 The body runs in a sandbox with Foyelle's styles and the `FoyelleView` runtime. Call tools with
 `FoyelleView.run("<connector>.<tool>", args, busyText)`; it resolves with the tool's data, or
-null after showing the error. Approvals the user would see for you appear for the surface too,
-and some tools (key entry, image data) are refused to surfaces you write.
+null after showing the error. Approvals the user would see for you appear for the card too,
+and some tools (key entry, image data) are refused to cards you write.
 
 Helpers: `V.$(selector)`, `V.h(tag, attrs, ...children)` (builds elements; never build HTML from
 strings with data in them), `V.clear(el)`, `V.status(text)`, `V.fmtDate(iso)`,
 `V.fmtBytes(n)`, `V.onSubmit(form, handler)` (forms inside the sandbox need it).
-`V.start({name, load})` runs `load()` when the surface opens.
+`V.start({name, load})` runs `load()` when the card opens.
 
 ## Example: recent documents
 
@@ -57,4 +63,4 @@ strings with data in them), `V.clear(el)`, `V.status(text)`, `V.fmtDate(iso)`,
 </script>
 ```
 
-Keep surfaces small and focused, show errors through `#status`, and tell the user what you made.
+Keep cards small and focused, show errors through `#status`, and tell the user what you made.

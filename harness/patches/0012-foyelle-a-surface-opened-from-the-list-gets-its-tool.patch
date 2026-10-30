@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Mon, 19 Oct 2026 09:54:12 +0000
-Subject: [PATCH 12/15] foyelle: a surface opened from the list gets its tool's
+Subject: [PATCH 12/16] foyelle: a surface opened from the list gets its tool's
  result
 
 Many MCP Apps (the official system monitor among them) start only from

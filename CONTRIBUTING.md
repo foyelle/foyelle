@@ -21,7 +21,7 @@ Two rules keep the project user-owned:
 | `harness/patches/` | The Hermes fork as a patch series against the commit in `harness/upstream.json` |
 | `harness/plugin/` | Policy engine and audit log (a Hermes `pre_tool_call`/`post_tool_call` plugin) |
 | `canvas/` | The full-screen Electron canvas and its MCP Apps host |
-| `connectors/` | First-party MCP connectors with their surfaces: shell, files, email, calendar, web, system |
+| `connectors/` | Foyelle's helpers (MCP servers on the machine) with their cards: shell, files, email, calendar, web, system, workshop, and the bridge to online services |
 | `system/apply-helper/` | The only privileged step of an agent-driven system change |
 | `nixos/` | Flake modules, the alpha VM host, the on-device config template, VM tests |
 | `scripts/` | `harness-patches`, `egress-guard`, `nix-docker`, `utm-create`, `deploy-vm`, `host-proxy` |
@@ -30,14 +30,23 @@ Two rules keep the project user-owned:
 
 To build the image and run it in a VM, see [docs/running.md](docs/running.md).
 
-## Working on the canvas and surfaces
+## Working on the canvas and cards
+
+The words: a **helper** is an MCP server on the machine (a *connector* in the code, under
+`connectors/`); a **service** is an online MCP server, reached only through a local **bridge**
+helper; a **card** is what a helper or service shows (an MCP App view, a *surface* in the code).
+The [glossary](docs/architecture.md#glossary) has the rest. Use these words in anything people
+read (the canvas, cards' titles and descriptions, the docs); identifiers keep their names.
 
 For the look and feel there is no need for the VM. `cd canvas && npm run dev` opens the real
 canvas in an Electron window on your laptop, against a mock harness with canned conversations
-and approvals, backed by the real connectors (Files, Shell, System, Workshop) on sample data in
+and approvals, backed by the real helpers (Files, Shell, System, Workshop, mail and calendar, a
+Todoist bridge) on sample data in
 `canvas/.dev-state/` (`npm run dev -- --reset` starts it fresh). Edits to `canvas/src` reload the
 window in about a second; edits to `canvas/dev` or `connectors/` restart the mock or the tools
-host. No model and no network are involved. Needs Node 22+ and `uvx`.
+host. No model and no network are involved. Needs Node 22+ and `uvx`. Type `/cards` to see every
+card; each one's title and one-line description come from its helper (`sdk.register_page(...,
+title=, description=)`), so a new card says what it shows there.
 
 The README's demo (`docs/media/foyelle-demo.gif`) is recorded from that same setup by
 `canvas/dev/record-demo.mjs`; its header says how to run it again after the canvas changes.
