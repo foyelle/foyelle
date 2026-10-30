@@ -121,7 +121,11 @@ async function run(browserType, size) {
     await say("What's in my documents?");
     await shown("Here are your documents.");
     await view("screen");
-    await clickUntil((f) => f.getByText("documents/", { exact: true }), () => inCards((f) => f.getByText("Letters/", { exact: true }), 20));
+    // The card can open at the top or already in documents/.
+    const inDocuments = () => inCards((f) => f.getByText("Letters/", { exact: true }), 8);
+    if (!(await inDocuments().then(() => true, () => false))) {
+      await clickUntil((f) => f.getByText("documents/", { exact: true }), () => inCards((f) => f.getByText("Letters/", { exact: true }), 20));
+    }
     await clickUntil((f) => f.getByText("Letters/", { exact: true }), () => inCards((f) => f.getByText("Thank you, Rita.md"), 20));
     await shot("files");
 
