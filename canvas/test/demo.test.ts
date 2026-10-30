@@ -85,6 +85,18 @@ describe("the demo's helpers (RecordedTools)", () => {
     expect(argsKey({ b: 1, a: { d: 2, c: 3 } })).toBe('{"a":{"c":3,"d":2},"b":1}');
   });
 
+  it("runs and drops what is waiting, and keeps what it wrote", async () => {
+    const t = tools();
+    const [item] = json(await t.call("shell", "waiting_list", {})).items;
+    expect(item.summary).toBe("Add candles to the shopping list");
+    expect((await t.call(item.connector, item.tool, item.args)).isError).toBeFalsy();
+    expect(json(await t.call("files", "read", { path: item.args.path })).text).toContain("Candles");
+    expect(json(await t.call("shell", "waiting_drop", { item_id: item.id }))).toEqual({ dropped: item.id });
+    expect(json(await t.call("shell", "waiting_list", {})).items).toEqual([]);
+    expect((await t.call("shell", "waiting_drop", { item_id: item.id })).isError).toBe(true);
+    expect(json(await tools().call("files", "read", { path: item.args.path })).text).not.toContain("Candles");
+  });
+
   it("says so for a call it has no answer for", async () => {
     const r = await tools().call("files", "write", { path: "documents/x.txt", content: "hi" });
     expect(r).toEqual({ content: [{ type: "text", text: NOT_IN_DEMO }], isError: true });
