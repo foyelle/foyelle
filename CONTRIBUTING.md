@@ -14,6 +14,10 @@ Two rules keep the project user-owned:
    (`scripts/egress-guard`). A change that adds a Nous Research host, or any
    host that is not on an allowlist, fails the build.
 
+On a pull request, CI runs the unit tests, checks the harness patches and runs the egress guard. The OS
+image and the VM tests (about 25 minutes) run once it is ready to merge, in the merge queue, and on
+main; run them yourself before then with `nix flake check` (docs/running.md).
+
 ## Layout
 
 | Path | What it is |

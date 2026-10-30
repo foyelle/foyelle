@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The merge queue: a pull request that is ready to merge, tested as it will land on main.
+  merge_group:
   workflow_dispatch:
 
 permissions:
@@ -73,6 +75,10 @@ jobs:
 
   nix:
     name: Nix checks and VM tests
+    # The OS image and the VM tests take about 25 minutes, so they run once a pull request is ready
+    # to merge (in the merge queue), on main, and by hand. On a pull request's own pushes the job is
+    # skipped, which a required check counts as passed: the merge queue is what holds main to them.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     steps:
