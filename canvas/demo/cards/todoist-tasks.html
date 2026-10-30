@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks</title>
+<style>
+/* Foyelle's look for cards: warm paper, ink-edged buttons with a hard shadow, Nunito for words and
+   Gochi Hand for titles (both installed with the canvas). The canvas passes its colours and font;
+   these are the fallbacks. */
+:root {
+  color-scheme: light dark;
+  --bg: var(--color-background-primary, #ffffff);
+  --bg2: var(--color-background-secondary, #f8efe1);
+  --fg: var(--color-text-primary, #2a1e16);
+  --fg2: var(--color-text-secondary, #6b5a4c);
+  --border: var(--color-border-primary, #eadcc8);
+  --accent: var(--color-text-info, #c2410c);
+  --danger: var(--color-text-danger, #b3261e);
+  --ok: var(--color-text-success, #2f7a3a);
+  --warn: var(--color-text-warning, #8a5a00);
+  --ring: var(--color-ring-primary, #ff8a3d);
+  --flame: var(--color-background-info, #ff8a3d);
+  --on-flame: var(--foyelle-on-primary, #2a1e16);
+  --edge: var(--color-border-secondary, var(--fg));
+  --edge-w: var(--border-width-regular, 2px);
+  --lift: var(--shadow-sm, 0 2px 0 var(--edge));
+  --sun: var(--foyelle-highlight, #ffd23f);
+  --on-sun: var(--foyelle-on-highlight, #2a1e16);
+  --hot: var(--foyelle-alert, #d6331f);
+  --on-hot: var(--foyelle-on-alert, #ffffff);
+  --pill: var(--border-radius-full, 999px);
+  --tilt: var(--foyelle-tilt, 1deg);
+  --radius: var(--border-radius-md, 14px);
+  --font: var(--font-sans, "Nunito", "Avenir Next", "Noto Sans", "Noto Sans CJK SC", system-ui, sans-serif);
+  --hand: var(--foyelle-display, "Gochi Hand", "Noteworthy", "Bradley Hand", var(--font));
+  --hand-weight: var(--foyelle-display-weight, 400);
+  --hand-scale: var(--foyelle-display-scale, 1);
+  --mono: var(--font-mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--color-background-primary, #2c231c);
+    --bg2: var(--color-background-secondary, #352a21);
+    --fg: var(--color-text-primary, #f6ecdf);
+    --fg2: var(--color-text-secondary, #cbb9a4);
+    --border: var(--color-border-primary, #44372c);
+    --accent: var(--color-text-info, #ffa25f);
+    --danger: var(--color-text-danger, #ff9c8a);
+    --ok: var(--color-text-success, #9fd18e);
+    --warn: var(--color-text-warning, #f0c96b);
+    --ring: var(--color-ring-primary, #ff8a3d);
+    --lift: 0 2px 0 rgba(0, 0, 0, .55);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--color-background-primary, #2c231c);
+  --bg2: var(--color-background-secondary, #352a21);
+  --fg: var(--color-text-primary, #f6ecdf);
+  --fg2: var(--color-text-secondary, #cbb9a4);
+  --border: var(--color-border-primary, #44372c);
+  --accent: var(--color-text-info, #ffa25f);
+  --danger: var(--color-text-danger, #ff9c8a);
+  --ok: var(--color-text-success, #9fd18e);
+  --warn: var(--color-text-warning, #f0c96b);
+  --ring: var(--color-ring-primary, #ff8a3d);
+  --lift: 0 2px 0 rgba(0, 0, 0, .55);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); font: 500 14.5px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+body { padding: 12px 16px 16px; }
+h1 { font: var(--hand-weight) calc(26px * var(--hand-scale))/1.1 var(--hand); margin: 0 0 10px; }
+h2 { font-size: 14.5px; margin: 16px 0 6px; font-weight: 800; }
+p { margin: 6px 0; }
+a, .link { color: var(--accent); }
+.muted { color: var(--fg2); }
+.mono, pre, code, textarea.mono { font-family: var(--mono); font-size: 12.5px; }
+pre { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; overflow: auto; white-space: pre-wrap; word-break: break-word; max-height: 60vh; margin: 6px 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+.spacer { flex: 1; }
+button, input, select, textarea {
+  font: inherit; color: var(--fg); background: var(--bg); border: 2px solid var(--border);
+  border-radius: var(--radius); padding: 5px 11px;
+}
+button {
+  cursor: pointer; font-weight: 800; border: var(--edge-w) solid var(--edge); border-radius: var(--pill); padding: 5px 14px;
+  box-shadow: var(--lift); transition: transform .12s ease, box-shadow .12s ease;
+}
+button:hover:not([disabled]) { transform: translateY(-1px); }
+button:active:not([disabled]) { transform: translateY(2px); box-shadow: none; }
+button[aria-pressed="true"], button.on { background: var(--sun); color: var(--on-sun); }
+button.primary { background: var(--flame); color: var(--on-flame); }
+input:focus, select:focus, textarea:focus { border-color: var(--edge); outline: none; }
+button.danger { color: var(--danger); }
+button[disabled] { opacity: .5; cursor: default; }
+button.linklike { background: none; border: none; padding: 0; color: var(--accent); text-align: left; box-shadow: none; border-radius: 0; font-weight: 700; }
+button.linklike:hover, button.linklike:active { transform: none; box-shadow: none; text-decoration: underline wavy var(--flame); text-underline-offset: 3px; }
+/* Bevelled themes (Millennium): buttons shaded light to dark over their colour, plain-weight words, a glow
+   inside on hover and sunken when pressed, instead of lifting. Other themes don't set --foyelle-bevel and skip this. */
+@container style(--foyelle-bevel: on) {
+  button:not(.linklike) { background-image: var(--foyelle-shade); box-shadow: none; font-weight: 400; }
+  button:not(.linklike):hover:not([disabled]) { transform: none; box-shadow: var(--foyelle-glow); }
+  button:not(.linklike):active:not([disabled]) { transform: none; background-image: var(--foyelle-shade-pressed); }
+}
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+textarea { width: 100%; min-height: 8em; resize: vertical; }
+label { display: block; margin: 12px 0 3px; color: var(--fg2); font-size: 12.5px; font-weight: 700; }
+input[type=text], input[type=search], input:not([type]) { width: 100%; }
+.toolbar input[type=search], .toolbar input[type=text] { width: auto; flex: 1; min-width: 10em; }
+.toolbar label { display: inline-flex; gap: 6px; align-items: center; margin: 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 7px 12px; border-bottom: 1.5px dashed var(--border); vertical-align: top; }
+th { color: var(--fg2); font-weight: 800; font-size: 12.5px; }
+tr.selected td { background: var(--bg2); }
+.list { list-style: none; margin: 0; padding: 0; }
+.list > li { padding: 12px 0; border-bottom: 1.5px dashed var(--border); }
+.card { border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 14px; margin: 12px 0; background: var(--bg); }
+.badge { display: inline-block; padding: 1px 8px; border-radius: var(--pill); font-size: 12px; font-weight: 800; background: var(--bg2); color: var(--fg2); }
+.badge.ok { color: var(--ok); }
+.badge.warn { background: var(--sun); color: var(--on-sun); }
+.badge.bad { background: var(--hot); color: var(--on-hot); transform: rotate(calc(var(--tilt) * -3)); }
+.status { min-height: 1.4em; font-size: 12.5px; color: var(--fg2); margin: 6px 0; }
+.status.error { color: var(--danger); }
+.status.busy::before { content: "… "; }
+.grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; }
+.grid dt { color: var(--fg2); }
+.grid dd { margin: 0; overflow-wrap: anywhere; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+@media (max-width: 640px) { .split { grid-template-columns: 1fr; } }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pre-line { white-space: pre-line; }
+.toolbar h1 { margin: 0; }
+</style>
+<script>
+/* Foyelle view runtime: the View side of MCP Apps (SEP-1865), protocol 2026-01-26.
+ * JSON-RPC 2.0 over postMessage with window.parent. No network, no dependencies.
+ * Untrusted text is always rendered with textContent (see h()). */
+(function () {
+  "use strict";
+  var PROTOCOL_VERSION = "2026-01-26";
+  var parent = window.parent;
+  var nextId = 1;
+  var pending = new Map();
+
+  var view = {
+    hostContext: {},
+    hostCapabilities: {},
+    hostInfo: null,
+    toolInput: null,
+    onToolInput: null,
+    onToolInputPartial: null,
+    onToolResult: null,
+    onToolCancelled: null,
+    onHostContext: null,
+    onTeardown: null,
+    onChanged: null,
+  };
+
+  function post(msg) { parent.postMessage(msg, "*"); }
+
+  function request(method, params) {
+    var id = nextId++;
+    return new Promise(function (resolve, reject) {
+      pending.set(id, { resolve: resolve, reject: reject });
+      post({ jsonrpc: "2.0", id: id, method: method, params: params || {} });
+    });
+  }
+
+  function notify(method, params) {
+    post({ jsonrpc: "2.0", method: method, params: params || {} });
+  }
+
+  function respond(id, result) { post({ jsonrpc: "2.0", id: id, result: result || {} }); }
+
+  function respondError(id, code, message) {
+    post({ jsonrpc: "2.0", id: id, error: { code: code, message: message } });
+  }
+
+  function call(fn, arg) {
+    if (typeof fn !== "function") return;
+    try { fn(arg); } catch (e) { console.error(e); }
+  }
+
+  function applyHostContext(ctx) {
+    if (!ctx) return;
+    Object.assign(view.hostContext, ctx);
+    var root = document.documentElement;
+    if (ctx.theme === "light" || ctx.theme === "dark") root.setAttribute("data-theme", ctx.theme);
+    // The spec's style variables, then Foyelle's own extras (display font, highlight colours).
+    [ctx.styles && ctx.styles.variables, ctx.foyelle && ctx.foyelle.styles].forEach(function (vars) {
+      if (!vars) return;
+      Object.keys(vars).forEach(function (k) {
+        if (/^--[a-z0-9-]+$/.test(k) && typeof vars[k] === "string") root.style.setProperty(k, vars[k]);
+      });
+    });
+    if (ctx.locale) root.lang = ctx.locale;
+  }
+
+  function onMessage(event) {
+    if (event.source !== parent) return;
+    var m = event.data;
+    if (!m || m.jsonrpc !== "2.0") return;
+    if (m.method === undefined && m.id !== undefined) {
+      var p = pending.get(m.id);
+      if (!p) return;
+      pending.delete(m.id);
+      if (m.error) {
+        var err = new Error(m.error.message || "request failed");
+        err.code = m.error.code;
+        err.data = m.error.data;
+        p.reject(err);
+      } else {
+        p.resolve(m.result);
+      }
+      return;
+    }
+    var params = m.params || {};
+    if (m.id !== undefined) {
+      switch (m.method) {
+        case "ping": respond(m.id, {}); return;
+        case "ui/resource-teardown": call(view.onTeardown, params); respond(m.id, {}); return;
+        default: respondError(m.id, -32601, "Method not found: " + m.method); return;
+      }
+    }
+    switch (m.method) {
+      case "ui/notifications/tool-input":
+        view.toolInput = params.arguments || {};
+        call(view.onToolInput, view.toolInput);
+        break;
+      case "ui/notifications/tool-input-partial": call(view.onToolInputPartial, params.arguments || {}); break;
+      case "ui/notifications/tool-result": call(view.onToolResult, params); break;
+      case "ui/notifications/tool-cancelled": call(view.onToolCancelled, params); break;
+      case "ui/notifications/host-context-changed":
+        applyHostContext(params);
+        call(view.onHostContext, view.hostContext);
+        break;
+      // Foyelle: the agent changed this helper's data (added a task, saved a file): reload.
+      case "foyelle/notifications/changed": call(view.onChanged, params); break;
+      default: break;
+    }
+  }
+
+  window.addEventListener("message", onMessage);
+
+  var sizeTimer = 0;
+  function reportSize() {
+    cancelAnimationFrame(sizeTimer);
+    sizeTimer = requestAnimationFrame(function () {
+      var el = document.documentElement;
+      notify("ui/notifications/size-changed", { width: Math.ceil(el.scrollWidth), height: Math.ceil(el.scrollHeight) });
+    });
+  }
+
+  view.connect = function (appInfo) {
+    return request("ui/initialize", {
+      appInfo: appInfo,
+      appCapabilities: {},
+      protocolVersion: PROTOCOL_VERSION,
+    }).then(function (result) {
+      result = result || {};
+      view.hostInfo = result.hostInfo || null;
+      view.hostCapabilities = result.hostCapabilities || {};
+      applyHostContext(result.hostContext || {});
+      notify("ui/notifications/initialized", {});
+      if (typeof ResizeObserver === "function") new ResizeObserver(reportSize).observe(document.body);
+      reportSize();
+      return result;
+    });
+  };
+
+  /** Call a tool on this view's own MCP server, through the host (policy applies). */
+  view.callTool = function (name, args) {
+    return request("tools/call", { name: name, arguments: args || {} });
+  };
+  view.readResource = function (uri) { return request("resources/read", { uri: uri }); };
+  /** Post a user message into the chat. */
+  view.sendMessage = function (text) {
+    return request("ui/message", { role: "user", content: [{ type: "text", text: text }] });
+  };
+  view.openLink = function (url) { return request("ui/open-link", { url: url }); };
+  view.updateModelContext = function (text) {
+    return request("ui/update-model-context", { content: [{ type: "text", text: text }] });
+  };
+  /** Ask the host to save a text file for the user (ui/download-file). */
+  view.downloadFile = function (filename, text, mimeType) {
+    return request("ui/download-file", {
+      contents: [{ type: "resource", resource: { uri: "file:///" + encodeURIComponent(filename), mimeType: mimeType || "text/plain", text: text } }],
+    });
+  };
+  view.requestTeardown = function () { notify("ui/notifications/request-teardown", {}); };
+
+  /** structuredContent of a CallToolResult, or the JSON in its first text block. */
+  view.data = function (result) {
+    if (!result) return null;
+    if (result.structuredContent) return result.structuredContent;
+    var block = (result.content || []).find(function (c) { return c.type === "text"; });
+    if (!block) return null;
+    try { return JSON.parse(block.text); } catch (e) { return { text: block.text }; }
+  };
+  view.errorText = function (result) {
+    if (!result || !result.isError) return null;
+    var block = (result.content || []).find(function (c) { return c.type === "text"; });
+    return block ? block.text : "The tool returned an error.";
+  };
+
+  /* ---- small DOM helpers (textContent only; never innerHTML with data) ---- */
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        var v = attrs[k];
+        if (v === null || v === undefined || v === false) return;
+        if (k === "class") el.className = v;
+        else if (k === "text") el.textContent = v;
+        else if (k.slice(0, 2) === "on" && typeof v === "function") el.addEventListener(k.slice(2), v);
+        else el.setAttribute(k, v === true ? "" : String(v));
+      });
+    }
+    for (var i = 2; i < arguments.length; i++) append(el, arguments[i]);
+    return el;
+  }
+  function append(el, child) {
+    if (child === null || child === undefined || child === false) return;
+    if (Array.isArray(child)) { child.forEach(function (c) { append(el, c); }); return; }
+    el.appendChild(child instanceof Node ? child : document.createTextNode(String(child)));
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
+  function $(sel) { return document.querySelector(sel); }
+
+  function status(text, kind) {
+    var el = $("#status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function fmtBytes(n) {
+    if (n === null || n === undefined) return "";
+    var u = ["B", "KB", "MB", "GB", "TB"], i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return (i ? n.toFixed(1) : String(n)) + " " + u[i];
+  }
+  function fmtDate(value, opts) {
+    if (!value) return "";
+    var d = new Date(typeof value === "number" ? value * 1000 : value);
+    if (isNaN(d)) return String(value);
+    opts = Object.assign({}, opts || { dateStyle: "medium", timeStyle: "short" });
+    if (!opts.timeZone && view.hostContext.timeZone) opts.timeZone = view.hostContext.timeZone;
+    try { return d.toLocaleString(view.hostContext.locale || undefined, opts); }
+    catch (e) { return d.toISOString(); }
+  }
+
+  /**
+   * Run a tool, show progress and errors in #status, resolve with its data
+   * (or null on error).
+   */
+  function run(name, args, busy) {
+    if (busy !== null) status(busy || "Working…", "busy");
+    return view.callTool(name, args).then(function (result) {
+      var err = view.errorText(result);
+      if (err) { status(err, "error"); return null; }
+      if (busy !== null) status("");
+      return view.data(result);
+    }, function (e) {
+      status((e && e.message) || "Request failed", "error");
+      return null;
+    });
+  }
+
+  /**
+   * Start a view. options: {name, render(data, args), load(), refresh()}. refresh, when given,
+   * runs when the agent changes this helper's data (several changes in a row run it once).
+   * When the host opened the view for a tool call, the tool result is
+   * rendered; otherwise (opened from the surface list) load() fetches data.
+   */
+  view.start = function (options) {
+    var gotResult = false, refreshTimer = 0;
+    if (options.refresh) {
+      view.onChanged = function () {
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(function () { options.refresh(); }, 400);
+      };
+    }
+    view.onToolResult = function (result) {
+      gotResult = true;
+      var err = view.errorText(result);
+      if (err) { status(err, "error"); return; }
+      status("");
+      // A view without render (one that loads its own data) loads when opened by a tool too.
+      if (options.render) options.render(view.data(result), view.toolInput || {});
+      else if (options.load) options.load();
+    };
+    return view.connect({ name: options.name, version: "0.1.0" }).then(function () {
+      // A tool-driven open gets tool-input then tool-result; give them a moment.
+      var toolDriven = !!view.hostContext.toolInfo || view.toolInput !== null;
+      setTimeout(function () {
+        if (!gotResult && view.toolInput === null && options.load) options.load();
+      }, toolDriven ? 1500 : 0);
+    }, function (e) {
+      status("Could not connect to the host: " + ((e && e.message) || e), "error");
+    });
+  };
+
+  // Surfaces run in a sandbox without allow-forms, where the browser never fires "submit". Wire
+  // a form's submit button and Enter in its single-line fields to the handler instead.
+  view.onSubmit = function (form, handler) {
+    var fire = function (e) { if (e) e.preventDefault(); handler(); };
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (b) {
+      b.addEventListener("click", fire);
+    });
+    form.querySelectorAll("input").forEach(function (input) {
+      if (input.type === "submit" || input.type === "button" || input.type === "checkbox") return;
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") fire(e); });
+    });
+    form.addEventListener("submit", fire);
+  };
+
+  view.h = h;
+  view.clear = clear;
+  view.$ = $;
+  view.status = status;
+  view.run = run;
+  view.fmtBytes = fmtBytes;
+  view.fmtDate = fmtDate;
+  window.FoyelleView = view;
+})();
+</script>
+</head>
+<body>
+<style>
+  .tk-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; margin-bottom: 14px; }
+  .tk-kicker { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg2); font-weight: 600; }
+  .tk-head h1 { font-size: calc(34px * var(--hand-scale)); line-height: 1.1; margin: 2px 0 2px; }
+  .seg { display: inline-flex; border: var(--edge-w) solid var(--edge); border-radius: var(--pill); padding: 3px; background: var(--bg); box-shadow: var(--lift); }
+  .seg button { border: 0; background: none; border-radius: 999px; padding: 6px 14px; color: var(--fg2); box-shadow: none; transform: none; }
+  .seg button[aria-pressed="true"] { background: var(--sun); color: var(--on-sun); }
+  .tk-add { display: grid; grid-template-columns: minmax(0, 1fr) 11em auto; gap: 8px; padding: 10px; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--bg2); margin-bottom: 4px; }
+  .tk-add input { width: 100%; }
+  @media (max-width: 560px) { .tk-add { grid-template-columns: 1fr auto; } .tk-add .when { grid-column: 1 / -1; grid-row: 2; } }
+  .group { margin-top: 18px; }
+  .group h2 { display: flex; gap: 8px; align-items: baseline; font-size: 13px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--fg2); margin: 0 0 4px; }
+  .group h2 .n { font-weight: 500; }
+  .group.overdue h2 { color: var(--danger); }
+  .tasks { list-style: none; margin: 0; padding: 0; }
+  .task { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 2px 12px; align-items: start; padding: 10px 2px;
+    border-bottom: 1px solid var(--border); transition: opacity .25s ease; }
+  .task.done { opacity: .5; }
+  .task.done .title { text-decoration: line-through; }
+  .check { width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--pc, var(--fg2)); background: var(--pc-soft, transparent);
+    padding: 0; display: grid; place-items: center; color: var(--bg); font-size: 13px; line-height: 1; }
+  .check:hover { background: color-mix(in srgb, var(--pc, var(--fg2)) 22%, transparent); }
+  .task.done .check { background: var(--pc, var(--fg2)); }
+  .p1 { --pc: #d1453b; --pc-soft: color-mix(in srgb, #d1453b 10%, transparent); }
+  .p2 { --pc: #eb8909; --pc-soft: color-mix(in srgb, #eb8909 10%, transparent); }
+  .p3 { --pc: #246fe0; --pc-soft: color-mix(in srgb, #246fe0 10%, transparent); }
+  .title { font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
+  .notes { font-size: 13px; color: var(--fg2); margin-top: 2px; white-space: pre-line; overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--fg2); margin-top: 4px; }
+  .meta .late { color: var(--danger); font-weight: 600; }
+  .meta .soon { color: var(--ok); font-weight: 600; }
+  .chip { padding: 0 7px; border-radius: 999px; border: 1px solid var(--border); }
+  .acts { display: flex; gap: 4px; opacity: 0; transition: opacity .15s ease; }
+  .task:hover .acts, .task:focus-within .acts { opacity: 1; }
+  @media (hover: none) { .acts { opacity: 1; } }
+  .acts button { font-size: 12.5px; padding: 3px 9px; border-radius: var(--pill); }
+  .empty { padding: 28px 0; text-align: center; color: var(--fg2); }
+  .toast { position: sticky; bottom: 8px; display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: 12px;
+    padding: 8px 8px 8px 14px; border-radius: 999px; background: var(--fg); color: var(--bg); font-size: 13.5px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  .toast button { background: none; border: 0; color: inherit; font-weight: 800; text-decoration: underline; box-shadow: none; transform: none; }
+  .tk-foot { font-size: 12.5px; margin-top: 14px; }
+</style>
+<main>
+  <header class="tk-head">
+    <div>
+      <div class="tk-kicker">Tasks · Todoist</div>
+      <h1 id="title">Tasks</h1>
+      <div id="sub" class="muted"></div>
+    </div>
+    <div class="seg" role="group" aria-label="Show">
+      <button type="button" data-view="today" aria-pressed="false">Today</button>
+      <button type="button" data-view="week" aria-pressed="false">Next 7 days</button>
+      <button type="button" data-view="all" aria-pressed="false">Everything</button>
+    </div>
+  </header>
+  <form id="add" class="tk-add" aria-label="Add a task">
+    <input id="new" type="text" placeholder="Add a task, e.g. Call the plumber" aria-label="New task" autocomplete="off">
+    <input id="when" class="when" type="text" placeholder="When? e.g. tomorrow 9am" aria-label="When" autocomplete="off">
+    <button type="submit" class="primary">Add</button>
+  </form>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div id="groups"></div>
+  <div id="toast" class="toast" role="status" hidden><span id="toast-text"></span><button type="button" id="undo">Undo</button></div>
+  <p class="muted tk-foot">Your tasks stay in Todoist, in step with its apps. Changes made here show up there.</p>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h;
+  // `all` is every open task (one fetch, filtered here by this computer's calendar, so switching
+  // views is instant); `found` is what the agent's own search returned (the "search" view).
+  var all = null, found = null, search = null, projects = {}, view = "today", undo = null, toastTimer = 0;
+  var fetching = null, again = false;
+  // Todoist's find-tasks needs a filter; this one matches every open task.
+  var EVERYTHING = { filter: "no date | !no date" };
+  var PAGE = 100, PAGES = 3;  // Todoist answers 10 tasks unless asked; up to 300 here
+  var locale = function () { return (V.hostContext && V.hostContext.locale) || undefined; };
+
+  // A Todoist date is a day ("2026-10-22") or a local time ("2026-10-22T09:00:00", maybe with a zone).
+  function due(s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(s);
+    if (!m) return null;
+    var timed = m[4] !== undefined;
+    var d = /[zZ]|[+-]\d{2}:?\d{2}$/.test(s) && timed ? new Date(s) : new Date(+m[1], +m[2] - 1, +m[3], timed ? +m[4] : 0, timed ? +m[5] : 0);
+    return { date: d, timed: timed };
+  }
+  function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function daysFromToday(d) { return Math.round((startOfDay(d) - startOfDay(new Date())) / 864e5); }
+  function dayLabel(d) {
+    var n = daysFromToday(d);
+    if (n === 0) return "Today";
+    if (n === 1) return "Tomorrow";
+    if (n === -1) return "Yesterday";
+    var opts = Math.abs(n) < 7 ? { weekday: "long" } : { weekday: "short", day: "numeric", month: "short" };
+    return d.toLocaleDateString(locale(), opts);
+  }
+  function whenText(t) {
+    var d = due(t.dueDate);
+    if (!d) return null;
+    return dayLabel(d.date) + (d.timed ? " " + d.date.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) : "");
+  }
+  function groupOf(t) {
+    var d = due(t.dueDate);
+    if (!d) return { key: "z", label: "No date" };
+    var n = daysFromToday(d.date);
+    if (n < 0) return { key: "a", label: "Overdue", overdue: true };
+    if (n === 0) return { key: "b", label: "Today" };
+    if (n === 1) return { key: "c", label: "Tomorrow" };
+    if (n < 7) return { key: "d" + n, label: d.date.toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long" }) };
+    return { key: "y", label: "Later" };
+  }
+
+  function call(name, args, busy) { return V.run(name, args, busy === undefined ? null : busy); }
+
+  // Todoist reads "today" and "tomorrow" in its own account's time zone, which can differ from this
+  // computer's: the card says exact days, from this computer's calendar.
+  function isoDay(offset) {
+    var d = new Date(); d.setDate(d.getDate() + offset);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function dueBefore(days) { return { filter: "due before: " + isoDay(days) }; }  // overdue included
+
+  function showToast(text, undoFn) {
+    V.$("#toast-text").textContent = text;
+    undo = undoFn;
+    V.$("#undo").hidden = !undoFn;
+    V.$("#toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { V.$("#toast").hidden = true; undo = null; }, 6000);
+  }
+
+  function taskRow(t) {
+    var row;
+    var check = h("button", { type: "button", class: "check " + (t.priority || "p4"), "aria-label": (t.checked ? "Not done: " : "Done: ") + t.content,
+      text: t.checked ? "✓" : "" });
+    check.addEventListener("click", function () { toggle(t, row, check); });
+    var meta = h("div", { class: "meta" });
+    var when = whenText(t), d = due(t.dueDate);
+    if (when) meta.appendChild(h("span", { class: d && daysFromToday(d.date) < 0 ? "late" : d && daysFromToday(d.date) === 0 ? "soon" : null, text: when }));
+    if (t.recurring) meta.appendChild(h("span", { title: typeof t.recurring === "string" ? t.recurring : "Repeats", text: "↻ " + (typeof t.recurring === "string" ? t.recurring : "repeats") }));
+    if (t.deadlineDate) { var dl = due(t.deadlineDate); if (dl) meta.appendChild(h("span", { text: "Deadline " + dl.date.toLocaleDateString(locale(), { day: "numeric", month: "short" }) })); }
+    if (projects[t.projectId] && !projects[t.projectId].inboxProject) meta.appendChild(h("span", { text: "# " + projects[t.projectId].name }));
+    (t.labels || []).forEach(function (l) { meta.appendChild(h("span", { class: "chip", text: l })); });
+    var acts = h("div", { class: "acts" },
+      h("button", { type: "button", text: "Tomorrow", title: "Move to tomorrow", onclick: function () { move(t, isoDay(1), "tomorrow"); } }),
+      h("button", { type: "button", text: "Next week", title: "Move to a week from today", onclick: function () { move(t, isoDay(7), "next week"); } }));
+    row = h("li", { class: "task" + (t.checked ? " done" : "") }, check,
+      h("div", null, h("div", { class: "title", text: t.content }), t.description ? h("div", { class: "notes", text: t.description }) : null,
+        meta.childNodes.length ? meta : null),
+      t.checked ? null : acts);
+    return row;
+  }
+
+  /** Whether an open task belongs in the view, by this computer's calendar (overdue counts as today). */
+  function inView(t) {
+    if (view === "all" || view === "search") return true;
+    var d = due(t.dueDate);
+    if (!d) return false;
+    var n = daysFromToday(d.date);
+    return view === "overdue" ? n < 0 : view === "today" ? n <= 0 : n < 7;
+  }
+  function shown() {
+    var list = view === "search" ? found || [] : all || (found || []);
+    return list.filter(function (t) { return !t.isDeleted && !t.isUncompletable && inView(t); });
+  }
+
+  function setView(v) {
+    view = v;
+    Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-view") === v)); });
+    V.$("#title").textContent = v === "search" ? (search && search.args.searchText ? "“" + search.args.searchText + "”" : "Tasks")
+      : { today: "Today", week: "Next 7 days", all: "Everything", overdue: "Overdue" }[v] || "Tasks";
+  }
+
+  function render() {
+    var root = V.clear(V.$("#groups"));
+    var open = shown();
+    var overdue = open.filter(function (t) { var d = due(t.dueDate); return d && !t.checked && daysFromToday(d.date) < 0; }).length;
+    var todo = open.filter(function (t) { return !t.checked; }).length;
+    V.$("#sub").textContent = todo + (todo === 1 ? " task" : " tasks") + (overdue ? " · " + overdue + " overdue" : "");
+    if (!open.length) {
+      var waiting = fetching && (view === "search" ? !found : !all);
+      root.appendChild(h("p", { class: "empty", text: waiting ? "Looking at your tasks…" : view === "today" ? "Nothing for today. Enjoy it." : "No tasks here." }));
+      return;
+    }
+    var groups = {};
+    open.forEach(function (t) {
+      var g = groupOf(t);
+      (groups[g.key] = groups[g.key] || { g: g, items: [] }).items.push(t);
+    });
+    Object.keys(groups).sort().forEach(function (k) {
+      var grp = groups[k];
+      // By day; on a day, timed tasks first, by time; then by priority.
+      var order = function (t) { var d = due(t.dueDate); return d ? +startOfDay(d.date) + (d.timed ? d.date - startOfDay(d.date) : 864e5 - 1) : Infinity; };
+      grp.items.sort(function (a, b) { return order(a) - order(b) || (a.priority || "p4").localeCompare(b.priority || "p4"); });
+      root.appendChild(h("section", { class: "group" + (grp.g.overdue ? " overdue" : "") },
+        h("h2", null, grp.g.label, h("span", { class: "n", text: String(grp.items.filter(function (t) { return !t.checked; }).length) })),
+        h("ul", { class: "tasks" }, grp.items.map(taskRow))));
+    });
+  }
+
+  /** A search with all its pages (Todoist answers 10 unless asked; up to 300 here), or null. */
+  function pages(name, args) {
+    var out = [];
+    function page(cursor, n) {
+      var a = Object.assign({}, args, { limit: PAGE });
+      delete a.cursor;
+      if (cursor) a.cursor = cursor;
+      return call(name, a).then(function (d) {
+        if (!d) return null;
+        out = out.concat(d.tasks || []);
+        return d.hasMore && d.nextCursor && n + 1 < PAGES ? page(d.nextCursor, n + 1) : out;
+      });
+    }
+    return page(null, 0);
+  }
+
+  /** Every open task, fresh from Todoist; a request during a fetch runs once more after it. */
+  function fetchAll() {
+    if (fetching) { again = true; return fetching; }
+    if (!all) render();
+    fetching = pages("find_tasks", EVERYTHING).then(function (list) {
+      fetching = null;
+      if (list) all = list;
+      else if (!all) V.status("Todoist didn't answer. Try again in a moment.", "error");
+      render();
+      if (again) { again = false; return fetchAll(); }
+    });
+    return fetching;
+  }
+  function refreshSearch() {
+    if (!search) return Promise.resolve();
+    return pages(search.name, search.args).then(function (list) { if (list) { found = list; render(); } });
+  }
+  function reload() { return view === "search" ? Promise.all([fetchAll(), refreshSearch()]) : fetchAll(); }
+  function show(v) {
+    setView(v);
+    render();
+    if (!all) fetchAll();
+  }
+
+  function toggle(t, row, check) {
+    var done = !t.checked;
+    t.checked = done;
+    row.classList.toggle("done", done);
+    check.textContent = done ? "✓" : "";
+    call(done ? "complete_tasks" : "uncomplete_tasks", { ids: [t.id] }).then(function (r) {
+      if (!r || (r.failureCount && !r.successCount)) {
+        t.checked = !done; row.classList.toggle("done", !done); check.textContent = !done ? "✓" : "";
+        V.status("Todoist didn't take that change.", "error");
+        return;
+      }
+      if (done) showToast("Done: " + t.content, function () { toggle(t, row, check); });
+      else V.$("#toast").hidden = true;
+    });
+  }
+
+  function move(t, day, label) {
+    var before = t.dueDate;
+    t.dueDate = day;  // shown at once; Todoist confirms
+    render();
+    call("update_tasks", { tasks: [{ id: t.id, dueString: day }] }).then(function (r) {
+      if (!r) { t.dueDate = before; render(); return; }
+      showToast("Moved to " + label + ": " + t.content, null);
+      reload();
+    });
+  }
+
+  function loadProjects() {
+    return call("find_projects", { limit: 200 }).then(function (d) {
+      (d && d.projects || []).forEach(function (p) { projects[p.id] = p; });
+      render();
+    });
+  }
+
+  V.onSubmit(V.$("#add"), function () {
+    var content = V.$("#new").value.trim(), when = V.$("#when").value.trim();
+    if (!content) { V.$("#new").focus(); return; }
+    var task = { content: content };
+    if (when) task.dueString = when;  // the person's own words; Todoist reads them
+    else if (view === "today") task.dueString = isoDay(0);
+    call("add_tasks", { tasks: [task] }, "Adding…").then(function (r) {
+      if (!r || !r.successCount) { V.status("Todoist didn't add it.", "error"); return; }
+      V.$("#new").value = ""; V.$("#when").value = "";
+      showToast("Added: " + content, null);
+      fetchAll();
+    });
+  });
+  V.$("#undo").addEventListener("click", function () { var fn = undo; V.$("#toast").hidden = true; undo = null; if (fn) fn(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+    b.addEventListener("click", function () { show(b.getAttribute("data-view")); });
+  });
+
+  V.start({
+    name: "foyelle-tasks",
+    render: function (d, args) {
+      // Opened by the agent: its result shows at once, under the view that matches what it asked
+      // for; every open task is fetched behind it so the view buttons are instant.
+      var a = Object.assign({}, args || {});
+      found = (d && d.tasks) || [];
+      var byDate = !!(a.startDate || a.overdueOption);
+      search = { name: byDate ? "find_tasks_by_date" : "find_tasks", args: a };
+      setView(byDate ? (a.overdueOption === "overdue-only" ? "overdue" : a.daysCount > 1 ? "week" : "today")
+        : a.filter === EVERYTHING.filter ? "all"
+        : a.filter === dueBefore(1).filter ? "today" : a.filter === dueBefore(7).filter ? "week" : "search");
+      render();
+      loadProjects();
+      fetchAll();
+      if (view === "search" && d && d.hasMore) refreshSearch();
+    },
+    load: function () { show("today"); loadProjects(); },
+    // The agent added, moved or ticked off tasks: show the list as it is now.
+    refresh: function () { reload(); },
+  });
+})();
+</script>
+</body>
+</html>

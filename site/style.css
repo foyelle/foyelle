@@ -101,6 +101,7 @@ h1 { font: 400 4rem/1 var(--hand); margin: 0; letter-spacing: .01em; }
 
 /* Buttons: an ink edge and a hard shadow; the main one is flame orange. */
 .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 0 0 2.5rem; }
+.actions.try { align-items: center; justify-content: center; gap: .75rem 1rem; margin-top: -.5rem; color: var(--fg-2); text-align: center; }
 .btn {
   display: inline-block; padding: .6rem 1.2rem; border-radius: 999px; text-decoration: none;
   font-weight: 800; color: var(--fg); background: var(--panel);

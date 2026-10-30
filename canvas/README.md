@@ -23,6 +23,7 @@ src/renderer/   the canvas UI (plain TypeScript + DOM)
                     View-side MCP Apps runtime they share
   chat.ts, markdown.ts, commands.ts, theme.ts, app.ts
 dev/            dev:web server, mock harness, demo surfaces
+demo/           the web demo at foyelle.org/demo (static, no server, no model)
 test/           vitest (offline)
 ```
 
@@ -99,6 +100,37 @@ the preload: it fetches the URL and a random token from the dev server and
 registers surfaces at `/__surface/<id>/`, served with the same CSP headers.
 Try "show my files", "system status", "send the report to Sam", "schedule a
 meeting", "I need a secret", "cancel test", "error", "long", "what cards are there", `/cards`.
+
+## The web demo (foyelle.org/demo)
+
+The canvas in a visitor's browser with only static files: `scripts/deploy-site`
+builds it into `out/site/demo/` (`node scripts/build.mjs --demo <dir>`).
+
+- `demo/demo.ts` is loaded before `app.js` and stands in for the preload. It
+  replaces `WebSocket` with one whose other end is the mock harness, run in
+  the page in demo mode: only the scripted paths answer, the developer's test
+  flows are off, and anything else gets a word about the demo.
+- The helpers answer from `demo/recording.json` (`demo/recorded-tools.ts`).
+  The settings (name, light or dark, theme) are kept in the page, so the
+  welcome and the Themes card work; a call that wasn't recorded answers "not
+  in this demo".
+- Every card is a static file, `cards/<sha-256 of its page>`: the recorded
+  cards (`demo/cards/`) and the built-in views. `registerSurface` returns the
+  file for the page's hash and refuses any other page. `site/_headers` serves
+  them with the cards' default policy (`buildSurfaceCsp`), the iframe stays
+  sandboxed without `allow-same-origin`, and the page itself gets the canvas's
+  policy. `test/demo.test.ts` checks both against `src/shared/csp.ts`.
+- A banner says it is a demo, suggestions keep to the scripted paths, and
+  below 760 px the conversation and the screen take turns.
+
+`node demo/record.mjs` records again (after `node scripts/build.mjs --web`;
+it needs `playwright-core` and Chromium, see the file): the real connectors on
+fresh sample data, every card and path driven in Chromium, the sample data's
+folder written as `/var/lib/foyelle`. Record again when a card's view or a
+tool's answer changes. `node demo/test.mjs` drives the built site through the
+README demo's steps in Chromium and WebKit at desktop and phone sizes (CI's
+"Web demo" job); `node demo/serve.mjs` serves `out/site` with its `_headers`
+at http://localhost:5180/demo/.
 
 ## Security posture
 

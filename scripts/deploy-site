@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Publish foyelle.org: the landing page in site/ and Foyelle's OAuth client document
-# (docs/oauth-client-metadata.json, served at /oauth/client.json), as Cloudflare static assets
+# Publish foyelle.org: the landing page in site/, the canvas's live demo (canvas/demo, at /demo) and
+# Foyelle's OAuth client document (docs/oauth-client-metadata.json, served at /oauth/client.json), as
+# Cloudflare static assets
 # (site/wrangler.jsonc: foyelle.org as the custom domain; site/worker.js only answers byte ranges for /media/*).
 #   scripts/deploy-site            build into out/site and deploy (wrangler must be signed in)
 #   scripts/deploy-site --dry-run  only build the files into out/site
@@ -17,6 +18,10 @@ cp "$fonts"/{Nunito.ttf,GochiHand-Regular.ttf,OFL-Nunito.txt,OFL-GochiHand.txt} 
 # The README's demo (canvas/dev/record-demo.mjs), as a video with its poster frame.
 cp "$root"/docs/media/{foyelle-demo.mp4,foyelle-demo-poster.jpg} "$out/media/"
 cp "$root/docs/oauth-client-metadata.json" "$out/oauth/client.json"
+# The canvas as a live demo at /demo (canvas/demo): the mock harness and recorded cards in the visitor's
+# browser, no server and no model.
+[ -d "$root/canvas/node_modules" ] || (cd "$root/canvas" && ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci --silent)
+(cd "$root/canvas" && node scripts/build.mjs --demo "$out/demo")
 # A Client ID Metadata Document must name its own address as client_id.
 python3 -I - "$out/oauth/client.json" <<'PY'
 import json, sys

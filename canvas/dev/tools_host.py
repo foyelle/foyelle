@@ -51,7 +51,8 @@ from foyelle_connectors.workshop.server import build_server as workshop_server
 from foyelle_connectors.workshop.store import Store
 
 PORT = int(os.environ.get("FOYELLE_TOOLS_PORT", "5175"))
-STATE = Path(__file__).resolve().parent.parent / ".dev-state"
+# FOYELLE_DEV_STATE: another folder for the sample data (canvas/demo/record.mjs records from its own).
+STATE = Path(os.environ.get("FOYELLE_DEV_STATE") or Path(__file__).resolve().parent.parent / ".dev-state")
 
 def make_png(w: int = 64, h: int = 48) -> bytes:
     """A small warm gradient PNG, so the file browser shows a picture."""
@@ -217,7 +218,7 @@ def build(state: Path) -> dict[str, Any]:
     profiles.mkdir(exist_ok=True)
     if not (profiles / "system-41-link").exists():
         os.symlink(current, profiles / "system-41-link")
-    sock = Path(f"/tmp/foyelle-dev-{os.getuid()}.sock")
+    sock = Path(f"/tmp/foyelle-dev-{os.getuid()}-{PORT}.sock")
     FakeHelper(sock).start()
     system = SystemService(SystemConfig(
         repo=state / "config", host="foyelle", apply_socket=sock, current_system=current, profiles_dir=profiles,

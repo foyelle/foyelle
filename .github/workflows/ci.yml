@@ -73,6 +73,35 @@ jobs:
             tests/hermes_cli/test_model_catalog.py tests/tools/test_managed_tool_gateway.py \
             tests/hermes_cli/test_shared_metrics_send_config.py tests/pm/test_artifact_mirror.py
 
+  demo:
+    name: Web demo in Chromium and WebKit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build the site
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+        run: |
+          (cd canvas && npm ci)
+          scripts/deploy-site --dry-run
+      # The README demo's steps (canvas/dev/record-demo.mjs) at a desktop's and a phone's size.
+      - name: Drive the demo
+        working-directory: canvas
+        run: |
+          npm i --no-save playwright-core@1.63.0
+          npx --yes playwright@1.63.0 install --with-deps chromium webkit
+          node demo/test.mjs --shots ../out/demo-shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-screenshots
+          path: out/demo-shots/
+          if-no-files-found: ignore
+
   nix:
     name: Nix checks and VM tests
     # The OS image and the VM tests take about 25 minutes, so they run once a pull request is ready
