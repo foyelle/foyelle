@@ -40,6 +40,10 @@
   .demo[data-demo-view="chat"] .stage, .demo[data-demo-view="screen"] .rail { display: none; }
   .demo .rail-head { padding: 10px 12px 6px; }
   .demo .area { padding: 8px 10px 12px; }
+  /* No room for the strip of recent cards: the focused card gets the width (earlier cards open again
+     from their buttons in the conversation, or from the gallery). */
+  .demo .tiles { display: none; }
+  .demo .area.has-tiles { grid-template-columns: minmax(0, 1fr); }
   /* One row that scrolls sideways, so the conversation keeps its room. */
   .demo-chips { flex-wrap: nowrap; overflow-x: auto; padding: 6px 12px 0; gap: 6px; scrollbar-width: none; }
   .demo-try { flex: none; }

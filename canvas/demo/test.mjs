@@ -146,12 +146,12 @@ async function run(browserType, size) {
     await pause(1200);
     await shot("tokyo-night");
 
-    // All the cards, and one opened from the list.
+    // The card gallery, and a card opened from it.
     await view("chat");
     await page.locator(".demo-chip", { hasText: "All the cards" }).click();
-    await shown(/Your cards/);
-    await page.locator(".list-btn", { hasText: "Memory" }).last().click();
-    await inCards((f) => f.getByRole("tab", { name: /About you/ }));
+    await inCards((f) => f.getByText(/What Foyelle remembers about you/));
+    await shot("cards");
+    await clickUntil((f) => f.locator('button.card-tile[title="Open Memory"]'), () => inCards((f) => f.getByRole("tab", { name: /About you/ }), 20));
     await shot("memory");
 
     // Anything else gets a friendly word about the demo.
