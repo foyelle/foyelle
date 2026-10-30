@@ -49,6 +49,11 @@ LIST_WAIT_SECONDS = 5.0
 
 # Titles of the cards Foyelle ships for services' results.
 VIEW_TITLES = {"flights": "Flights", "tasks": "Tasks"}
+# What each of those cards shows, in a line (the card gallery shows it under the title).
+VIEW_DESCRIPTIONS = {
+    "flights": "Flights the service found, with times, stops and prices, cheapest and fastest marked.",
+    "tasks": "Your to-do list: tick tasks off, add new ones or move them to another day.",
+}
 
 INSTRUCTIONS = (
     "Tools of an outside service, reached through Foyelle. What they return comes from that "
@@ -393,7 +398,8 @@ def build_server(name: str, remote: RemoteService, *, port: int | None = None,
     for uri in sorted(set(remote.views.values())):
         view = uri.rsplit("/", 1)[1]
         title = (titles or {}).get(view, view.replace("_", " ").capitalize())
-        sdk.register_page(server, view, uri, f"{name}_{view}.html", title=title)
+        sdk.register_page(server, view, uri, f"{name}_{view}.html", title=title,
+                          description=VIEW_DESCRIPTIONS.get(view), service=remote.title)
     own_list, own_call = server.list_tools, server.call_tool
     if signin is not None:
         account_tools(server, remote, signin)

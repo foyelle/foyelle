@@ -75,6 +75,15 @@ async def test_views_are_self_contained(tmp_path: Path) -> None:
         assert "prefers-color-scheme" in lowered and "system-ui" in lowered, uri
 
 
+async def test_every_card_says_what_it_shows(tmp_path: Path) -> None:
+    # The canvas's card gallery shows each card's title and, in one line, its description.
+    for name, server in all_servers(tmp_path).items():
+        for res in await server.list_resources():
+            assert res.title and not str(res.title).startswith("ui://"), res.uri
+            text = res.description or ""
+            assert text.endswith(".") and "\n" not in text and 20 <= len(text) <= 110, (res.uri, text)
+
+
 @pytest.mark.skipif(NODE is None, reason="node not installed")
 async def test_view_scripts_parse(tmp_path: Path) -> None:
     for _, uri, html in await views(tmp_path):

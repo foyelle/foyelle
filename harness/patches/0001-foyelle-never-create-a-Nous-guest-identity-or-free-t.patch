@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:27:08 +0000
-Subject: [PATCH 01/15] foyelle: never create a Nous guest identity or
+Subject: [PATCH 01/16] foyelle: never create a Nous guest identity or
  free-tier trial
 
 guest_allowed() now returns False unconditionally, which closes the

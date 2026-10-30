@@ -10,7 +10,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.shared.memory import create_connected_server_and_client_session
 
 from foyelle_connectors import sdk
-from foyelle_connectors.bridge.server import VIEW_TITLES, RemoteService, build_server, local_name, view_uris
+from foyelle_connectors.bridge.server import VIEW_DESCRIPTIONS, VIEW_TITLES, RemoteService, build_server, local_name, view_uris
 
 URL = "https://mcp.service.example/mcp"
 
@@ -95,6 +95,9 @@ async def test_a_tool_gets_foyelles_card_and_the_bridge_serves_it() -> None:
             assert tool.meta == {"ui": {"resourceUri": "ui://kiwi/flights"}}  # theirs is dropped
             (res,) = (await client.list_resources()).resources
             assert str(res.uri) == "ui://kiwi/flights" and res.title == "Flights"
+            # The card gallery says what the card shows and which online service it belongs to.
+            assert res.description == VIEW_DESCRIPTIONS["flights"]
+            assert res.meta["foyelle"] == {"service": remote.title}
             page = (await client.read_resource("ui://kiwi/flights")).contents[0]
             assert page.mimeType == "text/html;profile=mcp-app" and "foyelle-flights" in page.text
     # Two tools can share a card (Todoist's find-tasks and find-tasks-by-date): it is served once.

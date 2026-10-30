@@ -22,7 +22,7 @@ BROWSER = "ui://files/browser"
 def build_server(service: FileService, *, port: int | None = None) -> FastMCP:
     server = sdk.create_server("files", INSTRUCTIONS, port=port)
     sdk.register_page(server, "browser", BROWSER, "files_browser.html", title="Files",
-                      description="Browse, preview, trash and restore files in the scoped folders.")
+                      description="Your documents and pictures: look inside, move things to the trash, bring back earlier versions.")
     read = sdk.annotations(read_only=True)
     # destructiveHint follows the MCP definition (not purely additive); the
     # Foyelle tier ("reversible") comes from policy.json, not from here.

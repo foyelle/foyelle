@@ -22,7 +22,7 @@ const VIEW_DIR = r("src/renderer/builtin-views");
 // served with the canvas.
 export const FONTS = ["Nunito.ttf", "Nunito-Italic.ttf", "GochiHand-Regular.ttf", "JetBrainsMono.ttf", "JetBrainsMono-Italic.ttf",
   "DejaVuSansCondensed.ttf", "DejaVuSansCondensed-Bold.ttf"];
-const BUILTIN_VIEWS = ["approval", "clarify", "secret", "link", "accounts"];
+const BUILTIN_VIEWS = ["approval", "clarify", "secret", "link", "accounts", "cards"];
 
 /** Bundles a view script and inlines it, plus the shared view CSS, into its HTML template. */
 export async function buildViewHtml(htmlPath, scriptPath, cssPath = path.join(VIEW_DIR, "view.css")) {

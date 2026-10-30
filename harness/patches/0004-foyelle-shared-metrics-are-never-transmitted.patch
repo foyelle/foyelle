@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:27:55 +0000
-Subject: [PATCH 04/15] foyelle: shared metrics are never transmitted
+Subject: [PATCH 04/16] foyelle: shared metrics are never transmitted
 
 resolve_send_config() always returns send=False and the default
 endpoint is empty, so nothing reaches telemetry.nousresearch.com even if

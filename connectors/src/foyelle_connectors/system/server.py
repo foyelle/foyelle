@@ -27,7 +27,7 @@ REVIEW = "ui://system/review"
 def build_server(service: SystemService, *, port: int | None = None) -> FastMCP:
     server = sdk.create_server("system", INSTRUCTIONS, port=port)
     sdk.register_page(server, "review", REVIEW, "system_review.html", title="System changes",
-                      description="Review proposed system changes, approve or reject them, roll back.")
+                      description="Changes to your computer waiting for your yes, and earlier versions to go back to.")
 
     async def run(fn: Any, /, **kwargs: Any) -> Any:
         return await anyio.to_thread.run_sync(partial(fn, **kwargs))
@@ -113,8 +113,8 @@ def build_server(service: SystemService, *, port: int | None = None) -> FastMCP:
 
     @server.tool(title="How to extend this machine", annotations=sdk.annotations(read_only=True))
     def howto(topic: str = "connector") -> dict[str, Any]:
-        """Step-by-step guide with a full example. topic: "connector" (new tools and their surface,
-        a reviewed system change) or "surface" (an instant surface over existing tools)."""
+        """Step-by-step guide with a full example. topic: "connector" (a new helper: new tools and
+        their card, a reviewed system change) or "surface" (an instant card over existing tools)."""
         return guide(topic)
 
     return server

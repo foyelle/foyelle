@@ -2,7 +2,8 @@
 
 The only program on screen: a full-screen Electron app that cage starts on
 NixOS. It is a client of the harness gateway (`docs/architecture.md` §1) and
-the host for MCP App surfaces.
+the host for MCP App cards (*surfaces* in the code; see the
+[glossary](../docs/architecture.md#glossary)).
 
 ## Architecture
 
@@ -17,6 +18,7 @@ src/renderer/   the canvas UI (plain TypeScript + DOM)
   surface-state.ts  focus / pin / dismiss rules (no DOM)
   stage.ts          the surface area: focused surface + tile strip (iframes move by transform only)
   system-prompts.ts approvals, clarify, secret, sudo and link cards as built-in MCP App views
+  card-catalog.ts   the card gallery's catalogue: surface.list in people's words, and its search
   builtin-views/    the built-in views (HTML + script, inlined at build time) and a small
                     View-side MCP Apps runtime they share
   chat.ts, markdown.ts, commands.ts, theme.ts, app.ts
@@ -60,11 +62,11 @@ test/           vitest (offline)
 
 | | |
 |---|---|
-| `Ctrl+K` | focus the command bar (works even while a surface has focus) |
+| `Ctrl+K` | focus the command bar (works even while a card has focus) |
 | `Ctrl+1`…`9` | focus tile N |
-| `Esc` | dismiss the focused surface (clears the command bar first if it has text) |
-| `/focus <n\|name>`, `/pin`, `/unpin`, `/dismiss` | surface commands (name or tile number optional for the last three) |
-| `/surfaces [n\|name]` | list system surfaces (`surface.list`), or open one (`surface.open_resource`) |
+| `Esc` | dismiss the card in front (clears the command bar first if it has text) |
+| `/focus <n\|name>`, `/pin`, `/unpin`, `/dismiss` | card commands (name or tile number optional for the last three) |
+| `/cards [name]` (also `/surfaces`) | the card gallery: every card from `surface.list` plus the canvas's own, to search and open; with a name, open that card (`surface.open_resource`) |
 | `/new`, `/stop`, `/help` | new session, `session.interrupt`, help |
 | `//text` | send `/text` as a prompt |
 
@@ -97,7 +99,7 @@ optional peer graph; all required peers are listed explicitly.
 the preload: it fetches the URL and a random token from the dev server and
 registers surfaces at `/__surface/<id>/`, served with the same CSP headers.
 Try "show my files", "system status", "send the report to Sam", "schedule a
-meeting", "I need a secret", "cancel test", "error", "long", `/surfaces`.
+meeting", "I need a secret", "cancel test", "error", "long", "what cards are there", `/cards`.
 
 ## The web demo (foyelle.org/demo)
 

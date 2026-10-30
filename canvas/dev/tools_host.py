@@ -312,7 +312,8 @@ def design_server() -> Any:
     server = sdk.create_server("design", "Design explorations for Foyelle (development only).", port=0)
     uri = "ui://design/directions"
     sdk.register_html_page(server, "directions", uri, Path(__file__).parent / "design" / "directions.html",
-                           title="Design directions")
+                           title="Design directions",
+                           description="Twelve directions for Foyelle's look, each drawing the same screen (development only).")
 
     @server.tool(title="Design directions", meta=sdk.ui_meta(uri), structured_output=True)
     def show_directions() -> dict[str, int]:
@@ -321,7 +322,8 @@ def design_server() -> Any:
 
     glass = "ui://design/glass"
     sdk.register_html_page(server, "glass", glass, Path(__file__).parent / "design" / "glass.html",
-                           title="Ember glass variations")
+                           title="Ember glass variations",
+                           description="Ten variations of Ember glass, each changing one or two things (development only).")
 
     @server.tool(title="Ember glass variations", meta=sdk.ui_meta(glass), structured_output=True)
     def show_glass_variations() -> dict[str, int]:
@@ -330,7 +332,8 @@ def design_server() -> Any:
 
     y2026 = "ui://design/2026"
     sdk.register_html_page(server, "2026", y2026, Path(__file__).parent / "design" / "2026.html",
-                           title="Six directions from 2026")
+                           title="Six directions from 2026",
+                           description="Six looks drawn from 2026's visual culture (development only).")
 
     @server.tool(title="Six directions from 2026", meta=sdk.ui_meta(y2026), structured_output=True)
     def show_2026_directions() -> dict[str, int]:
@@ -339,7 +342,8 @@ def design_server() -> Any:
 
     ember = "ui://design/ember"
     sdk.register_html_page(server, "ember", ember, Path(__file__).parent / "design" / "ember.html",
-                           title="The ember, ten characters")
+                           title="The ember, ten characters",
+                           description="Ten takes on the ember as a character, with its moods (development only).")
 
     @server.tool(title="The ember, ten characters", meta=sdk.ui_meta(ember), structured_output=True)
     def show_ember_characters() -> dict[str, int]:
@@ -591,7 +595,9 @@ class Host:
             for res in await server.list_resources():
                 uri = str(res.uri)
                 if uri.startswith("ui://") and uri != "ui://workshop/show":
-                    out.append({"server": name, "uri": uri, "name": res.name, "title": res.title or res.name})
+                    service = ((res.meta or {}).get("foyelle") or {}).get("service")
+                    out.append({"server": name, "uri": uri, "name": res.name, "title": res.title or res.name,
+                                "description": res.description or "", "service": service})
         return out
 
     async def resource(self, server: str, uri: str) -> dict[str, Any]:

@@ -13,8 +13,9 @@ from .. import sdk
 from . import audit, bots, memory, model_key, privacy, routines, services, settings, status, themes
 
 INSTRUCTIONS = (
-    "Foyelle system surfaces: status (model, connectors, network), the agent's memory files, "
-    "user settings, themes and the audit log. Use these tools to show the user these surfaces."
+    "Foyelle's own cards: status (model, helpers, network), the agent's memory files, "
+    "user settings, themes and the audit log, plus the Accounts card and the card gallery. "
+    "Use these tools to show the user these cards."
 )
 
 
@@ -93,15 +94,15 @@ def build_server(config: ShellConfig, *, port: int | None = None) -> FastMCP:
         }
 
     sdk.register_page(server, "status", "ui://shell/status", "shell_status.html", title="Status",
-                      description="Model in use, connector health and network status.")
+                      description="How the computer is doing: the model in use, the helpers and the network.")
     sdk.register_page(server, "memory", "ui://shell/memory", "shell_memory.html", title="Memory",
-                      description="Browse, correct, delete and export what the agent remembers.")
+                      description="What Foyelle remembers about you: read it, correct it, delete it or export it.")
     sdk.register_page(server, "settings", "ui://shell/settings", "shell_settings.html", title="Settings",
-                      description="Key settings and the few the user can change here.")
+                      description="Your settings: see them all, and change the few that can be changed here.")
     sdk.register_page(server, "themes", "ui://shell/themes", "shell_themes.html", title="Themes",
-                      description="The canvas's themes: pick one, or see the ones you made.")
+                      description="Foyelle's looks: pick one, or see the ones you made.")
     sdk.register_page(server, "audit", "ui://shell/audit", "shell_audit.html", title="Audit log",
-                      description="Every tool call and approval, newest first.")
+                      description="Everything Foyelle did for you and every time it asked first, newest first.")
     sdk.register_page(server, "privacy", "ui://shell/privacy", "shell_privacy.html", title="What left your home",
                       description="What left this computer today, and what stayed home.")
 
@@ -162,6 +163,15 @@ def build_server(config: ShellConfig, *, port: int | None = None) -> FastMCP:
         calendar and other services (such as Todoist) and signs in to them. Use it when they ask to
         connect, sign in to or set up one of these. Signing in happens on the card, never in chat."""
         # The canvas opens the card when this tool completes; nothing happens here.
+        return {"opened": True}
+
+    @server.tool(title="Open the card gallery", annotations=sdk.annotations(read_only=True))
+    def open_cards() -> dict[str, Any]:
+        """Open the card gallery on the screen: every card the person can open (from the helpers on
+        this computer and the online services they connected), each with what it shows, a search
+        and a button to open it. Use it when they ask what cards, views or screens there are, or
+        what Foyelle can show them."""
+        # The canvas opens the gallery when this tool completes; nothing happens here.
         return {"opened": True}
 
     @server.tool(title="Export memory", annotations=sdk.annotations(read_only=True))

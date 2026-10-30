@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Mikael Rousson <85865+mmmikael@users.noreply.github.com>
 Date: Sun, 18 Oct 2026 08:35:52 +0000
-Subject: [PATCH 09/15] foyelle: MCP Apps surfaces in the gateway
+Subject: [PATCH 09/16] foyelle: MCP Apps surfaces in the gateway
 
 Hermes dropped tool _meta, so ui:// resources (SEP-1865) never reached a
 client. tools/mcp_surfaces.py records which registered MCP tools declare

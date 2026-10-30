@@ -118,7 +118,7 @@ await waitFor(`http://127.0.0.1:${HARNESS_PORT}/`);
 electron();
 console.log(`
 [dev] Foyelle canvas is running in a window. Try: "show my files", "what do you remember",
-      "settings", "changes waiting", "what did you do", "send the report to Sam", or /surfaces.
+      "settings", "changes waiting", "what did you do", "send the report to Sam", or /cards.
       Edit canvas/src, canvas/dev or connectors/ and it reloads. Ctrl-C stops everything.
 `);
 
