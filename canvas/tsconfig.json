@@ -15,5 +15,5 @@
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "dev", "test", "vitest.config.mts"]
+  "include": ["src", "dev", "demo", "test", "vitest.config.mts"]
 }

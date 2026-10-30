@@ -21,6 +21,13 @@ export interface ToolsHost {
 interface Options {
   loadSurfaceHtml(name: string): Promise<string>;
   tools?: ToolsHost | null;
+  /**
+   * The web demo (canvas/demo): only the scripted paths answer, the developer's test flows (errors,
+   * secrets, withdrawn requests) are off, and anything else gets a friendly note about the demo.
+   */
+  demo?: boolean;
+  /** The model session.info names (the status line shows it). */
+  model?: string;
 }
 
 /** Calls that ask the user first on a real machine (system tier, outbound). */
@@ -206,7 +213,7 @@ class MockSession {
         const sid = this.harness.createSession();
         this.lastSession = sid;
         this.reply(id, { session_id: sid });
-        this.event("session.info", { model: MODEL, cwd: "/home/foyelle", stored_session_id: `stored-${sid}` }, sid);
+        this.event("session.info", { model: this.opts.model ?? MODEL, cwd: "/home/foyelle", stored_session_id: `stored-${sid}` }, sid);
         return;
       }
       case "session.resume": {
@@ -214,7 +221,7 @@ class MockSession {
         if (!sid) return this.error(id, 5000, "no such session in the store");
         this.lastSession = sid;
         this.reply(id, { session_id: sid, messages: this.harness.history(sid) });
-        this.event("session.info", { model: MODEL, stored_session_id: `stored-${sid}` }, sid);
+        this.event("session.info", { model: this.opts.model ?? MODEL, stored_session_id: `stored-${sid}` }, sid);
         return;
       }
       case "profiles.create":
@@ -369,7 +376,8 @@ class MockSession {
       check();
       this.event("message.start", {}, sid);
 
-      if (/\berror\b/.test(t)) {
+      const demo = !!this.opts.demo;
+      if (!demo && /\berror\b/.test(t)) {
         this.event("error", { message: "Model endpoint returned 503 (mock error)." }, sid);
         this.event("message.complete", { text: "", status: "error", error: "The model did not answer." }, sid);
         return;
@@ -399,7 +407,7 @@ class MockSession {
         await openReal("files", "ui://files/browser", "browse", { path: "documents" }, "Here are your documents.", "\n\nPick one to look inside, edit it, or go back to an earlier version.");
       } else if (real && /(check|read|new|show|what).*\b(e-?mail|mail|inbox)\b|\bmy (e-?mail|mail|inbox)\b/.test(t) && !/send/.test(t)) {
         await openReal("email", "ui://email/inbox", "search", {}, "Let me look at your mail.", "");
-      } else if (real && /\b(make|create|design)\b.*\btheme\b/.test(t)) {
+      } else if (real && !demo && /\b(make|create|design)\b.*\btheme\b/.test(t)) {
         // The agent making a theme: a canned one here, the real shell tool (and its checks) underneath.
         const toolId = `t-${Math.random().toString(36).slice(2, 8)}`;
         const args = {
@@ -426,19 +434,19 @@ class MockSession {
         await say(result?.isError ? "That didn't work." : `Switched to ${String(result?.structuredContent?.name ?? result?.structuredContent?.result?.name ?? named ?? id)}.`);
       } else if (real && /\bthemes?\b/.test(t)) {
         await openReal("shell", "ui://shell/themes", "theme_list", {}, "Here are the themes.", "\n\nPick one, or tell me what you'd like and I'll make you your own.");
-      } else if (real && /\b(characters?|embers?|mascots?)\b/.test(t)) {
+      } else if (real && !demo && /\b(characters?|embers?|mascots?)\b/.test(t)) {
         await openReal("design", "ui://design/ember", "show_ember_characters", {}, "Here are ten takes on the ember as a character.",
           "\n\nEach shows its moods and how it reads as an icon.");
-      } else if (real && /\b(2026|trends?|six)\b/.test(t)) {
+      } else if (real && !demo && /\b(2026|trends?|six)\b/.test(t)) {
         await openReal("design", "ui://design/2026", "show_2026_directions", {}, "Here are six directions from 2026.",
           "\n\nThe ember character and the ember matrix show their moods under the screen.");
-      } else if (real && /\b(glass|variations?)\b/.test(t)) {
+      } else if (real && !demo && /\b(glass|variations?)\b/.test(t)) {
         await openReal("design", "ui://design/glass", "show_glass_variations", {}, "Here are ten variations of Ember glass.",
           "\n\nEach changes one or two things. Tell me which ones to keep, or what to mix.");
-      } else if (real && /\b(design|directions|mockups?|looks?)\b/.test(t)) {
+      } else if (real && !demo && /\b(design|directions|mockups?|looks?)\b/.test(t)) {
         await openReal("design", "ui://design/directions", "show_directions", {}, "Here are twelve directions for Foyelle's look.",
           "\n\nEach draws the same screen. Tell me which ones feel right, or what to mix.");
-      } else if (real && /\badd\b.*\b(tasks?|to-?dos?)\b/.test(t)) {
+      } else if (real && !demo && /\badd\b.*\b(tasks?|to-?dos?)\b/.test(t)) {
         // A change made by the agent while the Tasks card is open: the card reloads by itself.
         const toolId = `t-${Math.random().toString(36).slice(2, 8)}`;
         const args = { tasks: [{ content: "Try the new Tasks card", dueString: "today" }] };
@@ -450,7 +458,7 @@ class MockSession {
       } else if (real && /\b(tasks?|to-?dos?|todoist)\b/.test(t)) {
         await openReal("todoist", "ui://todoist/tasks", "find_tasks_by_date", { startDate: "today", daysCount: 1 },
           "Here's what's on your list today.", "\n\nTick one off when it's done, or move it to another day.");
-      } else if (real && /\bfl(y|ight)/.test(t)) {
+      } else if (real && !demo && /\bfl(y|ight)/.test(t)) {
         // Kiwi's real flight search through the bridge, two months ahead.
         const d = new Date(Date.now() + 60 * 864e5);
         const date = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
@@ -533,7 +541,7 @@ class MockSession {
         const toolId = `t-${Math.random().toString(36).slice(2, 8)}`;
         const args = { to: "jo@example.org", subject: "Q3 report", body: "Hi Jo,\n\nThe Q3 report is attached.\n\nBest,\nSam", attachments: ["Quarterly report.pdf"] };
         this.event("tool.start", { tool_id: toolId, name: "mcp_email_send", args }, sid);
-        const cancelTest = /cancel/.test(t);
+        const cancelTest = !demo && /cancel/.test(t);
         const answer = await this.ask(
           "approval",
           {
@@ -558,7 +566,7 @@ class MockSession {
           this.event("tool.complete", { tool_id: toolId, name: "mcp_email_send", summary: "sent" }, sid);
           await say(`\n\nSent (approval: \`${answer.choice}\`).`);
         }
-      } else if (/cancel/.test(t)) {
+      } else if (!demo && /cancel/.test(t)) {
         await say("I'll ask for approval and then withdraw the request after 6 seconds.");
         const answer = await this.ask(
           "approval",
@@ -583,15 +591,15 @@ class MockSession {
         );
         const a = answer?.answers ?? {};
         await say(`\n\nThanks. **When:** ${a.when ?? "no preference"}. **Note:** ${a.note ?? "none"}. (Mock: nothing was scheduled.)`);
-      } else if (/secret|token|password|api key|key/.test(t)) {
+      } else if (!demo && /secret|token|password|api key|key/.test(t)) {
         await say("I need an API key to continue.");
         const answer = await this.ask("secret", { name: "OPENCODE_API_KEY", prompt: "Paste your OpenCode Zen API key" }, run);
         if (answer?.error) await say("\n\nYou cancelled, so I'll stop here.");
         else await say(`\n\nThanks, I received a value of ${String(answer?.value ?? "").length} characters. It is not shown anywhere.`);
-      } else if (/long|markdown/.test(t)) {
+      } else if (!demo && /long|markdown/.test(t)) {
         await say(LONG);
       } else {
-        await say(HELP(text));
+        await say(demo ? DEMO_FALLBACK : HELP(text));
       }
       check();
       this.event("message.complete", { text: said, status: "complete" }, sid);
@@ -641,6 +649,10 @@ This is the **mock harness**, so I only know a few tricks:
 - *error* reports an error, *long* prints more markdown
 
 Commands such as \`/surfaces\`, \`/pin\`, \`/dismiss\` and \`/help\` run in the canvas itself.`;
+
+const DEMO_FALLBACK = `This demo plays canned answers, and no AI model is listening, so I can't answer that one.
+
+Try a suggestion under the conversation: your documents, a thank-you note, an email (I ask before anything leaves), the themes, or all the cards. On a real Foyelle, a model answers whatever you ask.`;
 
 const LONG = `## A longer answer
 

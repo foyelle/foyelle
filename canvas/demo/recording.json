@@ -1,0 +1,648 @@
+{
+ "surfaces": [
+  {
+   "server": "files",
+   "uri": "ui://files/browser",
+   "name": "browser",
+   "title": "Files"
+  },
+  {
+   "server": "shell",
+   "uri": "ui://shell/status",
+   "name": "status",
+   "title": "Status"
+  },
+  {
+   "server": "shell",
+   "uri": "ui://shell/memory",
+   "name": "memory",
+   "title": "Memory"
+  },
+  {
+   "server": "shell",
+   "uri": "ui://shell/settings",
+   "name": "settings",
+   "title": "Settings"
+  },
+  {
+   "server": "shell",
+   "uri": "ui://shell/themes",
+   "name": "themes",
+   "title": "Themes"
+  },
+  {
+   "server": "shell",
+   "uri": "ui://shell/audit",
+   "name": "audit",
+   "title": "Audit log"
+  },
+  {
+   "server": "shell",
+   "uri": "ui://shell/privacy",
+   "name": "privacy",
+   "title": "What left your home"
+  },
+  {
+   "server": "todoist",
+   "uri": "ui://todoist/tasks",
+   "name": "tasks",
+   "title": "Tasks"
+  },
+  {
+   "server": "system",
+   "uri": "ui://system/review",
+   "name": "review",
+   "title": "System changes"
+  },
+  {
+   "server": "workshop",
+   "uri": "ui://workshop/s/recent-documents",
+   "name": "recent-documents",
+   "title": "Recent documents"
+  },
+  {
+   "server": "email",
+   "uri": "ui://email/inbox",
+   "name": "inbox",
+   "title": "Mail"
+  },
+  {
+   "server": "email",
+   "uri": "ui://email/compose",
+   "name": "compose",
+   "title": "Compose"
+  },
+  {
+   "server": "calendar",
+   "uri": "ui://calendar/agenda",
+   "name": "agenda",
+   "title": "Agenda"
+  }
+ ],
+ "pages": {
+  "files ui://files/browser": {
+   "file": "files-browser.html",
+   "title": "Files",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "shell ui://shell/status": {
+   "file": "shell-status.html",
+   "title": "Status",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "shell ui://shell/memory": {
+   "file": "shell-memory.html",
+   "title": "Memory",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "shell ui://shell/settings": {
+   "file": "shell-settings.html",
+   "title": "Settings",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "shell ui://shell/themes": {
+   "file": "shell-themes.html",
+   "title": "Themes",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "shell ui://shell/audit": {
+   "file": "shell-audit.html",
+   "title": "Audit log",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "shell ui://shell/privacy": {
+   "file": "shell-privacy.html",
+   "title": "What left your home",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "todoist ui://todoist/tasks": {
+   "file": "todoist-tasks.html",
+   "title": "Tasks",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "system ui://system/review": {
+   "file": "system-review.html",
+   "title": "System changes",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "workshop ui://workshop/s/recent-documents": {
+   "file": "workshop-recent-documents.html",
+   "title": "Recent documents",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "email ui://email/inbox": {
+   "file": "email-inbox.html",
+   "title": "Mail",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "email ui://email/compose": {
+   "file": "email-compose.html",
+   "title": "Compose",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  },
+  "calendar ui://calendar/agenda": {
+   "file": "calendar-agenda.html",
+   "title": "Agenda",
+   "csp": {
+    "connectDomains": [],
+    "resourceDomains": []
+   }
+  }
+ },
+ "settings": {
+  "ember": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"ember\",\n    \"name\": \"Ember\",\n    \"description\": \"Warm paper, ink outlines and the drawn flame. Friendly and handmade.\",\n    \"fonts\": {\n      \"body\": \"rounded\",\n      \"display\": \"hand\"\n    },\n    \"shape\": {\n      \"radius\": 22,\n      \"edge_width\": 2,\n      \"lift\": 3,\n      \"drawn\": true,\n      \"grain\": true,\n      \"tilt\": true\n    },\n    \"light\": {\n      \"background\": \"#fbf6ec\",\n      \"sidebar\": \"#f6eddd\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#f8efe1\",\n      \"text\": \"#2a1e16\",\n      \"text_muted\": \"#65544a\",\n      \"text_faint\": \"#8f7c6c\",\n      \"line\": \"#eadcc8\",\n      \"edge\": \"#2a1e16\",\n      \"accent\": \"#b23a0a\",\n      \"primary\": \"#ff8a3d\",\n      \"on_primary\": \"#2a1e16\",\n      \"highlight\": \"#ffd23f\",\n      \"on_highlight\": \"#2a1e16\",\n      \"alert\": \"#d6331f\",\n      \"on_alert\": \"#ffffff\"\n    },\n    \"dark\": {\n      \"background\": \"#1d1712\",\n      \"sidebar\": \"#231c16\",\n      \"surface\": \"#2c231c\",\n      \"surface_alt\": \"#352a21\",\n      \"text\": \"#f6ecdf\",\n      \"text_muted\": \"#cbb9a4\",\n      \"text_faint\": \"#9a8774\",\n      \"line\": \"#44372c\",\n      \"edge\": \"#e8d6c0\",\n      \"accent\": \"#ffa25f\",\n      \"primary\": \"#ff8a3d\",\n      \"on_primary\": \"#2a1e16\",\n      \"highlight\": \"#ffd23f\",\n      \"on_highlight\": \"#2a1e16\",\n      \"alert\": \"#ff6b52\",\n      \"on_alert\": \"#1d1712\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "paper": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"paper\",\n    \"name\": \"Paper\",\n    \"description\": \"Quiet linen and thin lines, with bookish titles. Calm and classic.\",\n    \"fonts\": {\n      \"body\": \"sans\",\n      \"display\": \"serif\"\n    },\n    \"shape\": {\n      \"radius\": 14,\n      \"edge_width\": 1,\n      \"lift\": 0,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": false\n    },\n    \"light\": {\n      \"background\": \"#f6f0e6\",\n      \"sidebar\": \"#fbf7f0\",\n      \"surface\": \"#fffdf9\",\n      \"surface_alt\": \"#f3eadc\",\n      \"text\": \"#2e2621\",\n      \"text_muted\": \"#64554a\",\n      \"text_faint\": \"#8c7d70\",\n      \"line\": \"#e5d8c5\",\n      \"edge\": \"#d3c2ab\",\n      \"accent\": \"#a3441a\",\n      \"primary\": \"#b0501e\",\n      \"on_primary\": \"#ffffff\",\n      \"highlight\": \"#f4d3b8\",\n      \"on_highlight\": \"#2e2621\",\n      \"alert\": \"#b3361e\",\n      \"on_alert\": \"#ffffff\"\n    },\n    \"dark\": {\n      \"background\": \"#1e1915\",\n      \"sidebar\": \"#231d18\",\n      \"surface\": \"#2a231d\",\n      \"surface_alt\": \"#342a22\",\n      \"text\": \"#f1e8dc\",\n      \"text_muted\": \"#c2b29f\",\n      \"text_faint\": \"#978674\",\n      \"line\": \"#45392f\",\n      \"edge\": \"#5c4b3d\",\n      \"accent\": \"#f0955a\",\n      \"primary\": \"#f0955a\",\n      \"on_primary\": \"#1e1915\",\n      \"highlight\": \"#5a3420\",\n      \"on_highlight\": \"#f1e8dc\",\n      \"alert\": \"#ff9c8a\",\n      \"on_alert\": \"#1e1915\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "midnight": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"midnight\",\n    \"name\": \"Midnight\",\n    \"description\": \"Deep night blue with a warm amber lamp. Always dark.\",\n    \"fonts\": {\n      \"body\": \"sans\",\n      \"display\": \"sans\"\n    },\n    \"shape\": {\n      \"radius\": 16,\n      \"edge_width\": 1,\n      \"lift\": 0,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": false\n    },\n    \"dark\": {\n      \"background\": \"#0f1420\",\n      \"sidebar\": \"#131a29\",\n      \"surface\": \"#1a2233\",\n      \"surface_alt\": \"#222c40\",\n      \"text\": \"#e8edf7\",\n      \"text_muted\": \"#a8b3c7\",\n      \"text_faint\": \"#7c889e\",\n      \"line\": \"#2a3550\",\n      \"edge\": \"#3e4b6b\",\n      \"accent\": \"#ffc46b\",\n      \"primary\": \"#ffb547\",\n      \"on_primary\": \"#1a1206\",\n      \"highlight\": \"#33456b\",\n      \"on_highlight\": \"#e8edf7\",\n      \"alert\": \"#ff7a6b\",\n      \"on_alert\": \"#1a0d0b\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "meadow": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"meadow\",\n    \"name\": \"Meadow\",\n    \"description\": \"Fresh greens and sunshine, soft rounded letters.\",\n    \"fonts\": {\n      \"body\": \"rounded\",\n      \"display\": \"rounded\"\n    },\n    \"shape\": {\n      \"radius\": 20,\n      \"edge_width\": 2,\n      \"lift\": 2,\n      \"drawn\": false,\n      \"grain\": true,\n      \"tilt\": false\n    },\n    \"light\": {\n      \"background\": \"#f3f8ec\",\n      \"sidebar\": \"#e9f2df\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#eef6e6\",\n      \"text\": \"#1f2a1a\",\n      \"text_muted\": \"#4a5a43\",\n      \"text_faint\": \"#73826a\",\n      \"line\": \"#d6e4c8\",\n      \"edge\": \"#1f2a1a\",\n      \"accent\": \"#2b6a1c\",\n      \"primary\": \"#7cc35a\",\n      \"on_primary\": \"#13240c\",\n      \"highlight\": \"#ffe066\",\n      \"on_highlight\": \"#1f2a1a\",\n      \"alert\": \"#c8402a\",\n      \"on_alert\": \"#ffffff\"\n    },\n    \"dark\": {\n      \"background\": \"#141c12\",\n      \"sidebar\": \"#182216\",\n      \"surface\": \"#1f2b1c\",\n      \"surface_alt\": \"#263524\",\n      \"text\": \"#eaf3e1\",\n      \"text_muted\": \"#b5c6a8\",\n      \"text_faint\": \"#8a9c7f\",\n      \"line\": \"#33452e\",\n      \"edge\": \"#cfe3bf\",\n      \"accent\": \"#9fdc7c\",\n      \"primary\": \"#7cc35a\",\n      \"on_primary\": \"#13240c\",\n      \"highlight\": \"#ffe066\",\n      \"on_highlight\": \"#1f2a1a\",\n      \"alert\": \"#ff8a73\",\n      \"on_alert\": \"#1a0b07\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "ocean": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"ocean\",\n    \"name\": \"Ocean\",\n    \"description\": \"Cool sea blues and crisp letters. Clear and fresh.\",\n    \"fonts\": {\n      \"body\": \"sans\",\n      \"display\": \"sans\"\n    },\n    \"shape\": {\n      \"radius\": 18,\n      \"edge_width\": 1,\n      \"lift\": 2,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": false\n    },\n    \"light\": {\n      \"background\": \"#eef5fa\",\n      \"sidebar\": \"#e4eef6\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#edf4fa\",\n      \"text\": \"#0f2433\",\n      \"text_muted\": \"#405a69\",\n      \"text_faint\": \"#6a8293\",\n      \"line\": \"#d2e2ee\",\n      \"edge\": \"#9fbbd0\",\n      \"accent\": \"#0b5f8a\",\n      \"primary\": \"#0f6fa8\",\n      \"on_primary\": \"#ffffff\",\n      \"highlight\": \"#bfe6ff\",\n      \"on_highlight\": \"#0f2433\",\n      \"alert\": \"#c43a3a\",\n      \"on_alert\": \"#ffffff\"\n    },\n    \"dark\": {\n      \"background\": \"#0b1822\",\n      \"sidebar\": \"#0e1d29\",\n      \"surface\": \"#132634\",\n      \"surface_alt\": \"#183042\",\n      \"text\": \"#e6f1f8\",\n      \"text_muted\": \"#a3bccb\",\n      \"text_faint\": \"#7590a2\",\n      \"line\": \"#24394a\",\n      \"edge\": \"#3b5a70\",\n      \"accent\": \"#6cc4f5\",\n      \"primary\": \"#4fb3ea\",\n      \"on_primary\": \"#06151f\",\n      \"highlight\": \"#1f4a66\",\n      \"on_highlight\": \"#e6f1f8\",\n      \"alert\": \"#ff8080\",\n      \"on_alert\": \"#1a0505\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "pop": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"pop\",\n    \"name\": \"Pop\",\n    \"description\": \"Bold black outlines, hard shadows, hot pink and lime. Loud and fun.\",\n    \"fonts\": {\n      \"body\": \"sans\",\n      \"display\": \"rounded\"\n    },\n    \"shape\": {\n      \"radius\": 8,\n      \"edge_width\": 3,\n      \"lift\": 5,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": true\n    },\n    \"light\": {\n      \"background\": \"#fff8f0\",\n      \"sidebar\": \"#ffeede\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#fff1e2\",\n      \"text\": \"#111111\",\n      \"text_muted\": \"#444444\",\n      \"text_faint\": \"#707070\",\n      \"line\": \"#e8dccd\",\n      \"edge\": \"#111111\",\n      \"accent\": \"#b0124f\",\n      \"primary\": \"#ff4fa3\",\n      \"on_primary\": \"#111111\",\n      \"highlight\": \"#c6f432\",\n      \"on_highlight\": \"#111111\",\n      \"alert\": \"#ff3b30\",\n      \"on_alert\": \"#111111\"\n    },\n    \"dark\": {\n      \"background\": \"#141414\",\n      \"sidebar\": \"#1b1b1b\",\n      \"surface\": \"#222222\",\n      \"surface_alt\": \"#2b2b2b\",\n      \"text\": \"#fafafa\",\n      \"text_muted\": \"#c4c4c4\",\n      \"text_faint\": \"#8f8f8f\",\n      \"line\": \"#3a3a3a\",\n      \"edge\": \"#fafafa\",\n      \"accent\": \"#ff7ab8\",\n      \"primary\": \"#ff4fa3\",\n      \"on_primary\": \"#111111\",\n      \"highlight\": \"#c6f432\",\n      \"on_highlight\": \"#111111\",\n      \"alert\": \"#ff5a4f\",\n      \"on_alert\": \"#111111\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "terminal": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"terminal\",\n    \"name\": \"Terminal\",\n    \"description\": \"Amber letters on black, like an old screen. Always dark.\",\n    \"fonts\": {\n      \"body\": \"mono\",\n      \"display\": \"mono\"\n    },\n    \"shape\": {\n      \"radius\": 4,\n      \"edge_width\": 1,\n      \"lift\": 0,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": false\n    },\n    \"dark\": {\n      \"background\": \"#0b0a08\",\n      \"sidebar\": \"#100e0b\",\n      \"surface\": \"#14120e\",\n      \"surface_alt\": \"#1c1913\",\n      \"text\": \"#f5d29a\",\n      \"text_muted\": \"#c9a46a\",\n      \"text_faint\": \"#8f7856\",\n      \"line\": \"#2a251c\",\n      \"edge\": \"#5c4b2e\",\n      \"accent\": \"#ffb347\",\n      \"primary\": \"#ffb347\",\n      \"on_primary\": \"#0b0a08\",\n      \"highlight\": \"#3a2d14\",\n      \"on_highlight\": \"#f5d29a\",\n      \"alert\": \"#ff6b4a\",\n      \"on_alert\": \"#0b0a08\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "blossom": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"blossom\",\n    \"name\": \"Blossom\",\n    \"description\": \"Soft pinks and plum with elegant titles. Gentle and warm.\",\n    \"fonts\": {\n      \"body\": \"rounded\",\n      \"display\": \"serif\"\n    },\n    \"shape\": {\n      \"radius\": 20,\n      \"edge_width\": 1,\n      \"lift\": 2,\n      \"drawn\": false,\n      \"grain\": true,\n      \"tilt\": false\n    },\n    \"light\": {\n      \"background\": \"#fdf3f5\",\n      \"sidebar\": \"#f9e8ec\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#fbeef1\",\n      \"text\": \"#3a1f2b\",\n      \"text_muted\": \"#6e4b58\",\n      \"text_faint\": \"#97767f\",\n      \"line\": \"#f0d6de\",\n      \"edge\": \"#d9a9b9\",\n      \"accent\": \"#9c2b60\",\n      \"primary\": \"#e2668f\",\n      \"on_primary\": \"#2b1520\",\n      \"highlight\": \"#ffd6e3\",\n      \"on_highlight\": \"#3a1f2b\",\n      \"alert\": \"#c62f3c\",\n      \"on_alert\": \"#ffffff\"\n    },\n    \"dark\": {\n      \"background\": \"#1f1418\",\n      \"sidebar\": \"#25181d\",\n      \"surface\": \"#2e1e24\",\n      \"surface_alt\": \"#38252d\",\n      \"text\": \"#fbe9ef\",\n      \"text_muted\": \"#d6b3c0\",\n      \"text_faint\": \"#a68792\",\n      \"line\": \"#4a3039\",\n      \"edge\": \"#7a5160\",\n      \"accent\": \"#ff9ec0\",\n      \"primary\": \"#f080a8\",\n      \"on_primary\": \"#2b1520\",\n      \"highlight\": \"#5a2e40\",\n      \"on_highlight\": \"#fbe9ef\",\n      \"alert\": \"#ff8f8f\",\n      \"on_alert\": \"#2b0d0d\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "contrast": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"contrast\",\n    \"name\": \"High contrast\",\n    \"description\": \"The strongest readable colours and thick outlines, for tired or weaker eyes.\",\n    \"fonts\": {\n      \"body\": \"sans\",\n      \"display\": \"sans\"\n    },\n    \"shape\": {\n      \"radius\": 10,\n      \"edge_width\": 3,\n      \"lift\": 0,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": false\n    },\n    \"light\": {\n      \"background\": \"#ffffff\",\n      \"sidebar\": \"#ffffff\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#f0f0f0\",\n      \"text\": \"#000000\",\n      \"text_muted\": \"#262626\",\n      \"text_faint\": \"#4d4d4d\",\n      \"line\": \"#767676\",\n      \"edge\": \"#000000\",\n      \"accent\": \"#0033cc\",\n      \"primary\": \"#000000\",\n      \"on_primary\": \"#ffffff\",\n      \"highlight\": \"#ffeb00\",\n      \"on_highlight\": \"#000000\",\n      \"alert\": \"#b00020\",\n      \"on_alert\": \"#ffffff\"\n    },\n    \"dark\": {\n      \"background\": \"#000000\",\n      \"sidebar\": \"#000000\",\n      \"surface\": \"#000000\",\n      \"surface_alt\": \"#1a1a1a\",\n      \"text\": \"#ffffff\",\n      \"text_muted\": \"#e6e6e6\",\n      \"text_faint\": \"#bfbfbf\",\n      \"line\": \"#8c8c8c\",\n      \"edge\": \"#ffffff\",\n      \"accent\": \"#8ab4ff\",\n      \"primary\": \"#ffeb00\",\n      \"on_primary\": \"#000000\",\n      \"highlight\": \"#ffeb00\",\n      \"on_highlight\": \"#000000\",\n      \"alert\": \"#ff6b6b\",\n      \"on_alert\": \"#000000\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "dusk": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"dusk\",\n    \"name\": \"Dusk\",\n    \"description\": \"Lavender evening with a peach glow and graceful titles.\",\n    \"fonts\": {\n      \"body\": \"sans\",\n      \"display\": \"serif\"\n    },\n    \"shape\": {\n      \"radius\": 18,\n      \"edge_width\": 1,\n      \"lift\": 1,\n      \"drawn\": false,\n      \"grain\": true,\n      \"tilt\": false\n    },\n    \"light\": {\n      \"background\": \"#f5f2fb\",\n      \"sidebar\": \"#ece7f7\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#f1edfa\",\n      \"text\": \"#241d38\",\n      \"text_muted\": \"#544b72\",\n      \"text_faint\": \"#7e769b\",\n      \"line\": \"#e0d9f0\",\n      \"edge\": \"#b9add6\",\n      \"accent\": \"#5f35b8\",\n      \"primary\": \"#6c45cc\",\n      \"on_primary\": \"#ffffff\",\n      \"highlight\": \"#ffd9c2\",\n      \"on_highlight\": \"#241d38\",\n      \"alert\": \"#c93644\",\n      \"on_alert\": \"#ffffff\"\n    },\n    \"dark\": {\n      \"background\": \"#16121f\",\n      \"sidebar\": \"#1b1626\",\n      \"surface\": \"#231c31\",\n      \"surface_alt\": \"#2b2340\",\n      \"text\": \"#eee9fb\",\n      \"text_muted\": \"#bdb3dc\",\n      \"text_faint\": \"#8d83ae\",\n      \"line\": \"#3a3054\",\n      \"edge\": \"#5e4f8a\",\n      \"accent\": \"#c3a8ff\",\n      \"primary\": \"#a98bff\",\n      \"on_primary\": \"#16121f\",\n      \"highlight\": \"#4a3570\",\n      \"on_highlight\": \"#eee9fb\",\n      \"alert\": \"#ff8a95\",\n      \"on_alert\": \"#1f0a0d\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "tokyo-night": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"tokyo-night\",\n    \"name\": \"Tokyo Night\",\n    \"description\": \"Omarchy's default look: Tokyo Night blues, square tiles and a coder's font. Always dark.\",\n    \"fonts\": {\n      \"body\": \"code\",\n      \"display\": \"code\"\n    },\n    \"shape\": {\n      \"radius\": 0,\n      \"edge_width\": 2,\n      \"lift\": 0,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": false\n    },\n    \"dark\": {\n      \"background\": \"#13141c\",\n      \"sidebar\": \"#1a1b26\",\n      \"surface\": \"#1a1b26\",\n      \"surface_alt\": \"#24283b\",\n      \"text\": \"#c0caf5\",\n      \"text_muted\": \"#a9b1d6\",\n      \"text_faint\": \"#737aa2\",\n      \"line\": \"#292e42\",\n      \"edge\": \"#414868\",\n      \"accent\": \"#7aa2f7\",\n      \"primary\": \"#7aa2f7\",\n      \"on_primary\": \"#13141c\",\n      \"highlight\": \"#33467c\",\n      \"on_highlight\": \"#c0caf5\",\n      \"alert\": \"#f7768e\",\n      \"on_alert\": \"#13141c\"\n    }\n  }\n}"
+    }
+   ]
+  },
+  "millennium": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"settings_file\": \"/var/lib/foyelle/settings/enforced.json\",\n  \"overrides_file\": \"/var/lib/foyelle/settings/overrides.json\",\n  \"effective\": {\n    \"model\": {\n      \"route\": \"remote\",\n      \"provider\": \"openrouter\",\n      \"main\": \"deepseek/deepseek-v4.1-flash\",\n      \"local\": \"qwen3:4b-instruct\"\n    },\n    \"ui\": {\n      \"theme\": \"system\",\n      \"natural_scroll\": true\n    },\n    \"approvals\": {\n      \"mode\": \"manual\"\n    }\n  },\n  \"overrides\": {\n    \"ui.natural_scroll\": true\n  },\n  \"allowed\": {\n    \"ui.theme\": {\n      \"kind\": \"enum\",\n      \"description\": \"Light or dark (time: light by day, dark in the evening)\",\n      \"choices\": [\n        \"system\",\n        \"light\",\n        \"dark\",\n        \"time\"\n      ]\n    },\n    \"ui.style\": {\n      \"kind\": \"string\",\n      \"description\": \"The canvas theme's id (see theme_list; theme_use changes it)\"\n    },\n    \"ui.text_scale\": {\n      \"kind\": \"number\",\n      \"description\": \"Canvas text size multiplier\",\n      \"minimum\": 0.75,\n      \"maximum\": 2\n    },\n    \"ui.locale\": {\n      \"kind\": \"string\",\n      \"description\": \"Locale for dates and numbers, e.g. en-GB\"\n    },\n    \"ui.natural_scroll\": {\n      \"kind\": \"bool\",\n      \"description\": \"Natural scrolling, like on a Mac (the screen restarts to apply it)\"\n    },\n    \"ui.welcomed\": {\n      \"kind\": \"bool\",\n      \"description\": \"The first-start welcome is done\"\n    },\n    \"user.name\": {\n      \"kind\": \"string\",\n      \"description\": \"What Foyelle calls the user\"\n    },\n    \"model.route\": {\n      \"kind\": \"enum\",\n      \"description\": \"Default model route\",\n      \"choices\": [\n        \"local\",\n        \"remote\"\n      ]\n    },\n    \"model.main\": {\n      \"kind\": \"string\",\n      \"description\": \"Main model name on the remote route\"\n    },\n    \"model.local\": {\n      \"kind\": \"string\",\n      \"description\": \"Model name on the local route (as the local server lists it, e.g. qwen3:4b-instruct)\"\n    },\n    \"model.auxiliary\": {\n      \"kind\": \"string\",\n      \"description\": \"Auxiliary model name on the remote route\"\n    }\n  },\n  \"remote_provider\": \"OpenRouter\",\n  \"remote_key_configured\": true,\n  \"theme\": {\n    \"id\": \"millennium\",\n    \"name\": \"Millennium\",\n    \"description\": \"An early-2000s desktop: beige windows, bevelled buttons, a glossy blue ember. Always light.\",\n    \"fonts\": {\n      \"body\": \"condensed\",\n      \"display\": \"condensed\"\n    },\n    \"shape\": {\n      \"radius\": 4,\n      \"edge_width\": 1,\n      \"lift\": 0,\n      \"drawn\": false,\n      \"grain\": false,\n      \"tilt\": false,\n      \"bevel\": true,\n      \"gloss\": true\n    },\n    \"light\": {\n      \"background\": \"#ece9d8\",\n      \"sidebar\": \"#d6dff7\",\n      \"surface\": \"#ffffff\",\n      \"surface_alt\": \"#f4f3ee\",\n      \"text\": \"#000000\",\n      \"text_muted\": \"#3f3d36\",\n      \"text_faint\": \"#716f64\",\n      \"line\": \"#d0d0bf\",\n      \"edge\": \"#003c74\",\n      \"accent\": \"#0046d5\",\n      \"primary\": \"#2b7d2b\",\n      \"on_primary\": \"#ffffff\",\n      \"highlight\": \"#316ac5\",\n      \"on_highlight\": \"#ffffff\",\n      \"alert\": \"#c4381d\",\n      \"on_alert\": \"#ffffff\"\n    }\n  }\n}"
+    }
+   ]
+  }
+ },
+ "replies": {
+  "shell.services_list {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"services\": [\n    {\n      \"id\": \"todoist\",\n      \"title\": \"Todoist\",\n      \"category\": \"tasks\",\n      \"summary\": \"Your tasks and reminders, in step with the Todoist apps.\",\n      \"account\": true,\n      \"private\": true,\n      \"reviewed\": \"2026-10-18\",\n      \"connected\": false,\n      \"always\": false,\n      \"state\": \"inactive\"\n    },\n    {\n      \"id\": \"kiwi\",\n      \"title\": \"Kiwi.com flights\",\n      \"category\": \"travel\",\n      \"summary\": \"Search flights and compare prices. No account: booking happens on kiwi.com.\",\n      \"account\": false,\n      \"private\": false,\n      \"reviewed\": \"2026-10-18\",\n      \"connected\": false,\n      \"always\": false,\n      \"state\": \"inactive\"\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "shell.conversation_services {\"session_id\":\"stored-mock-mvuc4ewp-1\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"on\": [],\n  \"off\": []\n}"
+    }
+   ]
+  },
+  "shell.bots_list {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"bots\": [\n    {\n      \"id\": \"bot-travel\",\n      \"name\": \"Travel\",\n      \"job\": \"Watches flight prices for our December trip to Istanbul.\",\n      \"picture\": \"✈️\",\n      \"services\": [\n        \"web\"\n      ],\n      \"shareOnline\": []\n    }\n  ],\n  \"foyelle\": {\n    \"shareOnline\": []\n  },\n  \"givable\": [\n    {\n      \"id\": \"calendar\",\n      \"title\": \"Calendar\",\n      \"private\": true\n    },\n    {\n      \"id\": \"email\",\n      \"title\": \"Mail\",\n      \"private\": true\n    },\n    {\n      \"id\": \"files\",\n      \"title\": \"Files\",\n      \"private\": true\n    },\n    {\n      \"id\": \"web\",\n      \"title\": \"Web search\",\n      \"private\": false\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "email.account_status {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"connected\": true,\n  \"address\": \"sam@example.org\",\n  \"provider\": \"fastmail\",\n  \"servers\": [\n    \"imap.fastmail.com\",\n    \"smtp.fastmail.com\"\n  ],\n  \"managed\": false\n}"
+    }
+   ]
+  },
+  "calendar.account_status {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"connected\": true,\n  \"address\": \"sam@example.org\",\n  \"provider\": \"fastmail\",\n  \"calendar\": \"Home\",\n  \"calendars\": [\n    \"Home\",\n    \"Work\"\n  ],\n  \"managed\": false\n}"
+    }
+   ]
+  },
+  "shell.routine_results {\"limit\":80,\"since\":1793067009.164}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"runs\": [\n    {\n      \"bot\": \"bot-travel\",\n      \"job\": \"fare01\",\n      \"run\": \"2026-10-30_09-30-07\",\n      \"ran\": 1793323807.580365,\n      \"name\": \"Fare watch\",\n      \"failed\": false,\n      \"response\": \"The cheapest return is now **€412** (Pegasus, one stop), down from €468 yesterday. That's under your €450 limit.\"\n    },\n    {\n      \"bot\": \"default\",\n      \"job\": \"brief01\",\n      \"run\": \"2026-10-30_07-10-07\",\n      \"ran\": 1793315407.579962,\n      \"name\": \"Morning brief\",\n      \"failed\": false,\n      \"response\": \"Good morning! Today: **dentist at 10:00** (Dr. Costa), and Rita's dinner at 19:00.\\n\\nTwo tasks are due: *pay the electricity bill* and *book the car service*.\"\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "shell.waiting_list {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"items\": [\n    {\n      \"id\": \"5a1e5a1e5a1e5a1e\",\n      \"toolName\": \"mcp__files__write\",\n      \"connector\": \"files\",\n      \"tool\": \"write\",\n      \"tier\": \"reversible\",\n      \"args\": {\n        \"path\": \"documents/Shopping list.txt\",\n        \"content\": \"Milk\\nBread\\nApples\\nCoffee\\nCardamom\\nCandles\\n\",\n        \"overwrite\": true\n      },\n      \"summary\": \"Add candles to the shopping list\",\n      \"bot\": \"default\",\n      \"sessionId\": \"cron_brief01_x\",\n      \"jobId\": \"brief01\",\n      \"created\": 1793315407.580516,\n      \"expires\": 1793398207.580516\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "system.disk_status {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"encrypted\": true,\n  \"initial_passphrase\": true,\n  \"prompt_open\": false,\n  \"warning\": \"The disk still opens with the public initial passphrase: anyone with this machine's disk can read it. Change the disk passphrase.\"\n}"
+    }
+   ]
+  },
+  "files.browse {\"path\":\"documents\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents\",\n  \"read_only\": false,\n  \"entries\": [\n    {\n      \"name\": \"images\",\n      \"path\": \"documents/images\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Letters\",\n      \"path\": \"documents/Letters\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Recipes\",\n      \"path\": \"documents/Recipes\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Budget 2027.csv\",\n      \"path\": \"documents/Budget 2027.csv\",\n      \"type\": \"file\",\n      \"size\": 51,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"README.md\",\n      \"path\": \"documents/README.md\",\n      \"type\": \"file\",\n      \"size\": 55,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Shopping list.txt\",\n      \"path\": \"documents/Shopping list.txt\",\n      \"type\": \"file\",\n      \"size\": 34,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    }\n  ],\n  \"truncated\": false,\n  \"history\": [\n    {\n      \"id\": \"18e32caf3dc0ae30-59ca55\",\n      \"ts\": 1793326207.791306,\n      \"root\": \"documents\",\n      \"op\": \"overwrite\",\n      \"path\": \"documents/Shopping list.txt\",\n      \"stored\": \"18e32caf3dc0ae30-59ca55/Shopping list.txt\"\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "files.list {\"path\":\"\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"\",\n  \"entries\": [\n    {\n      \"name\": \"documents\",\n      \"path\": \"documents\",\n      \"type\": \"root\",\n      \"read_only\": false\n    }\n  ],\n  \"truncated\": false\n}"
+    }
+   ]
+  },
+  "shell.memory_read {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"directory\": \"/var/lib/foyelle/memories\",\n  \"files\": [\n    {\n      \"name\": \"MEMORY.md\",\n      \"exists\": true,\n      \"content\": \"Rita is Sam's friend; birthday 3 March.\\n§\\nThe dentist is Dr. Costa, Tuesdays.\\n\",\n      \"entries\": [\n        \"Rita is Sam's friend; birthday 3 March.\",\n        \"The dentist is Dr. Costa, Tuesdays.\"\n      ],\n      \"sha256\": \"d1a1a6fcb2c44c635e9186208e7e55d805e908bd2f48101bb61a5f902d9ee32b\",\n      \"size\": 79,\n      \"modified\": \"2026-10-30T02:10:07.520800+00:00\"\n    },\n    {\n      \"name\": \"USER.md\",\n      \"exists\": true,\n      \"content\": \"User's name is Sam.\\n§\\nLives in Lisbon; prefers Celsius and 24-hour time.\\n\",\n      \"entries\": [\n        \"User's name is Sam.\",\n        \"Lives in Lisbon; prefers Celsius and 24-hour time.\"\n      ],\n      \"sha256\": \"0f55f02cdf8e62be01b9cbf089459d23774eb6856f25d3aad1507e6b23820356\",\n      \"size\": 74,\n      \"modified\": \"2026-10-30T02:10:11.952471+00:00\"\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "shell.status {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"hostname\": \"foyelle\",\n  \"uptime_seconds\": null,\n  \"model\": {\n    \"route\": \"remote\",\n    \"main\": \"deepseek/deepseek-v4.1-flash\",\n    \"provider\": \"openrouter\"\n  },\n  \"connectors\": [\n    {\n      \"name\": \"files\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    },\n    {\n      \"name\": \"shell\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    },\n    {\n      \"name\": \"system\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    },\n    {\n      \"name\": \"web\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    },\n    {\n      \"name\": \"workshop\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    },\n    {\n      \"name\": \"sysmon\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    },\n    {\n      \"name\": \"email\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    },\n    {\n      \"name\": \"calendar\",\n      \"port\": 5195,\n      \"state\": \"active\"\n    }\n  ],\n  \"network\": {\n    \"online\": null,\n    \"default_route\": null,\n    \"interfaces\": []\n  }\n}"
+    }
+   ]
+  },
+  "shell.theme_list {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"current\": \"ember\",\n  \"scheme\": \"light\",\n  \"themes\": [\n    {\n      \"id\": \"ember\",\n      \"name\": \"Ember\",\n      \"description\": \"Warm paper, ink outlines and the drawn flame. Friendly and handmade.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"rounded\",\n        \"display\": \"hand\"\n      },\n      \"swatch\": [\n        \"#fbf6ec\",\n        \"#ffffff\",\n        \"#ff8a3d\",\n        \"#ffd23f\",\n        \"#2a1e16\"\n      ]\n    },\n    {\n      \"id\": \"paper\",\n      \"name\": \"Paper\",\n      \"description\": \"Quiet linen and thin lines, with bookish titles. Calm and classic.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"sans\",\n        \"display\": \"serif\"\n      },\n      \"swatch\": [\n        \"#f6f0e6\",\n        \"#fffdf9\",\n        \"#b0501e\",\n        \"#f4d3b8\",\n        \"#2e2621\"\n      ]\n    },\n    {\n      \"id\": \"midnight\",\n      \"name\": \"Midnight\",\n      \"description\": \"Deep night blue with a warm amber lamp. Always dark.\",\n      \"schemes\": [\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"sans\",\n        \"display\": \"sans\"\n      },\n      \"swatch\": [\n        \"#0f1420\",\n        \"#1a2233\",\n        \"#ffb547\",\n        \"#33456b\",\n        \"#e8edf7\"\n      ]\n    },\n    {\n      \"id\": \"meadow\",\n      \"name\": \"Meadow\",\n      \"description\": \"Fresh greens and sunshine, soft rounded letters.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"rounded\",\n        \"display\": \"rounded\"\n      },\n      \"swatch\": [\n        \"#f3f8ec\",\n        \"#ffffff\",\n        \"#7cc35a\",\n        \"#ffe066\",\n        \"#1f2a1a\"\n      ]\n    },\n    {\n      \"id\": \"ocean\",\n      \"name\": \"Ocean\",\n      \"description\": \"Cool sea blues and crisp letters. Clear and fresh.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"sans\",\n        \"display\": \"sans\"\n      },\n      \"swatch\": [\n        \"#eef5fa\",\n        \"#ffffff\",\n        \"#0f6fa8\",\n        \"#bfe6ff\",\n        \"#0f2433\"\n      ]\n    },\n    {\n      \"id\": \"pop\",\n      \"name\": \"Pop\",\n      \"description\": \"Bold black outlines, hard shadows, hot pink and lime. Loud and fun.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"sans\",\n        \"display\": \"rounded\"\n      },\n      \"swatch\": [\n        \"#fff8f0\",\n        \"#ffffff\",\n        \"#ff4fa3\",\n        \"#c6f432\",\n        \"#111111\"\n      ]\n    },\n    {\n      \"id\": \"terminal\",\n      \"name\": \"Terminal\",\n      \"description\": \"Amber letters on black, like an old screen. Always dark.\",\n      \"schemes\": [\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"mono\",\n        \"display\": \"mono\"\n      },\n      \"swatch\": [\n        \"#0b0a08\",\n        \"#14120e\",\n        \"#ffb347\",\n        \"#3a2d14\",\n        \"#f5d29a\"\n      ]\n    },\n    {\n      \"id\": \"blossom\",\n      \"name\": \"Blossom\",\n      \"description\": \"Soft pinks and plum with elegant titles. Gentle and warm.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"rounded\",\n        \"display\": \"serif\"\n      },\n      \"swatch\": [\n        \"#fdf3f5\",\n        \"#ffffff\",\n        \"#e2668f\",\n        \"#ffd6e3\",\n        \"#3a1f2b\"\n      ]\n    },\n    {\n      \"id\": \"contrast\",\n      \"name\": \"High contrast\",\n      \"description\": \"The strongest readable colours and thick outlines, for tired or weaker eyes.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"sans\",\n        \"display\": \"sans\"\n      },\n      \"swatch\": [\n        \"#ffffff\",\n        \"#ffffff\",\n        \"#000000\",\n        \"#ffeb00\",\n        \"#000000\"\n      ]\n    },\n    {\n      \"id\": \"dusk\",\n      \"name\": \"Dusk\",\n      \"description\": \"Lavender evening with a peach glow and graceful titles.\",\n      \"schemes\": [\n        \"light\",\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"sans\",\n        \"display\": \"serif\"\n      },\n      \"swatch\": [\n        \"#f5f2fb\",\n        \"#ffffff\",\n        \"#6c45cc\",\n        \"#ffd9c2\",\n        \"#241d38\"\n      ]\n    },\n    {\n      \"id\": \"tokyo-night\",\n      \"name\": \"Tokyo Night\",\n      \"description\": \"Omarchy's default look: Tokyo Night blues, square tiles and a coder's font. Always dark.\",\n      \"schemes\": [\n        \"dark\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"code\",\n        \"display\": \"code\"\n      },\n      \"swatch\": [\n        \"#13141c\",\n        \"#1a1b26\",\n        \"#7aa2f7\",\n        \"#33467c\",\n        \"#c0caf5\"\n      ]\n    },\n    {\n      \"id\": \"millennium\",\n      \"name\": \"Millennium\",\n      \"description\": \"An early-2000s desktop: beige windows, bevelled buttons, a glossy blue ember. Always light.\",\n      \"schemes\": [\n        \"light\"\n      ],\n      \"custom\": false,\n      \"fonts\": {\n        \"body\": \"condensed\",\n        \"display\": \"condensed\"\n      },\n      \"swatch\": [\n        \"#ece9d8\",\n        \"#ffffff\",\n        \"#2b7d2b\",\n        \"#316ac5\",\n        \"#000000\"\n      ]\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "email.search {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"folder\": \"INBOX\",\n  \"messages\": [\n    {\n      \"id\": \"3\",\n      \"folder\": \"INBOX\",\n      \"from\": \"Rita <rita@example.org>\",\n      \"to\": \"you@example.org\",\n      \"cc\": \"\",\n      \"subject\": \"Dinner on Saturday?\",\n      \"date\": \"2026-10-30T02:10:08+00:00\",\n      \"message_id\": \"<3@dev.foyelle>\",\n      \"unread\": true,\n      \"flags\": [],\n      \"size\": 229\n    },\n    {\n      \"id\": \"2\",\n      \"folder\": \"INBOX\",\n      \"from\": \"Dentist <reception@example.org>\",\n      \"to\": \"you@example.org\",\n      \"cc\": \"\",\n      \"subject\": \"Appointment reminder\",\n      \"date\": \"2026-10-29T02:10:08+00:00\",\n      \"message_id\": \"<2@dev.foyelle>\",\n      \"unread\": false,\n      \"flags\": [\n        \"\\\\Seen\"\n      ],\n      \"size\": 220\n    },\n    {\n      \"id\": \"1\",\n      \"folder\": \"INBOX\",\n      \"from\": \"Library <news@example.org>\",\n      \"to\": \"you@example.org\",\n      \"cc\": \"\",\n      \"subject\": \"New books this week\",\n      \"date\": \"2026-10-27T02:10:08+00:00\",\n      \"message_id\": \"<1@dev.foyelle>\",\n      \"unread\": false,\n      \"flags\": [\n        \"\\\\Seen\"\n      ],\n      \"size\": 221\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "email.search {\"folder\":\"INBOX\",\"limit\":30}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"folder\": \"INBOX\",\n  \"messages\": [\n    {\n      \"id\": \"3\",\n      \"folder\": \"INBOX\",\n      \"from\": \"Rita <rita@example.org>\",\n      \"to\": \"you@example.org\",\n      \"cc\": \"\",\n      \"subject\": \"Dinner on Saturday?\",\n      \"date\": \"2026-10-30T02:10:08+00:00\",\n      \"message_id\": \"<3@dev.foyelle>\",\n      \"unread\": true,\n      \"flags\": [],\n      \"size\": 229\n    },\n    {\n      \"id\": \"2\",\n      \"folder\": \"INBOX\",\n      \"from\": \"Dentist <reception@example.org>\",\n      \"to\": \"you@example.org\",\n      \"cc\": \"\",\n      \"subject\": \"Appointment reminder\",\n      \"date\": \"2026-10-29T02:10:08+00:00\",\n      \"message_id\": \"<2@dev.foyelle>\",\n      \"unread\": false,\n      \"flags\": [\n        \"\\\\Seen\"\n      ],\n      \"size\": 220\n    },\n    {\n      \"id\": \"1\",\n      \"folder\": \"INBOX\",\n      \"from\": \"Library <news@example.org>\",\n      \"to\": \"you@example.org\",\n      \"cc\": \"\",\n      \"subject\": \"New books this week\",\n      \"date\": \"2026-10-27T02:10:08+00:00\",\n      \"message_id\": \"<1@dev.foyelle>\",\n      \"unread\": false,\n      \"flags\": [\n        \"\\\\Seen\"\n      ],\n      \"size\": 221\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "calendar.list_events {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"start\": \"2026-10-30T00:00:00+00:00\",\n  \"end\": \"2026-11-06T00:00:00+00:00\",\n  \"timezone\": \"Europe/Lisbon\",\n  \"events\": [\n    {\n      \"uid\": \"dev-1\",\n      \"summary\": \"Dinner with Rita\",\n      \"start\": \"2026-10-31T17:00:00+00:00\",\n      \"end\": \"2026-10-31T19:00:00+00:00\",\n      \"all_day\": false,\n      \"location\": \"\",\n      \"description\": \"\",\n      \"status\": \"\",\n      \"organizer\": null,\n      \"attendees\": [],\n      \"my_status\": null,\n      \"is_invite\": false,\n      \"recurring\": false,\n      \"recurrence_id\": null\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "calendar.list_events {\"days\":7}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"start\": \"2026-10-30T00:00:00+00:00\",\n  \"end\": \"2026-11-06T00:00:00+00:00\",\n  \"timezone\": \"Europe/Lisbon\",\n  \"events\": [\n    {\n      \"uid\": \"dev-1\",\n      \"summary\": \"Dinner with Rita\",\n      \"start\": \"2026-10-31T17:00:00+00:00\",\n      \"end\": \"2026-10-31T19:00:00+00:00\",\n      \"all_day\": false,\n      \"location\": \"\",\n      \"description\": \"\",\n      \"status\": \"\",\n      \"organizer\": null,\n      \"attendees\": [],\n      \"my_status\": null,\n      \"is_invite\": false,\n      \"recurring\": false,\n      \"recurrence_id\": null\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "todoist.find_tasks_by_date {\"daysCount\":1,\"startDate\":\"today\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"tasks\": [\n    {\n      \"content\": \"Pay the electricity bill\",\n      \"dueDate\": \"2026-10-29\",\n      \"priority\": \"p1\",\n      \"projectId\": \"home\",\n      \"labels\": [\n        \"bills\"\n      ],\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t1\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Call the dentist\",\n      \"description\": \"Ask about Tuesday or Thursday morning.\",\n      \"dueDate\": \"2026-10-30T09:00:00\",\n      \"priority\": \"p2\",\n      \"projectId\": \"inbox\",\n      \"recurring\": false,\n      \"id\": \"t2\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Buy milk, bread and coffee\",\n      \"dueDate\": \"2026-10-30\",\n      \"priority\": \"p4\",\n      \"projectId\": \"home\",\n      \"labels\": [\n        \"shopping\"\n      ],\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t3\",\n      \"checked\": false\n    }\n  ],\n  \"totalCount\": 3,\n  \"hasMore\": false,\n  \"appliedFilters\": {}\n}"
+    }
+   ]
+  },
+  "todoist.find_tasks {\"filter\":\"no date | !no date\",\"limit\":100}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"tasks\": [\n    {\n      \"content\": \"Pay the electricity bill\",\n      \"dueDate\": \"2026-10-29\",\n      \"priority\": \"p1\",\n      \"projectId\": \"home\",\n      \"labels\": [\n        \"bills\"\n      ],\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t1\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Call the dentist\",\n      \"description\": \"Ask about Tuesday or Thursday morning.\",\n      \"dueDate\": \"2026-10-30T09:00:00\",\n      \"priority\": \"p2\",\n      \"projectId\": \"inbox\",\n      \"recurring\": false,\n      \"id\": \"t2\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Buy milk, bread and coffee\",\n      \"dueDate\": \"2026-10-30\",\n      \"priority\": \"p4\",\n      \"projectId\": \"home\",\n      \"labels\": [\n        \"shopping\"\n      ],\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t3\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Water the plants\",\n      \"dueDate\": \"2026-10-31\",\n      \"priority\": \"p4\",\n      \"projectId\": \"home\",\n      \"recurring\": \"every 3 days\",\n      \"description\": \"\",\n      \"id\": \"t4\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Check passport expiry\",\n      \"dueDate\": \"2026-11-02\",\n      \"priority\": \"p3\",\n      \"projectId\": \"trip\",\n      \"deadlineDate\": \"2026-11-19\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t5\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Book airport transfer\",\n      \"dueDate\": \"2026-11-05\",\n      \"priority\": \"p4\",\n      \"projectId\": \"trip\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t6\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Ideas for Rita's birthday\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t7\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: learn to make bread\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t8\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: repaint the hall\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t9\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: sort the photo albums\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t10\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: visit the botanical garden\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t11\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: try the new ramen place\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t12\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: fix the bike light\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t13\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: plan a picnic\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t14\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: read Middlemarch\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t15\",\n      \"checked\": false\n    },\n    {\n      \"content\": \"Someday: frame the map\",\n      \"priority\": \"p4\",\n      \"projectId\": \"inbox\",\n      \"description\": \"\",\n      \"recurring\": false,\n      \"id\": \"t16\",\n      \"checked\": false\n    }\n  ],\n  \"totalCount\": 16,\n  \"hasMore\": false,\n  \"appliedFilters\": {}\n}"
+    }
+   ]
+  },
+  "todoist.find_projects {\"limit\":200}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"projects\": [\n    {\n      \"id\": \"inbox\",\n      \"name\": \"Inbox\",\n      \"inboxProject\": true\n    },\n    {\n      \"id\": \"home\",\n      \"name\": \"Home\",\n      \"inboxProject\": false\n    },\n    {\n      \"id\": \"trip\",\n      \"name\": \"Istanbul trip\",\n      \"inboxProject\": false\n    }\n  ],\n  \"totalCount\": 3,\n  \"hasMore\": false,\n  \"appliedFilters\": {}\n}"
+    }
+   ]
+  },
+  "shell.privacy_today {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"date\": \"2026-10-30\",\n  \"calls\": 7,\n  \"model\": {\n    \"online\": true,\n    \"provider\": \"OpenRouter\",\n    \"name\": \"deepseek/deepseek-v4.1-flash\"\n  },\n  \"went_out\": [\n    {\n      \"key\": \"web.search\",\n      \"label\": \"Searched the web 2 times\",\n      \"count\": 2,\n      \"times\": [\n        \"2026-10-30T01:16:15+08:00\",\n        \"2026-10-30T08:53:51+08:00\"\n      ]\n    },\n    {\n      \"key\": \"email.send\",\n      \"label\": \"Sent an email\",\n      \"count\": 1,\n      \"times\": [\n        \"2026-10-30T06:21:19+08:00\"\n      ]\n    },\n    {\n      \"key\": \"web.fetch\",\n      \"label\": \"Opened a web page\",\n      \"count\": 1,\n      \"times\": [\n        \"2026-10-30T02:32:31+08:00\"\n      ]\n    }\n  ],\n  \"shared\": [\n    {\n      \"connector\": \"files\",\n      \"label\": \"files\",\n      \"count\": 2,\n      \"times\": [\n        \"2026-10-30T03:48:47+08:00\",\n        \"2026-10-30T05:05:03+08:00\"\n      ]\n    }\n  ],\n  \"held_back\": [\n    {\n      \"label\": \"An email (you said not now)\",\n      \"ts\": \"2026-10-30T07:37:35+08:00\"\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "shell.audit_query {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"log\": \"/var/lib/foyelle/audit.jsonl\",\n  \"exists\": true,\n  \"entries\": [\n    {\n      \"ts\": \"2026-10-30T00:53:51Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T23:37:35Z\",\n      \"connector\": \"email\",\n      \"tool\": \"mcp__email__send\",\n      \"decision\": \"ask\",\n      \"reason\": \"irreversible or outbound action\",\n      \"origin\": \"model\",\n      \"tier\": \"outbound\",\n      \"session_id\": \"dev\",\n      \"approval\": \"denied\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": null,\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T22:21:19Z\",\n      \"connector\": \"email\",\n      \"tool\": \"mcp__email__send\",\n      \"decision\": \"ask\",\n      \"reason\": \"irreversible or outbound action\",\n      \"origin\": \"model\",\n      \"tier\": \"outbound\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T21:05:03Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"ask\",\n      \"reason\": \"send files content to a remote model for this session\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T19:48:47Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__read\",\n      \"decision\": \"ask\",\n      \"reason\": \"send files content to a remote model for this session\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T18:32:31Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__fetch\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T17:16:15Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T13:01:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T12:33:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T12:05:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T11:36:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T11:08:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T10:40:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T10:11:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T09:43:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T09:15:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T08:46:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T08:18:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T07:50:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T07:21:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T06:53:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T06:25:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T05:56:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T05:28:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T05:00:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T04:31:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T04:03:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T03:35:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T03:06:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T02:38:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T02:10:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    }\n  ],\n  \"offset\": 0,\n  \"has_more\": false,\n  \"skipped_malformed\": 0\n}"
+    }
+   ]
+  },
+  "shell.audit_query {\"limit\":100,\"offset\":0}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"log\": \"/var/lib/foyelle/audit.jsonl\",\n  \"exists\": true,\n  \"entries\": [\n    {\n      \"ts\": \"2026-10-30T00:53:51Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T23:37:35Z\",\n      \"connector\": \"email\",\n      \"tool\": \"mcp__email__send\",\n      \"decision\": \"ask\",\n      \"reason\": \"irreversible or outbound action\",\n      \"origin\": \"model\",\n      \"tier\": \"outbound\",\n      \"session_id\": \"dev\",\n      \"approval\": \"denied\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": null,\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T22:21:19Z\",\n      \"connector\": \"email\",\n      \"tool\": \"mcp__email__send\",\n      \"decision\": \"ask\",\n      \"reason\": \"irreversible or outbound action\",\n      \"origin\": \"model\",\n      \"tier\": \"outbound\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T21:05:03Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"ask\",\n      \"reason\": \"send files content to a remote model for this session\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T19:48:47Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__read\",\n      \"decision\": \"ask\",\n      \"reason\": \"send files content to a remote model for this session\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T18:32:31Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__fetch\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T17:16:15Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T13:01:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T12:33:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T12:05:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T11:36:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T11:08:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T10:40:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T10:11:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T09:43:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T09:15:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T08:46:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T08:18:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T07:50:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T07:21:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T06:53:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T06:25:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T05:56:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T05:28:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T05:00:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T04:31:47Z\",\n      \"connector\": \"weather\",\n      \"tool\": \"mcp__weather__current_city\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T04:03:27Z\",\n      \"connector\": \"system\",\n      \"tool\": \"mcp__system__apply\",\n      \"decision\": \"ask\",\n      \"reason\": \"system change: review the diff before it is applied\",\n      \"origin\": \"model\",\n      \"tier\": \"system\",\n      \"session_id\": \"dev\",\n      \"approval\": \"approved\",\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T03:35:07Z\",\n      \"connector\": \"shell\",\n      \"tool\": \"mcp__shell__memory_read\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T03:06:47Z\",\n      \"connector\": \"web\",\n      \"tool\": \"mcp__web__search\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T02:38:27Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__write\",\n      \"decision\": \"allow\",\n      \"reason\": \"reversible tier\",\n      \"origin\": \"model\",\n      \"tier\": \"reversible\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    },\n    {\n      \"ts\": \"2026-10-29T02:10:07Z\",\n      \"connector\": \"files\",\n      \"tool\": \"mcp__files__list\",\n      \"decision\": \"allow\",\n      \"reason\": \"read tier\",\n      \"origin\": \"model\",\n      \"tier\": \"read\",\n      \"session_id\": \"dev\",\n      \"approval\": null,\n      \"args_digest\": \"sha256:dev\",\n      \"duration_ms\": 12,\n      \"status\": \"ok\",\n      \"error_type\": null\n    }\n  ],\n  \"offset\": 0,\n  \"has_more\": false,\n  \"skipped_malformed\": 0\n}"
+    }
+   ]
+  },
+  "system.status {}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"host\": \"foyelle\",\n  \"base_branch\": \"main\",\n  \"base_commit\": \"ecab472affe190fe3836307f3c254eed90b94fac\",\n  \"base_subject\": \"Initial configuration\",\n  \"current_system\": \"/var/lib/foyelle/store/current-system\",\n  \"current_generation\": 41,\n  \"generations\": [\n    {\n      \"generation\": 41,\n      \"path\": \"/var/lib/foyelle/store/current-system\",\n      \"current\": true,\n      \"date\": \"2026-10-30T02:10:07+00:00\"\n    }\n  ],\n  \"proposal_branches\": [\n    \"proposal/20261030-021007-efc135\"\n  ],\n  \"pending\": [\n    {\n      \"id\": \"20261030-021007-efc135\",\n      \"title\": \"Install Firefox\",\n      \"state\": \"proposed\",\n      \"created\": \"2026-10-30T02:10:07+00:00\",\n      \"stale\": false,\n      \"boot_level\": null\n    }\n  ],\n  \"recent\": [\n    {\n      \"id\": \"20261030-021007-efc135\",\n      \"title\": \"Install Firefox\",\n      \"state\": \"proposed\",\n      \"created\": \"2026-10-30T02:10:07+00:00\",\n      \"stale\": false,\n      \"boot_level\": null\n    }\n  ],\n  \"disk\": {\n    \"encrypted\": true,\n    \"initial_passphrase\": true,\n    \"prompt_open\": false,\n    \"warning\": \"The disk still opens with the public initial passphrase: anyone with this machine's disk can read it. Change the disk passphrase.\"\n  },\n  \"recovery\": {\n    \"enabled\": true,\n    \"password_set\": false,\n    \"prompt_open\": false\n  },\n  \"checked\": 1793326293.50229\n}"
+    }
+   ]
+  },
+  "shell.routine_results {\"limit\":80,\"since\":1793067069.146}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"runs\": [\n    {\n      \"bot\": \"bot-travel\",\n      \"job\": \"fare01\",\n      \"run\": \"2026-10-30_09-30-07\",\n      \"ran\": 1793323807.580365,\n      \"name\": \"Fare watch\",\n      \"failed\": false,\n      \"response\": \"The cheapest return is now **€412** (Pegasus, one stop), down from €468 yesterday. That's under your €450 limit.\"\n    },\n    {\n      \"bot\": \"default\",\n      \"job\": \"brief01\",\n      \"run\": \"2026-10-30_07-10-07\",\n      \"ran\": 1793315407.579962,\n      \"name\": \"Morning brief\",\n      \"failed\": false,\n      \"response\": \"Good morning! Today: **dentist at 10:00** (Dr. Costa), and Rita's dinner at 19:00.\\n\\nTwo tasks are due: *pay the electricity bill* and *book the car service*.\"\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "workshop.files.list {\"path\":\"documents\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents\",\n  \"read_only\": false,\n  \"entries\": [\n    {\n      \"name\": \"images\",\n      \"path\": \"documents/images\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Letters\",\n      \"path\": \"documents/Letters\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Recipes\",\n      \"path\": \"documents/Recipes\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Budget 2027.csv\",\n      \"path\": \"documents/Budget 2027.csv\",\n      \"type\": \"file\",\n      \"size\": 51,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"README.md\",\n      \"path\": \"documents/README.md\",\n      \"type\": \"file\",\n      \"size\": 55,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Shopping list.txt\",\n      \"path\": \"documents/Shopping list.txt\",\n      \"type\": \"file\",\n      \"size\": 34,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    }\n  ],\n  \"truncated\": false\n}"
+    }
+   ]
+  },
+  "files.list {\"path\":\"documents\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents\",\n  \"read_only\": false,\n  \"entries\": [\n    {\n      \"name\": \"images\",\n      \"path\": \"documents/images\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Letters\",\n      \"path\": \"documents/Letters\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Recipes\",\n      \"path\": \"documents/Recipes\",\n      \"type\": \"dir\",\n      \"size\": null,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Budget 2027.csv\",\n      \"path\": \"documents/Budget 2027.csv\",\n      \"type\": \"file\",\n      \"size\": 51,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"README.md\",\n      \"path\": \"documents/README.md\",\n      \"type\": \"file\",\n      \"size\": 55,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"Shopping list.txt\",\n      \"path\": \"documents/Shopping list.txt\",\n      \"type\": \"file\",\n      \"size\": 34,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    }\n  ],\n  \"truncated\": false\n}"
+    }
+   ]
+  },
+  "files.list {\"path\":\"documents/images\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/images\",\n  \"read_only\": false,\n  \"entries\": [\n    {\n      \"name\": \"shapes.svg\",\n      \"path\": \"documents/images/shapes.svg\",\n      \"type\": \"file\",\n      \"size\": 270,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    },\n    {\n      \"name\": \"sunset.png\",\n      \"path\": \"documents/images/sunset.png\",\n      \"type\": \"file\",\n      \"size\": 6250,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    }\n  ],\n  \"truncated\": false\n}"
+    }
+   ]
+  },
+  "files.read_image {\"path\":\"documents/images/shapes.svg\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/images/shapes.svg\",\n  \"mime\": \"image/svg+xml\",\n  \"size\": 270,\n  \"data\": \"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmYmY2ZWUiLz4KICA8Y2lyY2xlIGN4PSIxNDAiIGN5PSIxNTAiIHI9IjgwIiBmaWxsPSIjZTI3ODNjIi8+CiAgPHJlY3QgeD0iMjMwIiB5PSI3MCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxNjAiIHJ4PSIxMiIgZmlsbD0iIzJjNWU4YSIvPgo8L3N2Zz4K\"\n}"
+    }
+   ]
+  },
+  "files.versions {\"path\":\"documents/images/shapes.svg\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/images/shapes.svg\",\n  \"current\": {\n    \"size\": 270,\n    \"modified\": \"2026-10-30T02:10:07+00:00\"\n  },\n  \"versions\": []\n}"
+    }
+   ]
+  },
+  "files.read_image {\"path\":\"documents/images/sunset.png\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/images/sunset.png\",\n  \"mime\": \"image/png\",\n  \"size\": 6250,\n  \"data\": \"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\"\n}"
+    }
+   ]
+  },
+  "files.versions {\"path\":\"documents/images/sunset.png\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/images/sunset.png\",\n  \"current\": {\n    \"size\": 6250,\n    \"modified\": \"2026-10-30T02:10:07+00:00\"\n  },\n  \"versions\": []\n}"
+    }
+   ]
+  },
+  "files.list {\"path\":\"documents/Letters\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Letters\",\n  \"read_only\": false,\n  \"entries\": [\n    {\n      \"name\": \"Thank you, Rita.md\",\n      \"path\": \"documents/Letters/Thank you, Rita.md\",\n      \"type\": \"file\",\n      \"size\": 70,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    }\n  ],\n  \"truncated\": false\n}"
+    }
+   ]
+  },
+  "files.read {\"path\":\"documents/Letters/Thank you, Rita.md\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Letters/Thank you, Rita.md\",\n  \"size\": 70,\n  \"modified\": \"2026-10-30T02:10:07+00:00\",\n  \"offset\": 0,\n  \"text\": \"Dear Rita,\\n\\nThank you for the lovely dinner on Saturday.\\n\\nWarmly,\\nSam\\n\",\n  \"truncated\": false,\n  \"next_offset\": null\n}"
+    }
+   ]
+  },
+  "files.versions {\"path\":\"documents/Letters/Thank you, Rita.md\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Letters/Thank you, Rita.md\",\n  \"current\": {\n    \"size\": 70,\n    \"modified\": \"2026-10-30T02:10:07+00:00\"\n  },\n  \"versions\": []\n}"
+    }
+   ]
+  },
+  "files.list {\"path\":\"documents/Recipes\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Recipes\",\n  \"read_only\": false,\n  \"entries\": [\n    {\n      \"name\": \"Orange cake.md\",\n      \"path\": \"documents/Recipes/Orange cake.md\",\n      \"type\": \"file\",\n      \"size\": 55,\n      \"modified\": \"2026-10-30T02:10:07+00:00\"\n    }\n  ],\n  \"truncated\": false\n}"
+    }
+   ]
+  },
+  "files.read {\"path\":\"documents/Recipes/Orange cake.md\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Recipes/Orange cake.md\",\n  \"size\": 55,\n  \"modified\": \"2026-10-30T02:10:07+00:00\",\n  \"offset\": 0,\n  \"text\": \"# Orange cake\\n\\n- 250 g flour\\n- 200 g sugar\\n- 2 oranges\\n\",\n  \"truncated\": false,\n  \"next_offset\": null\n}"
+    }
+   ]
+  },
+  "files.versions {\"path\":\"documents/Recipes/Orange cake.md\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Recipes/Orange cake.md\",\n  \"current\": {\n    \"size\": 55,\n    \"modified\": \"2026-10-30T02:10:07+00:00\"\n  },\n  \"versions\": []\n}"
+    }
+   ]
+  },
+  "files.read {\"path\":\"documents/Budget 2027.csv\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Budget 2027.csv\",\n  \"size\": 51,\n  \"modified\": \"2026-10-30T02:10:07+00:00\",\n  \"offset\": 0,\n  \"text\": \"month,food,rent,fun\\nJan,320,950,80\\nFeb,300,950,120\\n\",\n  \"truncated\": false,\n  \"next_offset\": null\n}"
+    }
+   ]
+  },
+  "files.versions {\"path\":\"documents/Budget 2027.csv\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Budget 2027.csv\",\n  \"current\": {\n    \"size\": 51,\n    \"modified\": \"2026-10-30T02:10:07+00:00\"\n  },\n  \"versions\": []\n}"
+    }
+   ]
+  },
+  "files.read {\"path\":\"documents/README.md\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/README.md\",\n  \"size\": 55,\n  \"modified\": \"2026-10-30T02:10:07+00:00\",\n  \"offset\": 0,\n  \"text\": \"# My documents\\n\\nLetters, recipes and photos live here.\\n\",\n  \"truncated\": false,\n  \"next_offset\": null\n}"
+    }
+   ]
+  },
+  "files.versions {\"path\":\"documents/README.md\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/README.md\",\n  \"current\": {\n    \"size\": 55,\n    \"modified\": \"2026-10-30T02:10:07+00:00\"\n  },\n  \"versions\": []\n}"
+    }
+   ]
+  },
+  "files.read {\"path\":\"documents/Shopping list.txt\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Shopping list.txt\",\n  \"size\": 34,\n  \"modified\": \"2026-10-30T02:10:07+00:00\",\n  \"offset\": 0,\n  \"text\": \"Milk\\nBread\\nApples\\nCoffee\\nCardamom\\n\",\n  \"truncated\": false,\n  \"next_offset\": null\n}"
+    }
+   ]
+  },
+  "files.versions {\"path\":\"documents/Shopping list.txt\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Shopping list.txt\",\n  \"current\": {\n    \"size\": 34,\n    \"modified\": \"2026-10-30T02:10:07+00:00\"\n  },\n  \"versions\": [\n    {\n      \"version_id\": \"18e32caf3dc0ae30-59ca55\",\n      \"saved\": \"2026-10-30T02:10:07+00:00\",\n      \"size\": 25\n    }\n  ]\n}"
+    }
+   ]
+  },
+  "files.read_version {\"path\":\"documents/Shopping list.txt\",\"version_id\":\"18e32caf3dc0ae30-59ca55\"}": {
+   "content": [
+    {
+     "type": "text",
+     "text": "{\n  \"path\": \"documents/Shopping list.txt\",\n  \"version_id\": \"18e32caf3dc0ae30-59ca55\",\n  \"size\": 25,\n  \"text\": \"Milk\\nBread\\nApples\\nCoffee\\n\",\n  \"truncated\": false\n}"
+    }
+   ]
+  }
+ }
+}

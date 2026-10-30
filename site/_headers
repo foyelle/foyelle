@@ -13,3 +13,16 @@
 
 /media/*
   Cache-Control: public, max-age=86400
+
+# The live demo (canvas/demo): the canvas page has the canvas's policy (src/shared/csp.ts,
+# buildCanvasCsp, with its own origin for fetches and frames) and can't be framed; every card is
+# a page of its own under cards/ with the cards' default policy (buildSurfaceCsp), opened in a
+# sandboxed iframe as in Foyelle. canvas/test/demo.test.ts checks these against csp.ts.
+/demo/
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), usb=(), serial=(), hid=(), bluetooth=(), payment=(), display-capture=(), clipboard-read=()
+
+/demo/cards/*
+  Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), usb=(), serial=(), hid=(), bluetooth=(), payment=(), display-capture=(), clipboard-read=()
+  Cache-Control: public, max-age=31536000, immutable

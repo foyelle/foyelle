@@ -2,13 +2,18 @@
 //
 //   node scripts/build.mjs        -> dist/main.js, dist/preload.js, dist/renderer/{index.html,app.js,app.css}
 //   node scripts/build.mjs --web  -> dist-dev/ (renderer + dev shim + mock harness server) for `npm run dev:web`
+//   node scripts/build.mjs --demo <dir>  -> the web demo (demo/demo.ts): static files for foyelle.org/demo
 import * as esbuild from "esbuild";
-import { mkdir, readFile, rm, writeFile, copyFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readdir, readFile, rm, writeFile, copyFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const web = process.argv.includes("--web");
+const demoAt = process.argv.indexOf("--demo");
+const demoOut = demoAt >= 0 ? process.argv[demoAt + 1] : null;
+if (demoAt >= 0 && !demoOut) throw new Error("usage: node scripts/build.mjs --demo <dir>");
 const r = (...p) => path.join(root, ...p);
 
 const BROWSER_TARGET = "chrome130";
@@ -61,7 +66,7 @@ const builtinViews = {
   },
 };
 
-async function buildRenderer(outDir, { extraScript } = {}) {
+async function buildRenderer(outDir, { extraScript, extraStyle, title, icon } = {}) {
   await mkdir(outDir, { recursive: true });
   await esbuild.build({
     entryPoints: [r("src/renderer/app.ts")],
@@ -83,6 +88,9 @@ async function buildRenderer(outDir, { extraScript } = {}) {
   if (extraScript) {
     html = html.replace('<script src="app.js"></script>', `<script src="${extraScript}"></script>\n<script src="app.js"></script>`);
   }
+  if (extraStyle) html = html.replace('<link rel="stylesheet" href="app.css">', `<link rel="stylesheet" href="app.css">\n<link rel="stylesheet" href="${extraStyle}">`);
+  if (title) html = html.replace("<title>Foyelle</title>", `<title>${title}</title>`);
+  if (icon) html = html.replace("</title>", `</title>\n<link rel="icon" href="${icon}" type="image/svg+xml">`);
   await writeFile(path.join(outDir, "index.html"), html);
 }
 
@@ -122,7 +130,49 @@ async function buildWeb() {
   });
 }
 
+/**
+ * The web demo: the renderer, demo.js (mock harness, recorded helpers, banner) and every card's
+ * page as cards/<sha-256>.html, the recorded ones (demo/cards) and the canvas's built-in views.
+ * The page asks for a card by the hash of its HTML, so only these pages can load.
+ */
+async function buildDemo(out) {
+  await rm(out, { recursive: true, force: true });
+  // The site's own icon (site/favicon.svg), one folder up on foyelle.org.
+  await buildRenderer(out, { extraScript: "demo.js", extraStyle: "demo.css", title: "Foyelle demo", icon: "../favicon.svg" });
+  await copyFile(r("demo/demo.css"), path.join(out, "demo.css"));
+  await mkdir(path.join(out, "cards"), { recursive: true });
+  const bySha = {}, byName = {};
+  const add = async (html) => {
+    const sha = createHash("sha256").update(html, "utf8").digest("hex");
+    await writeFile(path.join(out, "cards", `${sha}.html`), html);
+    // Without .html: Cloudflare serves cards/<sha>.html there (and redirects the .html address).
+    return (bySha[sha] = `cards/${sha}`);
+  };
+  for (const file of (await readdir(r("demo/cards"))).filter((f) => f.endsWith(".html")).sort()) {
+    byName[file] = await add(await readFile(r("demo/cards", file), "utf8"));
+  }
+  for (const view of BUILTIN_VIEWS) await add(await buildViewHtml(path.join(VIEW_DIR, `${view}.html`), path.join(VIEW_DIR, `${view}.ts`)));
+  await esbuild.build({
+    entryPoints: [r("demo/demo.ts")],
+    bundle: true,
+    format: "iife",
+    target: BROWSER_TARGET,
+    platform: "browser",
+    minify: true,
+    legalComments: "none",
+    outfile: path.join(out, "demo.js"),
+    plugins: [{
+      name: "demo-cards",
+      setup(build) {
+        build.onResolve({ filter: /^demo-cards$/ }, () => ({ path: "demo-cards", namespace: "demo-cards" }));
+        build.onLoad({ filter: /.*/, namespace: "demo-cards" }, () => ({ contents: JSON.stringify({ bySha, byName }), loader: "json" }));
+      },
+    }],
+  });
+}
+
 const t0 = Date.now();
-if (web) await buildWeb();
+if (demoOut) await buildDemo(path.resolve(demoOut));
+else if (web) await buildWeb();
 else await buildElectron();
-console.log(`[build] ${web ? "dist-dev (web)" : "dist (electron)"} in ${Date.now() - t0} ms`);
+console.log(`[build] ${demoOut ? `${demoOut} (demo)` : web ? "dist-dev (web)" : "dist (electron)"} in ${Date.now() - t0} ms`);

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda</title>
+<style>
+/* Foyelle's look for cards: warm paper, ink-edged buttons with a hard shadow, Nunito for words and
+   Gochi Hand for titles (both installed with the canvas). The canvas passes its colours and font;
+   these are the fallbacks. */
+:root {
+  color-scheme: light dark;
+  --bg: var(--color-background-primary, #ffffff);
+  --bg2: var(--color-background-secondary, #f8efe1);
+  --fg: var(--color-text-primary, #2a1e16);
+  --fg2: var(--color-text-secondary, #6b5a4c);
+  --border: var(--color-border-primary, #eadcc8);
+  --accent: var(--color-text-info, #c2410c);
+  --danger: var(--color-text-danger, #b3261e);
+  --ok: var(--color-text-success, #2f7a3a);
+  --warn: var(--color-text-warning, #8a5a00);
+  --ring: var(--color-ring-primary, #ff8a3d);
+  --flame: var(--color-background-info, #ff8a3d);
+  --on-flame: var(--foyelle-on-primary, #2a1e16);
+  --edge: var(--color-border-secondary, var(--fg));
+  --edge-w: var(--border-width-regular, 2px);
+  --lift: var(--shadow-sm, 0 2px 0 var(--edge));
+  --sun: var(--foyelle-highlight, #ffd23f);
+  --on-sun: var(--foyelle-on-highlight, #2a1e16);
+  --hot: var(--foyelle-alert, #d6331f);
+  --on-hot: var(--foyelle-on-alert, #ffffff);
+  --pill: var(--border-radius-full, 999px);
+  --tilt: var(--foyelle-tilt, 1deg);
+  --radius: var(--border-radius-md, 14px);
+  --font: var(--font-sans, "Nunito", "Avenir Next", "Noto Sans", "Noto Sans CJK SC", system-ui, sans-serif);
+  --hand: var(--foyelle-display, "Gochi Hand", "Noteworthy", "Bradley Hand", var(--font));
+  --hand-weight: var(--foyelle-display-weight, 400);
+  --hand-scale: var(--foyelle-display-scale, 1);
+  --mono: var(--font-mono, ui-monospace, "SF Mono", Menlo, Consolas, monospace);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--color-background-primary, #2c231c);
+    --bg2: var(--color-background-secondary, #352a21);
+    --fg: var(--color-text-primary, #f6ecdf);
+    --fg2: var(--color-text-secondary, #cbb9a4);
+    --border: var(--color-border-primary, #44372c);
+    --accent: var(--color-text-info, #ffa25f);
+    --danger: var(--color-text-danger, #ff9c8a);
+    --ok: var(--color-text-success, #9fd18e);
+    --warn: var(--color-text-warning, #f0c96b);
+    --ring: var(--color-ring-primary, #ff8a3d);
+    --lift: 0 2px 0 rgba(0, 0, 0, .55);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--color-background-primary, #2c231c);
+  --bg2: var(--color-background-secondary, #352a21);
+  --fg: var(--color-text-primary, #f6ecdf);
+  --fg2: var(--color-text-secondary, #cbb9a4);
+  --border: var(--color-border-primary, #44372c);
+  --accent: var(--color-text-info, #ffa25f);
+  --danger: var(--color-text-danger, #ff9c8a);
+  --ok: var(--color-text-success, #9fd18e);
+  --warn: var(--color-text-warning, #f0c96b);
+  --ring: var(--color-ring-primary, #ff8a3d);
+  --lift: 0 2px 0 rgba(0, 0, 0, .55);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); font: 500 14.5px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+body { padding: 12px 16px 16px; }
+h1 { font: var(--hand-weight) calc(26px * var(--hand-scale))/1.1 var(--hand); margin: 0 0 10px; }
+h2 { font-size: 14.5px; margin: 16px 0 6px; font-weight: 800; }
+p { margin: 6px 0; }
+a, .link { color: var(--accent); }
+.muted { color: var(--fg2); }
+.mono, pre, code, textarea.mono { font-family: var(--mono); font-size: 12.5px; }
+pre { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; overflow: auto; white-space: pre-wrap; word-break: break-word; max-height: 60vh; margin: 6px 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+.spacer { flex: 1; }
+button, input, select, textarea {
+  font: inherit; color: var(--fg); background: var(--bg); border: 2px solid var(--border);
+  border-radius: var(--radius); padding: 5px 11px;
+}
+button {
+  cursor: pointer; font-weight: 800; border: var(--edge-w) solid var(--edge); border-radius: var(--pill); padding: 5px 14px;
+  box-shadow: var(--lift); transition: transform .12s ease, box-shadow .12s ease;
+}
+button:hover:not([disabled]) { transform: translateY(-1px); }
+button:active:not([disabled]) { transform: translateY(2px); box-shadow: none; }
+button[aria-pressed="true"], button.on { background: var(--sun); color: var(--on-sun); }
+button.primary { background: var(--flame); color: var(--on-flame); }
+input:focus, select:focus, textarea:focus { border-color: var(--edge); outline: none; }
+button.danger { color: var(--danger); }
+button[disabled] { opacity: .5; cursor: default; }
+button.linklike { background: none; border: none; padding: 0; color: var(--accent); text-align: left; box-shadow: none; border-radius: 0; font-weight: 700; }
+button.linklike:hover, button.linklike:active { transform: none; box-shadow: none; text-decoration: underline wavy var(--flame); text-underline-offset: 3px; }
+/* Bevelled themes (Millennium): buttons shaded light to dark over their colour, plain-weight words, a glow
+   inside on hover and sunken when pressed, instead of lifting. Other themes don't set --foyelle-bevel and skip this. */
+@container style(--foyelle-bevel: on) {
+  button:not(.linklike) { background-image: var(--foyelle-shade); box-shadow: none; font-weight: 400; }
+  button:not(.linklike):hover:not([disabled]) { transform: none; box-shadow: var(--foyelle-glow); }
+  button:not(.linklike):active:not([disabled]) { transform: none; background-image: var(--foyelle-shade-pressed); }
+}
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+textarea { width: 100%; min-height: 8em; resize: vertical; }
+label { display: block; margin: 12px 0 3px; color: var(--fg2); font-size: 12.5px; font-weight: 700; }
+input[type=text], input[type=search], input:not([type]) { width: 100%; }
+.toolbar input[type=search], .toolbar input[type=text] { width: auto; flex: 1; min-width: 10em; }
+.toolbar label { display: inline-flex; gap: 6px; align-items: center; margin: 0; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 7px 12px; border-bottom: 1.5px dashed var(--border); vertical-align: top; }
+th { color: var(--fg2); font-weight: 800; font-size: 12.5px; }
+tr.selected td { background: var(--bg2); }
+.list { list-style: none; margin: 0; padding: 0; }
+.list > li { padding: 12px 0; border-bottom: 1.5px dashed var(--border); }
+.card { border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 14px; margin: 12px 0; background: var(--bg); }
+.badge { display: inline-block; padding: 1px 8px; border-radius: var(--pill); font-size: 12px; font-weight: 800; background: var(--bg2); color: var(--fg2); }
+.badge.ok { color: var(--ok); }
+.badge.warn { background: var(--sun); color: var(--on-sun); }
+.badge.bad { background: var(--hot); color: var(--on-hot); transform: rotate(calc(var(--tilt) * -3)); }
+.status { min-height: 1.4em; font-size: 12.5px; color: var(--fg2); margin: 6px 0; }
+.status.error { color: var(--danger); }
+.status.busy::before { content: "… "; }
+.grid { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; }
+.grid dt { color: var(--fg2); }
+.grid dd { margin: 0; overflow-wrap: anywhere; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+@media (max-width: 640px) { .split { grid-template-columns: 1fr; } }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pre-line { white-space: pre-line; }
+.toolbar h1 { margin: 0; }
+</style>
+<script>
+/* Foyelle view runtime: the View side of MCP Apps (SEP-1865), protocol 2026-01-26.
+ * JSON-RPC 2.0 over postMessage with window.parent. No network, no dependencies.
+ * Untrusted text is always rendered with textContent (see h()). */
+(function () {
+  "use strict";
+  var PROTOCOL_VERSION = "2026-01-26";
+  var parent = window.parent;
+  var nextId = 1;
+  var pending = new Map();
+
+  var view = {
+    hostContext: {},
+    hostCapabilities: {},
+    hostInfo: null,
+    toolInput: null,
+    onToolInput: null,
+    onToolInputPartial: null,
+    onToolResult: null,
+    onToolCancelled: null,
+    onHostContext: null,
+    onTeardown: null,
+    onChanged: null,
+  };
+
+  function post(msg) { parent.postMessage(msg, "*"); }
+
+  function request(method, params) {
+    var id = nextId++;
+    return new Promise(function (resolve, reject) {
+      pending.set(id, { resolve: resolve, reject: reject });
+      post({ jsonrpc: "2.0", id: id, method: method, params: params || {} });
+    });
+  }
+
+  function notify(method, params) {
+    post({ jsonrpc: "2.0", method: method, params: params || {} });
+  }
+
+  function respond(id, result) { post({ jsonrpc: "2.0", id: id, result: result || {} }); }
+
+  function respondError(id, code, message) {
+    post({ jsonrpc: "2.0", id: id, error: { code: code, message: message } });
+  }
+
+  function call(fn, arg) {
+    if (typeof fn !== "function") return;
+    try { fn(arg); } catch (e) { console.error(e); }
+  }
+
+  function applyHostContext(ctx) {
+    if (!ctx) return;
+    Object.assign(view.hostContext, ctx);
+    var root = document.documentElement;
+    if (ctx.theme === "light" || ctx.theme === "dark") root.setAttribute("data-theme", ctx.theme);
+    // The spec's style variables, then Foyelle's own extras (display font, highlight colours).
+    [ctx.styles && ctx.styles.variables, ctx.foyelle && ctx.foyelle.styles].forEach(function (vars) {
+      if (!vars) return;
+      Object.keys(vars).forEach(function (k) {
+        if (/^--[a-z0-9-]+$/.test(k) && typeof vars[k] === "string") root.style.setProperty(k, vars[k]);
+      });
+    });
+    if (ctx.locale) root.lang = ctx.locale;
+  }
+
+  function onMessage(event) {
+    if (event.source !== parent) return;
+    var m = event.data;
+    if (!m || m.jsonrpc !== "2.0") return;
+    if (m.method === undefined && m.id !== undefined) {
+      var p = pending.get(m.id);
+      if (!p) return;
+      pending.delete(m.id);
+      if (m.error) {
+        var err = new Error(m.error.message || "request failed");
+        err.code = m.error.code;
+        err.data = m.error.data;
+        p.reject(err);
+      } else {
+        p.resolve(m.result);
+      }
+      return;
+    }
+    var params = m.params || {};
+    if (m.id !== undefined) {
+      switch (m.method) {
+        case "ping": respond(m.id, {}); return;
+        case "ui/resource-teardown": call(view.onTeardown, params); respond(m.id, {}); return;
+        default: respondError(m.id, -32601, "Method not found: " + m.method); return;
+      }
+    }
+    switch (m.method) {
+      case "ui/notifications/tool-input":
+        view.toolInput = params.arguments || {};
+        call(view.onToolInput, view.toolInput);
+        break;
+      case "ui/notifications/tool-input-partial": call(view.onToolInputPartial, params.arguments || {}); break;
+      case "ui/notifications/tool-result": call(view.onToolResult, params); break;
+      case "ui/notifications/tool-cancelled": call(view.onToolCancelled, params); break;
+      case "ui/notifications/host-context-changed":
+        applyHostContext(params);
+        call(view.onHostContext, view.hostContext);
+        break;
+      // Foyelle: the agent changed this helper's data (added a task, saved a file): reload.
+      case "foyelle/notifications/changed": call(view.onChanged, params); break;
+      default: break;
+    }
+  }
+
+  window.addEventListener("message", onMessage);
+
+  var sizeTimer = 0;
+  function reportSize() {
+    cancelAnimationFrame(sizeTimer);
+    sizeTimer = requestAnimationFrame(function () {
+      var el = document.documentElement;
+      notify("ui/notifications/size-changed", { width: Math.ceil(el.scrollWidth), height: Math.ceil(el.scrollHeight) });
+    });
+  }
+
+  view.connect = function (appInfo) {
+    return request("ui/initialize", {
+      appInfo: appInfo,
+      appCapabilities: {},
+      protocolVersion: PROTOCOL_VERSION,
+    }).then(function (result) {
+      result = result || {};
+      view.hostInfo = result.hostInfo || null;
+      view.hostCapabilities = result.hostCapabilities || {};
+      applyHostContext(result.hostContext || {});
+      notify("ui/notifications/initialized", {});
+      if (typeof ResizeObserver === "function") new ResizeObserver(reportSize).observe(document.body);
+      reportSize();
+      return result;
+    });
+  };
+
+  /** Call a tool on this view's own MCP server, through the host (policy applies). */
+  view.callTool = function (name, args) {
+    return request("tools/call", { name: name, arguments: args || {} });
+  };
+  view.readResource = function (uri) { return request("resources/read", { uri: uri }); };
+  /** Post a user message into the chat. */
+  view.sendMessage = function (text) {
+    return request("ui/message", { role: "user", content: [{ type: "text", text: text }] });
+  };
+  view.openLink = function (url) { return request("ui/open-link", { url: url }); };
+  view.updateModelContext = function (text) {
+    return request("ui/update-model-context", { content: [{ type: "text", text: text }] });
+  };
+  /** Ask the host to save a text file for the user (ui/download-file). */
+  view.downloadFile = function (filename, text, mimeType) {
+    return request("ui/download-file", {
+      contents: [{ type: "resource", resource: { uri: "file:///" + encodeURIComponent(filename), mimeType: mimeType || "text/plain", text: text } }],
+    });
+  };
+  view.requestTeardown = function () { notify("ui/notifications/request-teardown", {}); };
+
+  /** structuredContent of a CallToolResult, or the JSON in its first text block. */
+  view.data = function (result) {
+    if (!result) return null;
+    if (result.structuredContent) return result.structuredContent;
+    var block = (result.content || []).find(function (c) { return c.type === "text"; });
+    if (!block) return null;
+    try { return JSON.parse(block.text); } catch (e) { return { text: block.text }; }
+  };
+  view.errorText = function (result) {
+    if (!result || !result.isError) return null;
+    var block = (result.content || []).find(function (c) { return c.type === "text"; });
+    return block ? block.text : "The tool returned an error.";
+  };
+
+  /* ---- small DOM helpers (textContent only; never innerHTML with data) ---- */
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        var v = attrs[k];
+        if (v === null || v === undefined || v === false) return;
+        if (k === "class") el.className = v;
+        else if (k === "text") el.textContent = v;
+        else if (k.slice(0, 2) === "on" && typeof v === "function") el.addEventListener(k.slice(2), v);
+        else el.setAttribute(k, v === true ? "" : String(v));
+      });
+    }
+    for (var i = 2; i < arguments.length; i++) append(el, arguments[i]);
+    return el;
+  }
+  function append(el, child) {
+    if (child === null || child === undefined || child === false) return;
+    if (Array.isArray(child)) { child.forEach(function (c) { append(el, c); }); return; }
+    el.appendChild(child instanceof Node ? child : document.createTextNode(String(child)));
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
+  function $(sel) { return document.querySelector(sel); }
+
+  function status(text, kind) {
+    var el = $("#status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function fmtBytes(n) {
+    if (n === null || n === undefined) return "";
+    var u = ["B", "KB", "MB", "GB", "TB"], i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return (i ? n.toFixed(1) : String(n)) + " " + u[i];
+  }
+  function fmtDate(value, opts) {
+    if (!value) return "";
+    var d = new Date(typeof value === "number" ? value * 1000 : value);
+    if (isNaN(d)) return String(value);
+    opts = Object.assign({}, opts || { dateStyle: "medium", timeStyle: "short" });
+    if (!opts.timeZone && view.hostContext.timeZone) opts.timeZone = view.hostContext.timeZone;
+    try { return d.toLocaleString(view.hostContext.locale || undefined, opts); }
+    catch (e) { return d.toISOString(); }
+  }
+
+  /**
+   * Run a tool, show progress and errors in #status, resolve with its data
+   * (or null on error).
+   */
+  function run(name, args, busy) {
+    if (busy !== null) status(busy || "Working…", "busy");
+    return view.callTool(name, args).then(function (result) {
+      var err = view.errorText(result);
+      if (err) { status(err, "error"); return null; }
+      if (busy !== null) status("");
+      return view.data(result);
+    }, function (e) {
+      status((e && e.message) || "Request failed", "error");
+      return null;
+    });
+  }
+
+  /**
+   * Start a view. options: {name, render(data, args), load(), refresh()}. refresh, when given,
+   * runs when the agent changes this helper's data (several changes in a row run it once).
+   * When the host opened the view for a tool call, the tool result is
+   * rendered; otherwise (opened from the surface list) load() fetches data.
+   */
+  view.start = function (options) {
+    var gotResult = false, refreshTimer = 0;
+    if (options.refresh) {
+      view.onChanged = function () {
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(function () { options.refresh(); }, 400);
+      };
+    }
+    view.onToolResult = function (result) {
+      gotResult = true;
+      var err = view.errorText(result);
+      if (err) { status(err, "error"); return; }
+      status("");
+      // A view without render (one that loads its own data) loads when opened by a tool too.
+      if (options.render) options.render(view.data(result), view.toolInput || {});
+      else if (options.load) options.load();
+    };
+    return view.connect({ name: options.name, version: "0.1.0" }).then(function () {
+      // A tool-driven open gets tool-input then tool-result; give them a moment.
+      var toolDriven = !!view.hostContext.toolInfo || view.toolInput !== null;
+      setTimeout(function () {
+        if (!gotResult && view.toolInput === null && options.load) options.load();
+      }, toolDriven ? 1500 : 0);
+    }, function (e) {
+      status("Could not connect to the host: " + ((e && e.message) || e), "error");
+    });
+  };
+
+  // Surfaces run in a sandbox without allow-forms, where the browser never fires "submit". Wire
+  // a form's submit button and Enter in its single-line fields to the handler instead.
+  view.onSubmit = function (form, handler) {
+    var fire = function (e) { if (e) e.preventDefault(); handler(); };
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (b) {
+      b.addEventListener("click", fire);
+    });
+    form.querySelectorAll("input").forEach(function (input) {
+      if (input.type === "submit" || input.type === "button" || input.type === "checkbox") return;
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") fire(e); });
+    });
+    form.addEventListener("submit", fire);
+  };
+
+  view.h = h;
+  view.clear = clear;
+  view.$ = $;
+  view.status = status;
+  view.run = run;
+  view.fmtBytes = fmtBytes;
+  view.fmtDate = fmtDate;
+  window.FoyelleView = view;
+})();
+</script>
+</head>
+<body>
+<main>
+  <div class="toolbar">
+    <h1>Agenda</h1><span class="spacer"></span>
+    <button id="prev" type="button" aria-label="Previous week">Previous</button>
+    <button id="today" type="button">Today</button>
+    <button id="next" type="button" aria-label="Next week">Next</button>
+  </div>
+  <p id="range" class="muted"></p>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div id="days"></div>
+</main>
+<script>
+(function () {
+  var V = FoyelleView, h = V.h, rangeStart = null, tz;
+  function iso(d) { return d.toISOString(); }
+  function dayKey(e) { return (e.start || "").slice(0, 10); }
+  function time(e) {
+    if (e.all_day) return "All day";
+    return V.fmtDate(e.start, { timeStyle: "short", timeZone: tz }) + " – " + V.fmtDate(e.end, { timeStyle: "short", timeZone: tz });
+  }
+  function respond(e, response) {
+    V.run("respond_invite", { uid: e.uid, response: response }, "Waiting for approval…").then(function (r) {
+      if (r) { V.status("Replied: " + r.response.toLowerCase() + "."); load(); }
+    });
+  }
+  function card(e) {
+    var tentative = e.status === "TENTATIVE";
+    var actions = null;
+    if (e.is_invite) {
+      actions = h("div", { class: "toolbar" },
+        h("span", { class: "badge warn", text: "Invitation · " + (e.my_status || "").toLowerCase() }),
+        h("button", { type: "button", text: "Accept", onclick: function () { respond(e, "accept"); } }),
+        h("button", { type: "button", text: "Maybe", onclick: function () { respond(e, "tentative"); } }),
+        h("button", { type: "button", text: "Decline", onclick: function () { respond(e, "decline"); } }));
+    } else if (!e.attendees.length) {
+      actions = h("div", { class: "toolbar" },
+        tentative ? h("button", { type: "button", text: "Confirm", onclick: function () {
+          V.run("update_event", { uid: e.uid, status: "CONFIRMED" }, "Saving…").then(function (r) { if (r) load(); });
+        } }) : null,
+        h("button", { type: "button", class: "danger", text: "Delete", onclick: function () {
+          V.run("delete_event", { uid: e.uid }, "Waiting for approval…").then(function (r) { if (r) load(); });
+        } }));
+    }
+    return h("div", { class: "card" },
+      h("div", null, h("strong", { text: e.summary || "(untitled)" }), " ", tentative ? h("span", { class: "badge", text: "tentative" }) : null,
+        e.status === "CANCELLED" ? h("span", { class: "badge bad", text: "cancelled" }) : null),
+      h("div", { class: "muted", text: time(e) + (e.location ? " · " + e.location : "") }),
+      e.attendees.length ? h("div", { class: "muted ellipsis", text: e.attendees.length + " attendee(s)" + (e.organizer ? ", organised by " + e.organizer : "") }) : null,
+      actions);
+  }
+  function render(d) {
+    if (!d) return;
+    rangeStart = new Date(d.start);
+    tz = d.timezone;
+    V.$("#range").textContent = V.fmtDate(d.start, { dateStyle: "medium", timeZone: tz }) + " – " + V.fmtDate(d.end, { dateStyle: "medium", timeZone: tz }) + " (" + tz + ")";
+    var days = V.clear(V.$("#days")), groups = {};
+    (d.events || []).forEach(function (e) { (groups[dayKey(e)] = groups[dayKey(e)] || []).push(e); });
+    Object.keys(groups).sort().forEach(function (k) {
+      days.appendChild(h("section", { "aria-label": k }, h("h2", { text: V.fmtDate(k + "T12:00:00Z", { dateStyle: "full", timeZone: "UTC" }) }), groups[k].map(card)));
+    });
+    if (!days.firstChild) days.appendChild(h("p", { class: "muted", text: "Nothing scheduled." }));
+  }
+  function load(start) {
+    var args = { days: 7 };
+    if (start) args.start = iso(start); else if (rangeStart) args.start = iso(rangeStart);
+    return V.run("list_events", args, "Loading…").then(render);
+  }
+  function shift(days) { var d = new Date(rangeStart || Date.now()); d.setDate(d.getDate() + days); load(d); }
+  V.$("#prev").addEventListener("click", function () { shift(-7); });
+  V.$("#next").addEventListener("click", function () { shift(7); });
+  V.$("#today").addEventListener("click", function () { rangeStart = null; load(); });
+  // The agent added or moved an event: the same week, as it is now.
+  V.start({ name: "foyelle-calendar-agenda", render: render, load: function () { return load(); }, refresh: function () { load(); } });
+})();
+</script>
+</body>
+</html>

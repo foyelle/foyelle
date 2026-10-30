@@ -1,0 +1,50 @@
+/* The web demo around the canvas (demo/demo.ts): the banner, the suggestions, and a phone layout
+   where the conversation and the screen take turns. Only the theme's own colours are used. */
+
+.demo body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+.demo .shell { flex: 1; min-height: 0; height: auto; }
+
+.demo-banner {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; padding: 7px 16px;
+  font-size: 13.5px; font-weight: 600; color: var(--fg-2);
+  background: var(--panel-2) var(--grain); border-bottom: 2px dashed var(--dash);
+}
+.demo-flag {
+  font-weight: 800; color: var(--on-hot); background: var(--hot);
+  padding: 3px 12px; border-radius: var(--pill); white-space: nowrap;
+}
+.demo-more { flex: 1; min-width: 0; }
+.demo-home { color: var(--accent); font-weight: 800; text-decoration: none; white-space: nowrap; }
+.demo-home:hover, .demo-home:focus-visible { text-decoration: underline wavy var(--flame); text-underline-offset: 4px; }
+
+.demo-views { display: none; gap: 4px; }
+.demo-views button {
+  font: inherit; font-weight: 800; padding: 3px 12px; border-radius: var(--pill); cursor: pointer;
+  color: var(--fg-2); background: none; border: var(--edge-w) solid var(--edge-soft);
+}
+.demo-views button[aria-pressed="true"] { color: var(--on-sun); background: var(--sun); border-color: var(--edge); }
+
+.demo-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 6px 16px 4px; }
+.demo-try { font: var(--hand-weight) calc(19px * var(--hand-scale))/1 var(--hand); color: var(--fg-2); margin-right: 2px; }
+.demo-chip.home-chip { flex: none; margin: 0 0 3px; padding: 4px 12px; font-size: 13.5px; white-space: nowrap; transform: none; }
+
+/* A phone: one column, the banner's switch picks the conversation or the screen. */
+@media (max-width: 760px) {
+  .demo-banner { padding: 6px 12px; gap: 6px 10px; }
+  .demo-more { display: none; }
+  .demo-flag { font-size: 12.5px; padding: 3px 10px; }
+  .demo-views { display: flex; margin-left: auto; }
+  .demo .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .demo .bots, .demo .rail-resize, .demo .bar-foot { display: none; }
+  .demo .rail, .demo .stage { grid-column: 1; grid-row: 1; min-width: 0; border-right: 0; }
+  .demo[data-demo-view="chat"] .stage, .demo[data-demo-view="screen"] .rail { display: none; }
+  .demo .rail-head { padding: 10px 12px 6px; }
+  .demo .area { padding: 8px 10px 12px; }
+  /* One row that scrolls sideways, so the conversation keeps its room. */
+  .demo-chips { flex-wrap: nowrap; overflow-x: auto; padding: 6px 12px 0; gap: 6px; scrollbar-width: none; }
+  .demo-try { flex: none; }
+  .demo-chips::-webkit-scrollbar { display: none; }
+  .demo .bar { padding: 8px 12px 10px; }
+  /* 16px or more, so Safari on a phone doesn't zoom in on the field. */
+  .demo .bar textarea { font-size: 16px; }
+}
