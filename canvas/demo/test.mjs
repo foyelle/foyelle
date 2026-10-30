@@ -68,8 +68,8 @@ async function run(browserType, size) {
     await page.keyboard.press("Enter");
   };
   // Cards (approvals too) are sandboxed frames of their own.
-  const inCards = async (find) => {
-    for (let i = 0; i < 40; i++) {
+  const inCards = async (find, tries = 40) => {
+    for (let i = 0; i < tries; i++) {
       for (const frame of page.frames()) {
         if (frame === page.mainFrame()) continue;
         const target = find(frame);
@@ -78,6 +78,18 @@ async function run(browserType, size) {
       await pause(250);
     }
     throw new Error("not in any card");
+  };
+  // A click while a card is still connecting or redrawing can go unheard, as in Foyelle: a person
+  // clicks again, and so does this, until what the click should bring is there.
+  const clickUntil = async (find, done) => {
+    for (let i = 0; ; i++) {
+      await (await inCards(find)).click().catch(() => undefined);
+      try {
+        return await done();
+      } catch (err) {
+        if (i === 2) throw err;
+      }
+    }
   };
 
   try {
@@ -103,11 +115,8 @@ async function run(browserType, size) {
     await say("What's in my documents?");
     await shown("Here are your documents.");
     await view("screen");
-    for (const folder of ["documents/", "Letters/"]) {
-      await (await inCards((f) => f.getByText(folder, { exact: true }))).click();
-      await pause(600);
-    }
-    await inCards((f) => f.getByText("Thank you, Rita.md"));
+    await clickUntil((f) => f.getByText("documents/", { exact: true }), () => inCards((f) => f.getByText("Letters/", { exact: true }), 20));
+    await clickUntil((f) => f.getByText("Letters/", { exact: true }), () => inCards((f) => f.getByText("Thank you, Rita.md"), 20));
     await shot("files");
 
     // A letter drafted in the conversation.
@@ -121,16 +130,8 @@ async function run(browserType, size) {
     await shown(/I need your approval/);
     await (await inCards((f) => f.getByRole("button", { name: /Send it/ }))).waitFor();
     await shot("approval");
-    // A click while the card is still connecting can go unheard, as in Foyelle: then click again.
-    for (let i = 0; ; i++) {
-      await (await inCards((f) => f.getByRole("button", { name: /Send it/ }))).click().catch(() => undefined);
-      try {
-        await page.getByText(/Sent \(approval/).last().waitFor({ state: "attached", timeout: 5000 });
-        break;
-      } catch (err) {
-        if (i === 2) throw err;
-      }
-    }
+    await clickUntil((f) => f.getByRole("button", { name: /Send it/ }),
+      () => page.getByText(/Sent \(approval/).last().waitFor({ state: "attached", timeout: 5000 }));
 
     // The suggestions: the Themes card, then a different look, applied at once.
     await view("chat");
